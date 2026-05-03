@@ -92,6 +92,11 @@ function App() {
         case 'theme:dark': themeService.switchTheme('dark'); break
         case 'theme:sepia': themeService.switchTheme('sepia'); break
         case 'mode:toggle': useEditorStore.getState().toggleMode(); break
+        case 'mode:preview':
+          setMode(
+            useEditorStore.getState().mode === 'preview' ? 'split' : 'preview',
+          )
+          break
         case 'focus:mode': toggleFocusMode(); break
         case 'typewriter:mode': toggleTypewriterMode(); break
         case 'file:close': window.close(); break
@@ -116,9 +121,10 @@ function App() {
   const fileName = activeTab?.fileName ?? 'Confucius'
   const isModified = activeTab?.isModified ?? false
   const hasFile = activeTab !== null
+  const isPreviewMode = useEditorStore((s) => s.mode) === 'preview'
 
   return (
-    <div className="app-root">
+    <div className={`app-root${isPreviewMode ? ' preview-mode' : ''}`}>
       <header className="app-titlebar">
         <span className="app-title">
           {hasFile ? <>{fileName}{isModified && <span className="modified-dot"> ●</span>}</> : 'Confucius'}

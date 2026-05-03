@@ -59,6 +59,12 @@ export function setupMenu(win: BrowserWindow): void {
         ],
       },
       {
+        label: '切换预览模式',
+        accelerator: 'CmdOrCtrl+Shift+O',
+        type: 'checkbox',
+        click: () => win.webContents.send('menu:action', 'mode:preview'),
+      },
+      {
         label: '切换编辑模式',
         accelerator: 'CmdOrCtrl+Shift+P',
         click: () => win.webContents.send('menu:action', 'mode:toggle'),

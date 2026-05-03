@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 
-type EditorMode = 'split' | 'wysiwyg'
+type EditorMode = 'split' | 'wysiwyg' | 'preview'
 
 interface EditorState {
   content: string
@@ -37,7 +37,9 @@ export const useEditorStore = create<EditorState>((set) => ({
   setIsLargeFile: (v) => set({ isLargeFile: v }),
   bumpContentKey: () => set((s) => ({ contentKey: s.contentKey + 1 })),
   setMode: (mode) => set({ mode }),
-  toggleMode: () => set((s) => ({ mode: s.mode === 'split' ? 'wysiwyg' : 'split' })),
+  toggleMode: () => set((s) => ({
+    mode: s.mode === 'split' ? 'wysiwyg' : s.mode === 'wysiwyg' ? 'preview' : 'split',
+  })),
   setFocusMode: (v) => set({ focusMode: v }),
   toggleFocusMode: () => set((s) => ({ focusMode: !s.focusMode })),
   setTypewriterMode: (v) => set({ typewriterMode: v }),
