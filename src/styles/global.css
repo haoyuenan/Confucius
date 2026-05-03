@@ -8,6 +8,8 @@
   --bg-secondary: #f6f8fa;
   --bg-sidebar: #fafbfc;
   --bg-editor: #ffffff;
+  --bg-preview: #ffffff;
+  --bg-code: #f6f8fa;
 
   --text-primary: #24292e;
   --text-secondary: #586069;
@@ -18,6 +20,16 @@
 
   --accent-color: #0366d6;
   --accent-hover: #0256b9;
+
+  --code-highlight-bg: #f6f8fa;
+  --code-lang-color: #6a737d;
+
+  --table-border: #dfe2e5;
+  --table-header-bg: #f6f8fa;
+  --table-row-alt: #f6f8fa;
+
+  --scrollbar-bg: transparent;
+  --scrollbar-thumb: #c1c1c1;
 
   --titlebar-height: 40px;
   --sidebar-min-width: 200px;

@@ -7,6 +7,7 @@ import EditorLayout from './components/Editor/EditorLayout'
 import ThemeSelector from './components/Settings/ThemeSelector'
 import ModeSwitch from './components/Editor/ModeSwitch'
 import { themeService } from './services/theme-service'
+import { fileNameFromPath } from './utils/path'
 
 function App() {
   const version = useAppStore((s) => s.version)
@@ -67,16 +68,24 @@ function App() {
 
   const handleSaveFile = useCallback(async () => {
     if (currentFilePath) {
-      await window.electronAPI.writeFile(currentFilePath, editorContent)
-      markSaved(editorContent)
+      try {
+        await window.electronAPI.writeFile(currentFilePath, editorContent)
+        markSaved(editorContent)
+      } catch (err) {
+        console.error('保存文件失败:', err)
+      }
     }
   }, [currentFilePath, editorContent, markSaved])
 
   const handleSaveAs = useCallback(async () => {
     const filePath = await window.electronAPI.saveFileDialog()
     if (!filePath) return
-    await window.electronAPI.writeFile(filePath, editorContent)
-    openFile(filePath, editorContent)
+    try {
+      await window.electronAPI.writeFile(filePath, editorContent)
+      openFile(filePath, editorContent)
+    } catch (err) {
+      console.error('另存为失败:', err)
+    }
   }, [editorContent, openFile])
 
   const handleNewFile = useCallback(async () => {
@@ -144,9 +153,8 @@ function App() {
   // 监听导出完成通知
   useEffect(() => {
     const cleanup = window.electronAPI?.onExportDone((info) => {
-      const Notification = (window as any).Notification
-      if (Notification && Notification.permission === 'granted') {
-        new Notification('导出完成', {
+      if (window.Notification && window.Notification.permission === 'granted') {
+        new window.Notification('导出完成', {
           body: `${info.format} 已导出到: ${info.path}`,
         })
       }
@@ -155,7 +163,7 @@ function App() {
   }, [])
 
   const fileName = currentFilePath
-    ? currentFilePath.replace(/^.*[/\\]/, '')
+    ? fileNameFromPath(currentFilePath)
     : '未命名'
 
   return (

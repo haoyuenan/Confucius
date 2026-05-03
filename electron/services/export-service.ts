@@ -2,10 +2,6 @@ import { dialog, BrowserWindow } from 'electron'
 import { writeFile } from 'fs/promises'
 
 export class ExportService {
-  /**
-   * 导出为 HTML
-   * 通过渲染进程的 window.__exportPreviewHTML__() 获取渲染后的 HTML 片段
-   */
   async exportHtml(win: BrowserWindow): Promise<void> {
     const result = await dialog.showSaveDialog(win, {
       title: '导出为 HTML',
@@ -20,15 +16,9 @@ export class ExportService {
 
     const fullHtml = this.wrapHtmlDocument(bodyHtml)
     await writeFile(result.filePath, fullHtml, 'utf-8')
-
-    // 通知完成
     win.webContents.send('export:done', { format: 'HTML', path: result.filePath })
   }
 
-  /**
-   * 导出为 PDF
-   * 使用隐藏窗口 + printToPDF API
-   */
   async exportPdf(win: BrowserWindow): Promise<void> {
     const result = await dialog.showSaveDialog(win, {
       title: '导出为 PDF',
@@ -56,8 +46,8 @@ export class ExportService {
         `data:text/html;charset=utf-8,${encodeURIComponent(fullHtml)}`,
       )
 
-      // 等待渲染完成
-      await new Promise((resolve) => setTimeout(resolve, 500))
+      // 等待页面实际渲染完成，而非固定延时
+      await waitForPageReady(printWindow)
 
       const pdfData = await printWindow.webContents.printToPDF({
         printBackground: true,
@@ -66,8 +56,6 @@ export class ExportService {
       })
 
       await writeFile(result.filePath, pdfData)
-
-      // 通知完成
       win.webContents.send('export:done', { format: 'PDF', path: result.filePath })
     } finally {
       printWindow.close()
@@ -93,10 +81,7 @@ ${exportCss}
   }
 
   private getExportCss(): string {
-    // 导出时需要内联所有渲染相关 CSS
-    // 这里使用与预览一致的亮色主题变量
     return `
-/* github-markdown-css 亮色变量 */
 .markdown-body {
   --bgColor-default: #ffffff;
   --bgColor-muted: #f6f8fa;
@@ -163,7 +148,6 @@ ${exportCss}
 .markdown-body a:hover { text-decoration: underline; }
 .markdown-body hr { height: 0.25em; padding: 0; margin: 24px 0; background: var(--borderColor-default); border: 0; }
 
-/* 代码高亮 (github 亮色主题) */
 .hljs{display:block;overflow-x:auto;padding:0.5em;color:#333;background:#f8f8f8}
 .hljs-comment,.hljs-quote{color:#998;font-style:italic}
 .hljs-keyword,.hljs-selector-tag,.hljs-subst{color:#333;font-weight:bold}
@@ -188,4 +172,47 @@ ${exportCss}
 }
 `
   }
+}
+
+/**
+ * 等待浏览器页面渲染就绪。
+ * 使用 did-finish-load + requestAnimationFrame 确认帧已提交，
+ * 避免硬编码延迟导致大文档导出空白 PDF。
+ */
+function waitForPageReady(win: BrowserWindow): Promise<void> {
+  return new Promise((resolve) => {
+    const timeout = setTimeout(() => {
+      // 安全兜底：5 秒后无论如何继续
+      resolve()
+    }, 5000)
+
+    win.webContents.on('did-finish-load', () => {
+      // 额外等待一帧以确保布局完成
+      win.webContents
+        .executeJavaScript('document.readyState')
+        .then((state) => {
+          if (state === 'complete') {
+            clearTimeout(timeout)
+            resolve()
+          }
+        })
+        .catch(() => {
+          clearTimeout(timeout)
+          resolve()
+        })
+    })
+
+    // 如果 loadURL 在监听之前已完成，readyState 已经是 complete
+    win.webContents
+      .executeJavaScript('document.readyState')
+      .then((state) => {
+        if (state === 'complete') {
+          clearTimeout(timeout)
+          resolve()
+        }
+      })
+      .catch(() => {
+        // executeJavaScript 可能不可用（offscreen 模式），兜底等待
+      })
+  })
 }

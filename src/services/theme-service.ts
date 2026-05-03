@@ -1,3 +1,5 @@
+import { getMermaidInstance } from '../editor/mermaid-renderer'
+
 export type ThemeName = 'light' | 'dark' | 'sepia'
 
 class ThemeServiceImpl {
@@ -37,14 +39,13 @@ class ThemeServiceImpl {
       hljsLink.href = this.getHljsTheme(name)
     }
 
-    // 同步更新 Mermaid 主题（如果已加载）
-    if ((window as any).mermaidRef?.initialize) {
-      ;(window as any).mermaidRef.initialize({
+    // 同步更新 Mermaid 主题（通过模块级引用）
+    const mermaid = getMermaidInstance()
+    if (mermaid?.initialize) {
+      mermaid.initialize({
         theme: name === 'dark' ? 'dark' : name === 'sepia' ? 'neutral' : 'default',
       })
     }
-
-    // 同步更新 KaTeX 主题（仅需修改反色，默认就行）
   }
 
   private getHljsTheme(name: ThemeName): string {

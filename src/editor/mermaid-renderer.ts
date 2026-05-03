@@ -1,5 +1,12 @@
 import mermaid from 'mermaid'
 
+/** mermaid 实例引用，供 theme-service 切换主题时直接使用 */
+let mermaidInstance: typeof mermaid | null = null
+
+export function getMermaidInstance(): typeof mermaid | null {
+  return mermaidInstance
+}
+
 /** 初始化 Mermaid */
 export function initMermaid(theme: 'default' | 'dark' | 'neutral' = 'default'): void {
   mermaid.initialize({
@@ -8,9 +15,7 @@ export function initMermaid(theme: 'default' | 'dark' | 'neutral' = 'default'): 
     securityLevel: 'loose',
     fontFamily: 'sans-serif',
   })
-
-  // 保存引用供主题服务联动
-  ;(window as any).mermaidRef = mermaid
+  mermaidInstance = mermaid
 }
 
 /**

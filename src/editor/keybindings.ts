@@ -1,5 +1,4 @@
-import { keymap } from '@codemirror/view'
-import { EditorView } from '@codemirror/view'
+import { keymap, EditorView } from '@codemirror/view'
 import * as fmt from './format-helpers'
 
 export const editorKeyBindings = keymap.of([
