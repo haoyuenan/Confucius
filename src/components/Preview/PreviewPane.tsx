@@ -2,6 +2,7 @@ import { useMemo, useRef, useEffect } from 'react'
 import { renderMarkdown } from '../../editor/markdown-renderer'
 import { initMermaid, renderMermaidDiagrams } from '../../editor/mermaid-renderer'
 import { themeService } from '../../services/theme-service'
+import { updatePreviewContent } from '../../utils/dom-diff'
 import katex from 'katex'
 import 'katex/dist/katex.min.css'
 
@@ -11,28 +12,29 @@ interface PreviewPaneProps {
 
 function PreviewPane({ content }: PreviewPaneProps) {
   const previewRef = useRef<HTMLDivElement>(null)
+  const isFirstRender = useRef(true)
   const html = useMemo(() => renderMarkdown(content), [content])
 
-  // 注册导出函数（类型安全）
   useEffect(() => {
-    window.__exportPreviewHTML__ = () => {
-      return previewRef.current?.innerHTML || ''
-    }
-    return () => {
-      delete window.__exportPreviewHTML__
-    }
+    window.__exportPreviewHTML__ = () => previewRef.current?.innerHTML || ''
+    return () => { delete window.__exportPreviewHTML__ }
   }, [])
 
-  // 初始化 Mermaid（仅一次）
   useEffect(() => {
     const theme = themeService.getCurrentTheme()
     initMermaid(theme === 'dark' ? 'dark' : theme === 'sepia' ? 'neutral' : 'default')
   }, [])
 
-  // 每次 HTML 更新后渲染预览
   useEffect(() => {
     if (!previewRef.current) return
-    previewRef.current.innerHTML = html
+
+    // 首次或全量用 innerHTML，后续用 morphdom 增量更新
+    if (isFirstRender.current) {
+      previewRef.current.innerHTML = html
+      isFirstRender.current = false
+    } else {
+      updatePreviewContent(previewRef.current, html)
+    }
 
     renderMermaidDiagrams(previewRef.current).then(() => {
       renderMathInElement(previewRef.current!)
@@ -42,25 +44,30 @@ function PreviewPane({ content }: PreviewPaneProps) {
   return <div ref={previewRef} className="preview-pane markdown-body" />
 }
 
-/**
- * 遍历 DOM 渲染 $...$ 和 $$...$$ 公式
- */
 function renderMathInElement(element: HTMLElement): void {
+  // 跳过 code / pre 内部的公式（避免代码块内 $ 被误渲染）
+  const isInsideCode = (node: Node): boolean => {
+    let p = node.parentElement
+    while (p) {
+      if (p.tagName === 'CODE' || p.tagName === 'PRE') return true
+      p = p.parentElement
+    }
+    return false
+  }
+
   const textNodes: { node: Text; formula: string }[] = []
   const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT, null)
 
   while (walker.nextNode()) {
     const node = walker.currentNode as Text
+    if (isInsideCode(node)) continue
     const text = node.textContent || ''
 
     const blockRegex = /\$\$([\s\S]*?)\$\$/g
     let match: RegExpExecArray | null
     while ((match = blockRegex.exec(text)) !== null) {
       try {
-        const result = katex.renderToString(match[1].trim(), {
-          displayMode: true,
-          throwOnError: false,
-        })
+        const result = katex.renderToString(match[1].trim(), { displayMode: true, throwOnError: false })
         textNodes.push({ node, formula: result })
       } catch { /* ignore */ }
     }
@@ -68,10 +75,7 @@ function renderMathInElement(element: HTMLElement): void {
     const inlineRegex = /(?<!\$)\$([^$\n]+?)\$(?!\$)/g
     while ((match = inlineRegex.exec(text)) !== null) {
       try {
-        const result = katex.renderToString(match[1].trim(), {
-          displayMode: false,
-          throwOnError: false,
-        })
+        const result = katex.renderToString(match[1].trim(), { displayMode: false, throwOnError: false })
         textNodes.push({ node, formula: result })
       } catch { /* ignore */ }
     }

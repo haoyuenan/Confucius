@@ -20,6 +20,9 @@ export function setupMenu(win: BrowserWindow): void {
         ],
       },
       { type: 'separator' },
+      ...(isMac
+        ? [{ label: '关闭窗口', accelerator: 'CmdOrCtrl+W', click: () => win.webContents.send('menu:action', 'file:close') }]
+        : []),
       isMac ? { role: 'close', label: '关闭窗口' } : { role: 'quit', label: '退出' },
     ],
   }
@@ -43,6 +46,9 @@ export function setupMenu(win: BrowserWindow): void {
       { label: '切换侧边栏', accelerator: 'CmdOrCtrl+\\', click: () => win.webContents.send('menu:action', 'view:toggle-sidebar') },
       { type: 'separator' },
       { label: '搜索', accelerator: 'CmdOrCtrl+Shift+F', click: () => win.webContents.send('menu:action', 'search:focus') },
+      { type: 'separator' },
+      { label: '专注模式', type: 'checkbox', accelerator: 'F11', click: () => win.webContents.send('menu:action', 'focus:mode') },
+      { label: '打字机模式', type: 'checkbox', accelerator: 'F12', click: () => win.webContents.send('menu:action', 'typewriter:mode') },
       { type: 'separator' },
       {
         label: '主题',
@@ -73,33 +79,17 @@ export function setupMenu(win: BrowserWindow): void {
       {
         label: '关于 Confucius',
         click: () => {
-          dialog.showMessageBox(win, {
-            type: 'info',
-            title: '关于 Confucius',
-            message: 'Confucius',
-            detail: `版本: ${app.getVersion()}\n本地 Markdown 编辑器`,
-          })
+          dialog.showMessageBox(win, { type: 'info', title: '关于 Confucius', message: 'Confucius', detail: `版本: ${app.getVersion()}\n本地 Markdown 编辑器` })
         },
       },
     ],
   }
 
   const menuTemplate: MenuItemConstructorOptions[] = [
-    ...(isMac
-      ? [{ label: app.name, submenu: [
-        { role: 'about' as const },
-        { type: 'separator' as const },
-        { role: 'hide' as const },
-        { role: 'hideOthers' as const },
-        { role: 'unhide' as const },
-        { type: 'separator' as const },
-        { role: 'quit' as const },
-      ] } as MenuItemConstructorOptions]
-      : []),
-    fileMenu,
-    editMenu,
-    viewMenu,
-    helpMenu,
+    ...(isMac ? [{ label: app.name, submenu: [
+      { role: 'about' as const }, { type: 'separator' as const }, { role: 'hide' as const }, { role: 'hideOthers' as const }, { role: 'unhide' as const }, { type: 'separator' as const }, { role: 'quit' as const },
+    ] } as MenuItemConstructorOptions] : []),
+    fileMenu, editMenu, viewMenu, helpMenu,
   ]
 
   const menu = Menu.buildFromTemplate(menuTemplate)

@@ -5,27 +5,24 @@ import { markdown, markdownLanguage } from '@codemirror/lang-markdown'
 import { syntaxHighlighting, defaultHighlightStyle } from '@codemirror/language'
 import { editorKeyBindings } from './keybindings'
 import { wysiwygMode } from './wysiwyg-plugin'
+import { typewriterScrollListener } from './typewriter-mode'
 
 export function createEditorView(
   container: HTMLElement,
   onChange: (content: string) => void,
   enableWysiwyg = false,
+  enableTypewriter = false,
 ): EditorView {
   let updateTimeout: ReturnType<typeof setTimeout> | null = null
 
   const extensions = [
     basicSetup,
-    markdown({
-      base: markdownLanguage,
-      codeLanguages: [],
-    }),
+    markdown({ base: markdownLanguage, codeLanguages: [] }),
     syntaxHighlighting(defaultHighlightStyle),
     EditorView.updateListener.of((update) => {
       if (update.docChanged) {
         if (updateTimeout) clearTimeout(updateTimeout)
-        updateTimeout = setTimeout(() => {
-          onChange(update.state.doc.toString())
-        }, 150)
+        updateTimeout = setTimeout(() => { onChange(update.state.doc.toString()) }, 150)
       }
     }),
     keymap.of([...defaultKeymap, ...historyKeymap]),
@@ -46,15 +43,9 @@ export function createEditorView(
     }),
   ]
 
-  if (enableWysiwyg) {
-    extensions.push(wysiwygMode())
-  }
+  if (enableWysiwyg) extensions.push(wysiwygMode())
+  if (enableTypewriter) extensions.push(typewriterScrollListener())
 
-  const view = new EditorView({
-    doc: '',
-    extensions,
-    parent: container,
-  })
-
+  const view = new EditorView({ doc: '', extensions, parent: container })
   return view
 }

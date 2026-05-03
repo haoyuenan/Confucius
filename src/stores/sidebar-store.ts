@@ -4,9 +4,10 @@ import type { SearchResult } from '../types/search'
 
 export type SidebarTab = 'file-tree' | 'outline' | 'search'
 
+const SIDEBAR_WIDTH_KEY = 'confucius-sidebar-width'
+
 interface SidebarState {
   activeTab: SidebarTab
-  /** 当前打开的根文件夹路径 */
   rootPath: string | null
   fileTree: FileTreeNode | null
   expandedPaths: Set<string>
@@ -25,8 +26,11 @@ interface SidebarState {
   setSearchQuery: (q: string) => void
   setSearchResults: (results: SearchResult[]) => void
   setIsSearching: (v: boolean) => void
-  /** 重建文件树（展开状态不变） */
   refreshFileTree: (tree: FileTreeNode) => void
+  /** 从 localStorage 读取持久化的侧边栏宽度 */
+  getSavedWidth: () => number
+  /** 保存侧边栏宽度到 localStorage */
+  saveWidth: (w: number) => void
 }
 
 export const useSidebarStore = create<SidebarState>((set) => ({
@@ -43,23 +47,22 @@ export const useSidebarStore = create<SidebarState>((set) => ({
   setActiveTab: (tab) => set({ activeTab: tab }),
   setRootPath: (path) => set({ rootPath: path }),
   setFileTree: (tree) => set({ fileTree: tree }),
-
-  toggleExpand: (path) =>
-    set((s) => {
-      const next = new Set(s.expandedPaths)
-      if (next.has(path)) {
-        next.delete(path)
-      } else {
-        next.add(path)
-      }
-      return { expandedPaths: next }
-    }),
-
+  toggleExpand: (path) => set((s) => {
+    const next = new Set(s.expandedPaths)
+    next.has(path) ? next.delete(path) : next.add(path)
+    return { expandedPaths: next }
+  }),
   selectFile: (path) => set({ selectedPath: path }),
   setOutlineItems: (items) => set({ outlineItems: items }),
   setSearchQuery: (q) => set({ searchQuery: q }),
   setSearchResults: (results) => set({ searchResults: results }),
   setIsSearching: (v) => set({ isSearching: v }),
-
   refreshFileTree: (tree) => set({ fileTree: tree }),
+
+  getSavedWidth: () => {
+    try { return parseInt(localStorage.getItem(SIDEBAR_WIDTH_KEY) || '260', 10) } catch { return 260 }
+  },
+  saveWidth: (w) => {
+    localStorage.setItem(SIDEBAR_WIDTH_KEY, String(w))
+  },
 }))
