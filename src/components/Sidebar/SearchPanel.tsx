@@ -1,7 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
 import { useSidebarStore } from '../../stores/sidebar-store'
-import { useAppStore } from '../../stores/app-store'
-import { useEditorStore } from '../../stores/editor-store'
+import { useTabStore } from '../../stores/tab-store'
 import type { SearchResult } from '../../types/search'
 
 function SearchPanel() {
@@ -11,31 +10,12 @@ function SearchPanel() {
   const setSearchResults = useSidebarStore((s) => s.setSearchResults)
   const setIsSearching = useSidebarStore((s) => s.setIsSearching)
 
-  const isModified = useAppStore((s) => s.isModified)
-  const currentFilePath = useAppStore((s) => s.currentFilePath)
-  const openFile = useAppStore((s) => s.openFile)
-  const markSaved = useAppStore((s) => s.markSaved)
-  const setEditorContent = useEditorStore((s) => s.setContent)
-  const editorContent = useEditorStore((s) => s.content)
-  const bumpContentKey = useEditorStore((s) => s.bumpContentKey)
+  const openFile = useTabStore((s) => s.openFile)
 
   const [query, setQuery] = useState('')
   const [caseSensitive, setCaseSensitive] = useState(false)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const abortRef = useRef(false)
-
-  /** 先保存当前文件（如有修改） */
-  const saveCurrentIfNeeded = useCallback(async (): Promise<boolean> => {
-    if (isModified && currentFilePath) {
-      const result = await window.electronAPI.confirmSave()
-      if (result === 0) {
-        await window.electronAPI.writeFile(currentFilePath, editorContent)
-        markSaved(editorContent)
-      }
-      return result !== 2
-    }
-    return true
-  }, [isModified, currentFilePath, editorContent, markSaved])
 
   const performSearch = useCallback(
     async (q: string) => {
@@ -88,20 +68,14 @@ function SearchPanel() {
   /** 打开搜索结果对应文件 */
   const handleResultClick = useCallback(
     async (result: SearchResult) => {
-      // 先检查未保存修改
-      const proceed = await saveCurrentIfNeeded()
-      if (!proceed) return
-
       try {
         const file = await window.electronAPI.readFile(result.filePath)
         openFile(file.filePath, file.content)
-        setEditorContent(file.content)
-        bumpContentKey()
       } catch (err) {
         console.error('打开搜索结果文件失败:', err)
       }
     },
-    [openFile, setEditorContent, bumpContentKey, saveCurrentIfNeeded],
+    [openFile],
   )
 
   /** 高亮匹配文本 */
