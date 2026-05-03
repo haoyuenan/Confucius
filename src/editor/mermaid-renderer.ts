@@ -12,7 +12,7 @@ export function initMermaid(theme: 'default' | 'dark' | 'neutral' = 'default'): 
   mermaid.initialize({
     startOnLoad: false,
     theme,
-    securityLevel: 'loose',
+    securityLevel: 'strict',
     fontFamily: 'sans-serif',
   })
   mermaidInstance = mermaid

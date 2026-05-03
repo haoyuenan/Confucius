@@ -14,17 +14,19 @@ function EditorLayout() {
       <FormatToolbar />
       <div className="editor-content">
         {mode === 'wysiwyg' ? (
-          <div className="wysiwyg-layout" style={{ height: '100%' }}>
+          <div className="wysiwyg-layout" style={{ height: '100%' }} key="wysiwyg-container">
             <EditorPane
+              key="cm6-wysiwyg"
               initialContent={content}
               onContentChange={setContent}
               enableWysiwyg
             />
           </div>
         ) : (
-          <div className="split-pane">
+          <div className="split-pane" key="split-container">
             <ResizablePane defaultWidth="50%" minWidth={250}>
               <EditorPane
+                key="cm6-split"
                 initialContent={content}
                 onContentChange={setContent}
               />
