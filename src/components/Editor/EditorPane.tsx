@@ -1,13 +1,15 @@
 import { useEffect, useRef } from 'react'
 import { EditorView } from 'codemirror'
 import { createEditorView } from '../../editor/cm6-setup'
+import { setActiveView } from '../../editor/active-view'
 
 interface EditorPaneProps {
   initialContent?: string
   onContentChange: (markdown: string) => void
+  enableWysiwyg?: boolean
 }
 
-function EditorPane({ initialContent = '', onContentChange }: EditorPaneProps) {
+function EditorPane({ initialContent = '', onContentChange, enableWysiwyg = false }: EditorPaneProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const viewRef = useRef<EditorView | null>(null)
   const onChangeRef = useRef(onContentChange)
@@ -16,17 +18,21 @@ function EditorPane({ initialContent = '', onContentChange }: EditorPaneProps) {
   // 仅初始化一次
   useEffect(() => {
     if (!containerRef.current || viewRef.current) return
-    const view = createEditorView(containerRef.current, (content) => {
-      onChangeRef.current(content)
-    })
+    const view = createEditorView(
+      containerRef.current,
+      (content) => { onChangeRef.current(content) },
+      enableWysiwyg,
+    )
     viewRef.current = view
+    setActiveView(view)
     return () => {
+      setActiveView(null)
       view.destroy()
       viewRef.current = null
     }
-  }, [])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // 外部设置内容（打开文件或新建文件时）
+  // 外部设置内容
   useEffect(() => {
     if (!viewRef.current) return
     const cur = viewRef.current.state.doc.toString()

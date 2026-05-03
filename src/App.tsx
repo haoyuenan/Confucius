@@ -5,6 +5,7 @@ import { useSidebarStore } from './stores/sidebar-store'
 import Sidebar from './components/Sidebar/Sidebar'
 import EditorLayout from './components/Editor/EditorLayout'
 import ThemeSelector from './components/Settings/ThemeSelector'
+import ModeSwitch from './components/Editor/ModeSwitch'
 import { themeService } from './services/theme-service'
 
 function App() {
@@ -127,6 +128,9 @@ function App() {
         case 'theme:sepia':
           themeService.switchTheme('sepia')
           break
+        case 'mode:toggle':
+          useEditorStore.getState().toggleMode()
+          break
       }
     })
     return () => cleanup?.()
@@ -183,6 +187,7 @@ function App() {
         <main className="app-main">
           <EditorLayout />
         </main>
+        <ModeSwitch />
       </div>
     </div>
   )

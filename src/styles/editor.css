@@ -2,10 +2,24 @@
    Editor 与 Preview 样式
    ============================================ */
 
+/* ---- 编辑器容器（含工具栏）---- */
+.editor-area {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.editor-content {
+  flex: 1;
+  overflow: hidden;
+}
+
 /* ---- 编辑区 ---- */
 .editor-pane {
   height: 100%;
+  width: 100%;
   overflow: hidden;
+  min-width: 0;
 }
 
 /* ---- 预览区 ---- */

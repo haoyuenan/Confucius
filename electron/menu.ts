@@ -52,6 +52,11 @@ export function setupMenu(win: BrowserWindow): void {
           { label: '护眼', click: () => win.webContents.send('menu:action', 'theme:sepia') },
         ],
       },
+      {
+        label: '切换编辑模式',
+        accelerator: 'CmdOrCtrl+Shift+P',
+        click: () => win.webContents.send('menu:action', 'mode:toggle'),
+      },
       { type: 'separator' },
       { role: 'toggleDevTools', label: '开发者工具' },
       { role: 'reload', label: '重新加载' },
