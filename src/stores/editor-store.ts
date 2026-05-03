@@ -1,25 +1,31 @@
 import { create } from 'zustand'
 
+type EditorMode = 'split' | 'wysiwyg'
+
 interface EditorState {
-  /** 当前编辑器实时内容 */
   content: string
-  /** 加载状态 */
   isLoading: boolean
-  /** 递增版本号，每次打开文件时自增，用于强制重建编辑器 */
   contentKey: number
+  mode: EditorMode
 
   setContent: (content: string) => void
   setIsLoading: (loading: boolean) => void
-  /** 触发重新加载编辑器内容 */
   bumpContentKey: () => void
+  setMode: (mode: EditorMode) => void
+  toggleMode: () => void
 }
 
 export const useEditorStore = create<EditorState>((set) => ({
   content: '',
   isLoading: false,
   contentKey: 0,
+  mode: 'split',
 
   setContent: (content) => set({ content }),
   setIsLoading: (loading) => set({ isLoading: loading }),
   bumpContentKey: () => set((s) => ({ contentKey: s.contentKey + 1 })),
+  setMode: (mode) => set({ mode }),
+  toggleMode: () => set((s) => ({
+    mode: s.mode === 'split' ? 'wysiwyg' : 'split',
+  })),
 }))
