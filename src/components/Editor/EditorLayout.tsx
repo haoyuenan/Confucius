@@ -37,11 +37,15 @@ function EditorLayout() {
   return (
     <div className="editor-area">
       <TabBar />
-      <FormatToolbar />
-      <div className="editor-content">
+      {mode === 'split' && <FormatToolbar />}
+      <div className={`editor-content${mode === 'preview' ? ' preview-full' : ''}`}>
         {mode === 'wysiwyg' ? (
           <div className="wysiwyg-layout" style={{ height: '100%' }} key="wysiwyg-container">
             <EditorPane key={`cm6-${activeTabId}`} {...paneProps} enableWysiwyg />
+          </div>
+        ) : mode === 'preview' ? (
+          <div className="preview-full-layout" key="preview-container">
+            <PreviewPane content={content} />
           </div>
         ) : (
           <div className="split-pane" key="split-container">

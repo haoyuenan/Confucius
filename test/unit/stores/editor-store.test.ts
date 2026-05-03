@@ -40,10 +40,17 @@ describe('editor-store', () => {
     expect(useEditorStore.getState().mode).toBe('wysiwyg')
   })
 
-  test('toggleMode 切换 split ↔ wysiwyg', () => {
+  test('setMode 设置为预览模式', () => {
+    useEditorStore.getState().setMode('preview')
+    expect(useEditorStore.getState().mode).toBe('preview')
+  })
+
+  test('toggleMode 循环 split→wysiwyg→preview→split', () => {
     expect(useEditorStore.getState().mode).toBe('split')
     useEditorStore.getState().toggleMode()
     expect(useEditorStore.getState().mode).toBe('wysiwyg')
+    useEditorStore.getState().toggleMode()
+    expect(useEditorStore.getState().mode).toBe('preview')
     useEditorStore.getState().toggleMode()
     expect(useEditorStore.getState().mode).toBe('split')
   })

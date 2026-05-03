@@ -78,3 +78,24 @@
   overflow: hidden;
   background: var(--bg-preview, var(--bg-primary));
 }
+
+/* ---- 纯预览布局 ---- */
+.editor-content.preview-full {
+  height: 100%;
+}
+
+.preview-full-layout {
+  height: 100%;
+  overflow-y: auto;
+  background: var(--bg-preview, #ffffff);
+}
+
+.preview-full-layout .preview-pane {
+  max-width: 840px;
+  margin: 0 auto;
+}
+
+/* 纯预览时标题栏高亮指示 */
+.app-root.preview-mode .app-titlebar {
+  border-bottom-color: var(--accent-color);
+}
