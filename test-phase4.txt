@@ -1,0 +1,29 @@
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.5 [39m[90md:/OpenProjects/Confucius[39m
+
+ [31m❯[39m test/unit/services/encoding-detector.test.ts [2m([22m[2m0 test[22m[2m)[22m
+ [31m❯[39m test/unit/services/theme-service.test.ts [2m([22m[2m0 test[22m[2m)[22m
+ [31m❯[39m test/unit/editor/format-helpers.test.ts [2m([22m[2m0 test[22m[2m)[22m
+ [31m❯[39m test/integration/flows/theme-switch-flow.test.ts [2m([22m[2m0 test[22m[2m)[22m
+ [31m❯[39m test/integration/flows/tab-switch-flow.test.ts [2m([22m[2m0 test[22m[2m)[22m
+ [31m❯[39m test/integration/components/TabBar.test.tsx [2m([22m[2m0 test[22m[2m)[22m
+ [31m❯[39m test/integration/components/FormatToolbar.test.tsx [2m([22m[2m0 test[22m[2m)[22m
+ [31m❯[39m test/integration/components/FileTreePanel.test.tsx [2m([22m[2m0 test[22m[2m)[22m
+ [31m❯[39m test/unit/utils/sanitize.test.ts [2m([22m[2m0 test[22m[2m)[22m
+ [31m❯[39m test/integration/components/SearchPanel.test.tsx [2m([22m[2m0 test[22m[2m)[22m
+ [31m❯[39m test/unit/stores/tab-store.test.ts [2m([22m[2m0 test[22m[2m)[22m
+ [31m❯[39m test/unit/utils/dom-diff.test.ts [2m([22m[2m0 test[22m[2m)[22m
+ [31m❯[39m test/unit/stores/sidebar-store.test.ts [2m([22m[2m0 test[22m[2m)[22m
+ [31m❯[39m test/integration/components/ThemeSelector.test.tsx [2m([22m[2m0 test[22m[2m)[22m
+ [31m❯[39m test/integration/components/PreviewPane.test.tsx [2m([22m[2m0 test[22m[2m)[22m
+ [31m❯[39m test/integration/flows/file-open-flow.test.ts [2m([22m[2m0 test[22m[2m)[22m
+ [31m❯[39m test/unit/stores/app-store.test.ts [2m([22m[2m0 test[22m[2m)[22m
+ [31m❯[39m test/unit/utils/path.test.ts [2m([22m[2m0 test[22m[2m)[22m
+ [31m❯[39m test/unit/stores/editor-store.test.ts [2m([22m[2m0 test[22m[2m)[22m
+ [31m❯[39m test/unit/utils/large-file-handler.test.ts [2m([22m[2m0 test[22m[2m)[22m
+
+[2m Test Files [22m [1m[31m20 failed[39m[22m[90m (20)[39m
+[2m      Tests [22m [2mno tests[22m
+[2m   Start at [22m 16:50:50
+[2m   Duration [22m 28.48s[2m (transform 11.46s, setup 8.79s, import 0ms, tests 0ms, environment 100.18s)[22m
+
