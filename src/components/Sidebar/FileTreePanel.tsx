@@ -3,6 +3,7 @@ import { useSidebarStore } from '../../stores/sidebar-store'
 import { useAppStore } from '../../stores/app-store'
 import { useEditorStore } from '../../stores/editor-store'
 import { flattenTree, type FileTreeNode } from '../../types/file-tree'
+import { fileNameFromPath } from '../../utils/path'
 
 function FileTreePanel() {
   const rootPath = useSidebarStore((s) => s.rootPath)
@@ -14,8 +15,12 @@ function FileTreePanel() {
   const toggleExpand = useSidebarStore((s) => s.toggleExpand)
   const selectFile = useSidebarStore((s) => s.selectFile)
 
+  const isModified = useAppStore((s) => s.isModified)
+  const currentFilePath = useAppStore((s) => s.currentFilePath)
   const openFile = useAppStore((s) => s.openFile)
+  const markSaved = useAppStore((s) => s.markSaved)
   const setEditorContent = useEditorStore((s) => s.setContent)
+  const editorContent = useEditorStore((s) => s.content)
   const bumpContentKey = useEditorStore((s) => s.bumpContentKey)
 
   // 监听文件变更
@@ -49,6 +54,19 @@ function FileTreePanel() {
     setFileTree(null)
   }, [setRootPath, setFileTree])
 
+  /** 先保存当前文件（如有修改） */
+  const saveCurrentIfNeeded = useCallback(async (): Promise<boolean> => {
+    if (isModified && currentFilePath) {
+      const result = await window.electronAPI.confirmSave()
+      if (result === 0) {
+        await window.electronAPI.writeFile(currentFilePath, editorContent)
+        markSaved(editorContent)
+      }
+      return result !== 2 // true if not cancelled
+    }
+    return true
+  }, [isModified, currentFilePath, editorContent, markSaved])
+
   /** 点击文件节点 */
   const handleFileClick = useCallback(
     async (node: FileTreeNode) => {
@@ -57,6 +75,10 @@ function FileTreePanel() {
         return
       }
       if (node.type !== 'file') return
+
+      // 先检查未保存修改
+      const proceed = await saveCurrentIfNeeded()
+      if (!proceed) return
 
       selectFile(node.path)
       try {
@@ -68,7 +90,7 @@ function FileTreePanel() {
         console.error('打开文件失败:', err)
       }
     },
-    [toggleExpand, selectFile, openFile, setEditorContent, bumpContentKey],
+    [toggleExpand, selectFile, openFile, setEditorContent, bumpContentKey, saveCurrentIfNeeded],
   )
 
   /** 右键菜单 */
@@ -91,7 +113,7 @@ function FileTreePanel() {
         {rootPath ? (
           <>
             <span className="folder-path" title={rootPath}>
-              {rootPath.replace(/^.*[/\\]/, '')}
+              {fileNameFromPath(rootPath)}
             </span>
             <button className="toolbar-btn" onClick={handleCloseFolder} title="关闭文件夹">
               ✕

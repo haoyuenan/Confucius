@@ -112,13 +112,17 @@ export function insertOrderedList(view: EditorView): boolean {
   return true
 }
 
-/** 链接 */
+/** 链接：插入 [text](url) 并选中 url 部分 */
 export function insertLink(view: EditorView): boolean {
   const { from, to } = view.state.selection.main
   const s = view.state.sliceDoc(from, to) || '链接文本'
+  const inserted = `[${s}](url)`
+  // inserted 的字符位置: 0:[  1:s  1+s:]  2+s:(  3+s:u  4+s:r  5+s:l  6+s:)
+  const urlStart = from + s.length + 3
+  const urlEnd = urlStart + 3
   view.dispatch({
-    changes: { from, to, insert: `[${s}](url)` },
-    selection: { anchor: from, head: from + s.length + 7 },
+    changes: { from, to, insert: inserted },
+    selection: { anchor: urlStart, head: urlEnd },
   })
   return true
 }

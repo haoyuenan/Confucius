@@ -13,13 +13,13 @@ function PreviewPane({ content }: PreviewPaneProps) {
   const previewRef = useRef<HTMLDivElement>(null)
   const html = useMemo(() => renderMarkdown(content), [content])
 
-  // 注册导出函数
+  // 注册导出函数（类型安全）
   useEffect(() => {
-    ;(window as any).__exportPreviewHTML__ = () => {
+    window.__exportPreviewHTML__ = () => {
       return previewRef.current?.innerHTML || ''
     }
     return () => {
-      delete (window as any).__exportPreviewHTML__
+      delete window.__exportPreviewHTML__
     }
   }, [])
 
@@ -34,9 +34,7 @@ function PreviewPane({ content }: PreviewPaneProps) {
     if (!previewRef.current) return
     previewRef.current.innerHTML = html
 
-    // 先渲染 Mermaid 图表
     renderMermaidDiagrams(previewRef.current).then(() => {
-      // 再渲染 KaTeX 公式
       renderMathInElement(previewRef.current!)
     })
   }, [html])
@@ -49,7 +47,6 @@ function PreviewPane({ content }: PreviewPaneProps) {
  */
 function renderMathInElement(element: HTMLElement): void {
   const textNodes: { node: Text; formula: string }[] = []
-
   const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT, null)
 
   while (walker.nextNode()) {
@@ -65,9 +62,7 @@ function renderMathInElement(element: HTMLElement): void {
           throwOnError: false,
         })
         textNodes.push({ node, formula: result })
-      } catch {
-        // 忽略
-      }
+      } catch { /* ignore */ }
     }
 
     const inlineRegex = /(?<!\$)\$([^$\n]+?)\$(?!\$)/g
@@ -78,9 +73,7 @@ function renderMathInElement(element: HTMLElement): void {
           throwOnError: false,
         })
         textNodes.push({ node, formula: result })
-      } catch {
-        // 忽略
-      }
+      } catch { /* ignore */ }
     }
   }
 

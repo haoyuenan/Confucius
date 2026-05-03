@@ -47,8 +47,13 @@ export interface ElectronAPI {
   onExportDone: (callback: (info: { format: string; path: string }) => void) => () => void
 }
 
+/** 导出预览 HTML 的函数签名 */
+type ExportPreviewHTMLFn = () => string
+
 declare global {
   interface Window {
     electronAPI: ElectronAPI
+    /** 供主进程 ExportService 获取渲染后的 HTML 内容 */
+    __exportPreviewHTML__?: ExportPreviewHTMLFn
   }
 }

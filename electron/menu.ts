@@ -1,4 +1,4 @@
-import { app, Menu, BrowserWindow, MenuItemConstructorOptions } from 'electron'
+import { app, Menu, BrowserWindow, MenuItemConstructorOptions, dialog } from 'electron'
 
 export function setupMenu(win: BrowserWindow): void {
   const isMac = process.platform === 'darwin'
@@ -15,8 +15,8 @@ export function setupMenu(win: BrowserWindow): void {
       {
         label: '导出',
         submenu: [
-          { label: '导出为 HTML...', click: () => win.webContents.send('menu:action', 'export:html') },
-          { label: '导出为 PDF...', click: () => win.webContents.send('menu:action', 'export:pdf') },
+          { label: '导出为 HTML...', accelerator: 'CmdOrCtrl+Shift+H', click: () => win.webContents.send('menu:action', 'export:html') },
+          { label: '导出为 PDF...', accelerator: 'CmdOrCtrl+Shift+E', click: () => win.webContents.send('menu:action', 'export:pdf') },
         ],
       },
       { type: 'separator' },
@@ -73,7 +73,6 @@ export function setupMenu(win: BrowserWindow): void {
       {
         label: '关于 Confucius',
         click: () => {
-          const { dialog } = require('electron')
           dialog.showMessageBox(win, {
             type: 'info',
             title: '关于 Confucius',

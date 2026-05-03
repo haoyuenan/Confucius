@@ -1,7 +1,6 @@
 import MarkdownIt from 'markdown-it'
 import taskLists from 'markdown-it-task-lists'
 import hljs from 'highlight.js'
-import 'highlight.js/styles/github.css'
 
 const md = new MarkdownIt({
   html: true,
@@ -10,7 +9,6 @@ const md = new MarkdownIt({
   typographer: true,
   highlight: (str: string, lang: string): string => {
     if (lang === 'mermaid') {
-      // Mermaid 图表：不做高亮处理，保持原始文本供 mermaid-renderer 渲染
       return `<pre class="mermaid-container"><code class="language-mermaid">${md.utils.escapeHtml(str)}</code></pre>`
     }
 

@@ -1,9 +1,10 @@
-import { ipcMain, app, dialog, BrowserWindow, Menu } from 'electron'
+import { ipcMain, app, dialog, BrowserWindow, Menu, shell } from 'electron'
 import fs from 'fs/promises'
 import path from 'path'
 import { SearchService } from './services/search-service'
 import { FileWatcher } from './services/file-watcher'
 import { ExportService } from './services/export-service'
+import { decodeBuffer } from './services/encoding-detector'
 
 const searchService = new SearchService()
 const exportService = new ExportService()
@@ -61,7 +62,7 @@ export function registerIpcHandlers(): void {
 
   ipcMain.handle('file:write', async (_event, payload: { filePath: string; content: string }) => {
     const { filePath: targetPath, content } = payload
-    const resolvedPath = path.resolve(targetPath)
+    const resolvedPath = sanitizePath(targetPath)
     await fs.mkdir(path.dirname(resolvedPath), { recursive: true })
     await fs.writeFile(resolvedPath, content, 'utf-8')
   })
@@ -82,14 +83,16 @@ export function registerIpcHandlers(): void {
 
   // ---- 文件树 ----
   ipcMain.handle('file-tree:build', async (_event, rootPath: string) => {
-    return await buildFileTree(rootPath)
+    const safePath = sanitizePath(rootPath)
+    return await buildFileTree(safePath)
   })
 
   // ---- 文件监听 ----
   ipcMain.handle('file-watcher:start', async (_event, rootPath: string) => {
+    const safePath = sanitizePath(rootPath)
     fileWatcher?.unwatch()
     fileWatcher = new FileWatcher()
-    fileWatcher.watch(rootPath, () => {
+    fileWatcher.watch(safePath, () => {
       const win = BrowserWindow.getAllWindows()[0]
       win?.webContents.send('file-tree:changed')
     })
@@ -129,13 +132,14 @@ export function registerIpcHandlers(): void {
     menu.popup({ window: BrowserWindow.fromWebContents(event.sender)! })
   })
 
-  // ---- 侧边栏操作 ----
+  // ---- 侧边栏操作（均需路径校验）----
   ipcMain.handle('sidebar:create-file', async (_event, parentPath: string) => {
+    const safeParent = sanitizePath(parentPath)
     const win = BrowserWindow.getFocusedWindow()
     if (!win) return false
     const result = await dialog.showSaveDialog(win, {
       title: '新建 Markdown 文件',
-      defaultPath: path.join(parentPath, '未命名.md'),
+      defaultPath: path.join(safeParent, '未命名.md'),
       filters: [{ name: 'Markdown', extensions: ['md', 'markdown'] }],
     })
     if (result.canceled || !result.filePath) return false
@@ -144,11 +148,12 @@ export function registerIpcHandlers(): void {
   })
 
   ipcMain.handle('sidebar:create-dir', async (_event, parentPath: string) => {
+    const safeParent = sanitizePath(parentPath)
     const win = BrowserWindow.getFocusedWindow()
     if (!win) return false
     const result = await dialog.showSaveDialog(win, {
       title: '新建目录',
-      defaultPath: path.join(parentPath, '新建文件夹'),
+      defaultPath: path.join(safeParent, '新建文件夹'),
     })
     if (result.canceled || !result.filePath) return false
     await fs.mkdir(result.filePath, { recursive: true })
@@ -157,23 +162,25 @@ export function registerIpcHandlers(): void {
 
   ipcMain.handle('sidebar:rename', async (_event, payload: { oldPath: string; newName: string }) => {
     const { oldPath: oldPathStr, newName } = payload
-    const dir = path.dirname(oldPathStr)
+    const safeOldPath = sanitizePath(oldPathStr)
+    const dir = path.dirname(safeOldPath)
     const newPath = path.join(dir, newName)
-    await fs.rename(oldPathStr, newPath)
+    await fs.rename(safeOldPath, newPath)
   })
 
   ipcMain.handle('sidebar:delete', async (_event, targetPath: string) => {
-    const stat = await fs.stat(targetPath)
+    const safePath = sanitizePath(targetPath)
+    const stat = await fs.stat(safePath)
     if (stat.isDirectory()) {
-      await fs.rm(targetPath, { recursive: true, force: true })
+      await fs.rm(safePath, { recursive: true, force: true })
     } else {
-      await fs.unlink(targetPath)
+      await fs.unlink(safePath)
     }
   })
 
   ipcMain.handle('sidebar:reveal', async (_event, targetPath: string) => {
-    const { shell } = require('electron')
-    shell.showItemInFolder(targetPath)
+    const safePath = sanitizePath(targetPath)
+    shell.showItemInFolder(safePath)
   })
 
   // ---- 导出 ----
@@ -207,14 +214,40 @@ export function registerIpcHandlers(): void {
 
 // ---- 工具函数 ----
 
+/**
+ * 路径安全校验
+ * - 拒绝含 .. 的路径遍历
+ * - 拒绝空路径和非法字符
+ * - 拒绝指向系统关键目录的路径（可选加固）
+ */
+function sanitizePath(inputPath: string): string {
+  if (!inputPath || typeof inputPath !== 'string') {
+    throw new Error('拒绝：路径为空或类型无效')
+  }
+  // 禁止路径遍历
+  if (inputPath.includes('..')) {
+    throw new Error(`拒绝：路径包含非法序列 ".." — ${inputPath}`)
+  }
+  // 禁止空字节注入
+  if (inputPath.includes('\0')) {
+    throw new Error('拒绝：路径包含空字节')
+  }
+  const resolved = path.resolve(inputPath)
+  return resolved
+}
+
 async function readFileContent(filePath: string): Promise<{
   content: string
   filePath: string
 }> {
-  const resolvedPath = path.resolve(filePath)
-  let content = await fs.readFile(resolvedPath, 'utf-8')
-  content = content.replace(/\r\n/g, '\n').replace(/\r/g, '\n')
-  return { content, filePath: resolvedPath }
+  const resolvedPath = sanitizePath(filePath)
+  const buffer = await fs.readFile(resolvedPath)
+  const { content, encoding } = decodeBuffer(buffer)
+  const normalized = content.replace(/\r\n/g, '\n').replace(/\r/g, '\n')
+  if (encoding !== 'UTF-8') {
+    console.log(`文件编码检测: ${filePath} → ${encoding}`)
+  }
+  return { content: normalized, filePath: resolvedPath }
 }
 
 interface FileTreeNode {
@@ -224,23 +257,47 @@ interface FileTreeNode {
   children?: FileTreeNode[]
 }
 
+/**
+ * 迭代式构建文件树（栈实现，避免递归导致的调用栈溢出）
+ */
 async function buildFileTree(rootPath: string): Promise<FileTreeNode> {
-  const stat = await fs.stat(rootPath)
-  const name = path.basename(rootPath)
-  const node: FileTreeNode = {
-    name,
+  const safePath = sanitizePath(rootPath)
+  const rootName = path.basename(safePath)
+  const root: FileTreeNode = {
+    name: rootName,
     path: rootPath,
-    type: stat.isDirectory() ? 'directory' : 'file',
+    type: 'directory',
+    children: [],
   }
 
-  if (stat.isDirectory()) {
-    const entries = await fs.readdir(rootPath)
+  // 栈：每个元素为 { 父节点, 目录绝对路径 }
+  interface StackItem {
+    parent: FileTreeNode
+    dirPath: string
+  }
+  const stack: StackItem[] = [{ parent: root, dirPath: safePath }]
+
+  while (stack.length > 0) {
+    const item = stack.pop()!
+    const entries = await fs.readdir(item.dirPath)
     const children: FileTreeNode[] = []
 
     for (const entry of entries) {
       if (entry.startsWith('.')) continue
-      const childPath = path.join(rootPath, entry)
-      children.push(await buildFileTree(childPath))
+      const fullPath = path.join(item.dirPath, entry)
+      const stat = await fs.stat(fullPath)
+      const child: FileTreeNode = {
+        name: entry,
+        path: fullPath,
+        type: stat.isDirectory() ? 'directory' : 'file',
+      }
+
+      if (stat.isDirectory()) {
+        child.children = []
+        stack.push({ parent: child, dirPath: fullPath })
+      }
+
+      children.push(child)
     }
 
     children.sort((a, b) => {
@@ -248,8 +305,8 @@ async function buildFileTree(rootPath: string): Promise<FileTreeNode> {
       return a.name.localeCompare(b.name)
     })
 
-    node.children = children
+    item.parent.children = children
   }
 
-  return node
+  return root
 }
