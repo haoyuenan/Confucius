@@ -1,0 +1,54 @@
+/**
+ * preload.ts 通过 contextBridge 暴露的 API 类型定义
+ */
+import type { FileResult } from './file'
+import type { SearchResult } from './search'
+
+export interface FileTreeNode {
+  name: string
+  path: string
+  type: 'file' | 'directory'
+  children?: FileTreeNode[]
+}
+
+export interface ElectronAPI {
+  getVersion: () => Promise<string>
+  openFileDialog: () => Promise<FileResult | null>
+  saveFileDialog: () => Promise<string | null>
+  readFile: (filePath: string) => Promise<FileResult>
+  writeFile: (filePath: string, content: string) => Promise<void>
+  confirmSave: () => Promise<0 | 1 | 2>
+  onMenuAction: (callback: (action: string) => void) => () => void
+
+  // Phase 3
+  openFolderDialog: () => Promise<string | null>
+  buildFileTree: (rootPath: string) => Promise<FileTreeNode>
+  startFileWatcher: (rootPath: string) => Promise<void>
+  stopFileWatcher: () => Promise<void>
+  onFileTreeChanged: (callback: () => void) => () => void
+  showSidebarContextMenu: (params: { nodePath: string; nodeType: string }) => Promise<void>
+  onSidebarAction: (callback: (action: { action: string; path: string }) => void) => () => void
+  createFile: (parentPath: string) => Promise<boolean>
+  createDir: (parentPath: string) => Promise<boolean>
+  renameItem: (oldPath: string, newName: string) => Promise<void>
+  deleteItem: (targetPath: string) => Promise<void>
+  revealInExplorer: (targetPath: string) => Promise<void>
+  searchQuery: (params: {
+    rootPath: string
+    query: string
+    caseSensitive?: boolean
+    regex?: boolean
+    maxResults?: number
+  }) => Promise<SearchResult[]>
+
+  // Phase 4
+  exportHtml: () => Promise<void>
+  exportPdf: () => Promise<void>
+  onExportDone: (callback: (info: { format: string; path: string }) => void) => () => void
+}
+
+declare global {
+  interface Window {
+    electronAPI: ElectronAPI
+  }
+}

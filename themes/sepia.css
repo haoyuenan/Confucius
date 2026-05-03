@@ -1,0 +1,31 @@
+/* ============================================
+   护眼主题
+   ============================================ */
+[data-theme='sepia'] {
+  --bg-primary: #fbf0d9;
+  --bg-secondary: #f2e6c9;
+  --bg-sidebar: #f2e6c9;
+  --bg-editor: #fbf0d9;
+  --bg-preview: #fbf0d9;
+  --bg-code: #efe2bd;
+
+  --text-primary: #433422;
+  --text-secondary: #6b5a43;
+  --text-muted: #8c7a5f;
+
+  --border-color: #d8c8a0;
+  --border-divider: #cdba8e;
+
+  --accent-color: #8b5e3c;
+  --accent-hover: #704d30;
+
+  --code-highlight-bg: #efe2bd;
+  --code-lang-color: #7a6a50;
+
+  --table-border: #d8c8a0;
+  --table-header-bg: #efe2bd;
+  --table-row-alt: #efe2bd;
+
+  --scrollbar-bg: transparent;
+  --scrollbar-thumb: #b8a482;
+}

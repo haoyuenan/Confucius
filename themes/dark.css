@@ -1,0 +1,31 @@
+/* ============================================
+   暗色主题
+   ============================================ */
+[data-theme='dark'] {
+  --bg-primary: #1e1e1e;
+  --bg-secondary: #252526;
+  --bg-sidebar: #252526;
+  --bg-editor: #1e1e1e;
+  --bg-preview: #1e1e1e;
+  --bg-code: #2d2d2d;
+
+  --text-primary: #d4d4d4;
+  --text-secondary: #9d9d9d;
+  --text-muted: #6e6e6e;
+
+  --border-color: #3c3c3c;
+  --border-divider: #333333;
+
+  --accent-color: #569cd6;
+  --accent-hover: #4d8ac9;
+
+  --code-highlight-bg: #2d2d2d;
+  --code-lang-color: #808080;
+
+  --table-border: #3c3c3c;
+  --table-header-bg: #2d2d2d;
+  --table-row-alt: #2d2d2d;
+
+  --scrollbar-bg: transparent;
+  --scrollbar-thumb: #424242;
+}

@@ -1,0 +1,154 @@
+/* ============================================
+   Confucius — 全局样式
+   ============================================ */
+
+/* CSS 变量：亮色主题（默认） */
+:root {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f6f8fa;
+  --bg-sidebar: #fafbfc;
+  --bg-editor: #ffffff;
+
+  --text-primary: #24292e;
+  --text-secondary: #586069;
+  --text-muted: #959da5;
+
+  --border-color: #e1e4e8;
+  --border-divider: #d1d5da;
+
+  --accent-color: #0366d6;
+  --accent-hover: #0256b9;
+
+  --titlebar-height: 40px;
+  --sidebar-min-width: 200px;
+  --sidebar-max-width: 400px;
+}
+
+/* 基础重置 */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans',
+    Helvetica, Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text-primary);
+  background: var(--bg-primary);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* 禁止文本选择（编辑器内除外） */
+.app-root {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  user-select: none;
+}
+
+/* ---- 标题栏 ---- */
+.app-titlebar {
+  height: var(--titlebar-height);
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--border-color);
+  background: var(--bg-secondary);
+  -webkit-app-region: drag; /* 可拖拽区域 */
+  flex-shrink: 0;
+}
+
+.app-title {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--text-primary);
+}
+
+.app-version {
+  margin-left: 8px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* ---- 主体区域 ---- */
+.app-body {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* ---- 侧边栏 ---- */
+.app-sidebar {
+  width: 260px;
+  min-width: var(--sidebar-min-width);
+  max-width: var(--sidebar-max-width);
+  border-right: 1px solid var(--border-color);
+  background: var(--bg-sidebar);
+  overflow-y: auto;
+  flex-shrink: 0;
+  transition: width 0.2s ease, opacity 0.2s ease;
+}
+
+.app-sidebar.collapsed {
+  width: 0;
+  min-width: 0;
+  overflow: hidden;
+  opacity: 0;
+  border-right: none;
+}
+
+/* ---- 主编辑器区 ---- */
+.app-main {
+  flex: 1;
+  overflow: hidden;
+  background: var(--bg-editor);
+}
+
+/* ---- 修改标记 ---- */
+.modified-dot {
+  color: #d73a49;
+  font-weight: bold;
+}
+
+/* ---- 代码块 ---- */
+.code-block {
+  position: relative;
+  border-radius: 6px;
+  overflow: hidden;
+  margin: 1em 0;
+}
+
+.code-block .lang-label {
+  position: absolute;
+  top: 4px;
+  right: 10px;
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* ---- 自定义滚动条 ---- */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--text-muted);
+  border-radius: 4px;
+}
