@@ -1,6 +1,7 @@
 import MarkdownIt from 'markdown-it'
 import taskLists from 'markdown-it-task-lists'
 import hljs from 'highlight.js'
+import { sanitizeHtml } from '../utils/sanitize'
 
 const md = new MarkdownIt({
   html: true,
@@ -11,7 +12,6 @@ const md = new MarkdownIt({
     if (lang === 'mermaid') {
       return `<pre class="mermaid-container"><code class="language-mermaid">${md.utils.escapeHtml(str)}</code></pre>`
     }
-
     let highlighted: string
     if (lang && hljs.getLanguage(lang)) {
       try {
@@ -30,5 +30,6 @@ const md = new MarkdownIt({
 md.use(taskLists, { enabled: true, label: true, labelAfter: true })
 
 export function renderMarkdown(text: string): string {
-  return md.render(text)
+  const raw = md.render(text)
+  return sanitizeHtml(raw)
 }

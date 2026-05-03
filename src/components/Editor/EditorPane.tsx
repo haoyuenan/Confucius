@@ -7,21 +7,22 @@ interface EditorPaneProps {
   initialContent?: string
   onContentChange: (markdown: string) => void
   enableWysiwyg?: boolean
+  enableTypewriter?: boolean
 }
 
-function EditorPane({ initialContent = '', onContentChange, enableWysiwyg = false }: EditorPaneProps) {
+function EditorPane({ initialContent = '', onContentChange, enableWysiwyg = false, enableTypewriter = false }: EditorPaneProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const viewRef = useRef<EditorView | null>(null)
   const onChangeRef = useRef(onContentChange)
   onChangeRef.current = onContentChange
 
-  // 仅初始化一次
   useEffect(() => {
     if (!containerRef.current || viewRef.current) return
     const view = createEditorView(
       containerRef.current,
       (content) => { onChangeRef.current(content) },
       enableWysiwyg,
+      enableTypewriter,
     )
     viewRef.current = view
     setActiveView(view)
@@ -32,7 +33,6 @@ function EditorPane({ initialContent = '', onContentChange, enableWysiwyg = fals
     }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // 外部设置内容
   useEffect(() => {
     if (!viewRef.current) return
     const cur = viewRef.current.state.doc.toString()
@@ -43,7 +43,6 @@ function EditorPane({ initialContent = '', onContentChange, enableWysiwyg = fals
     }
   }, [initialContent])
 
-  // 大纲点击跳转
   useEffect(() => {
     const handler = (e: Event) => {
       const detail = (e as CustomEvent).detail as { position: number }

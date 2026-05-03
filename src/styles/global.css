@@ -132,6 +132,12 @@ body,
   font-weight: bold;
 }
 
+/* ---- 专注模式：非活动行置灰 ---- */
+.focus-mode-active .cm-line:not(.cm-active-line) {
+  opacity: var(--focus-dim-opacity, 0.3);
+  transition: opacity 0.3s ease;
+}
+
 /* ---- 代码块 ---- */
 .code-block {
   position: relative;

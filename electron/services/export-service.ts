@@ -118,6 +118,10 @@ ${exportCss}
 }
 
 .markdown-body pre {
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  word-break: break-all;
+
   padding: 16px;
   overflow: auto;
   font-size: 85%;
