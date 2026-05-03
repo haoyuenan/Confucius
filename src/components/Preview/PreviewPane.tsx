@@ -10,6 +10,12 @@ interface PreviewPaneProps {
   content: string
 }
 
+/** 模块级预览滚动容器引用（供 sync-scroll 使用） */
+let _previewScrollEl: HTMLElement | null = null
+export function getPreviewScrollEl(): HTMLElement | null {
+  return _previewScrollEl
+}
+
 function PreviewPane({ content }: PreviewPaneProps) {
   const previewRef = useRef<HTMLDivElement>(null)
   const isFirstRender = useRef(true)
@@ -17,7 +23,11 @@ function PreviewPane({ content }: PreviewPaneProps) {
 
   useEffect(() => {
     window.__exportPreviewHTML__ = () => previewRef.current?.innerHTML || ''
-    return () => { delete window.__exportPreviewHTML__ }
+    _previewScrollEl = previewRef.current
+    return () => {
+      delete window.__exportPreviewHTML__
+      _previewScrollEl = null
+    }
   }, [])
 
   useEffect(() => {

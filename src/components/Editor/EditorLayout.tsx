@@ -8,6 +8,8 @@ import { useEditorStore } from '../../stores/editor-store'
 import { useTabStore } from '../../stores/tab-store'
 import { toggleFocusMode } from '../../editor/focus-mode'
 import { getActiveView } from '../../editor/active-view'
+import { getPreviewScrollEl } from '../Preview/PreviewPane'
+import { useSyncScroll } from '../../editor/sync-scroll'
 
 function EditorLayout() {
   const activeTab = useTabStore((s) => s.activeTab())
@@ -19,6 +21,11 @@ function EditorLayout() {
   const typewriterMode = useEditorStore((s) => s.typewriterMode)
 
   toggleFocusMode(getActiveView(), focusMode)
+
+  // 双栏模式时同步编辑区和预览区的滚动
+  const editorScrollEl = getActiveView()?.scrollDOM ?? null
+  const previewScrollEl = getPreviewScrollEl()
+  useSyncScroll(editorScrollEl, previewScrollEl, mode === 'split')
 
   const content = activeTab?.content ?? ''
   const setContent = useCallback(
