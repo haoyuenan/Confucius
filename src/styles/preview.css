@@ -1,0 +1,183 @@
+/* ============================================
+   Markdown 预览样式
+   使用 CSS 变量支持亮色/暗色/护眼主题
+   ============================================ */
+
+.markdown-body {
+  box-sizing: border-box;
+  min-width: 200px;
+  max-width: 980px;
+  margin: 0 auto;
+  color: var(--fgColor-default, var(--text-primary));
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans',
+    Helvetica, Arial, sans-serif;
+  background: var(--bg-preview, var(--bg-primary));
+  padding: 24px 32px;
+}
+
+/* 强制亮色主题变量，防止 @media (prefers-color-scheme: dark) 覆盖 */
+[data-theme='light'] .markdown-body {
+  --bgColor-default: #ffffff;
+  --bgColor-muted: #f6f8fa;
+  --fgColor-default: #1f2328;
+  --fgColor-muted: #656d76;
+  --fgColor-accent: #0969da;
+  --borderColor-default: #d0d7de;
+}
+
+/* 当主题为暗色/护眼时，覆盖 github-markdown-css 的变量 */
+[data-theme='dark'] .markdown-body {
+  --bgColor-default: #1e1e1e;
+  --bgColor-muted: #2d2d2d;
+  --fgColor-default: #d4d4d4;
+  --fgColor-muted: #9d9d9d;
+  --fgColor-accent: #569cd6;
+  --borderColor-default: #3c3c3c;
+}
+
+[data-theme='sepia'] .markdown-body {
+  --bgColor-default: #fbf0d9;
+  --bgColor-muted: #efe2bd;
+  --fgColor-default: #433422;
+  --fgColor-muted: #6b5a43;
+  --fgColor-accent: #8b5e3c;
+  --borderColor-default: #d8c8a0;
+}
+
+/* 标题 */
+.markdown-body h1,
+.markdown-body h2 {
+  border-bottom: 1px solid var(--borderColor-default, var(--border-color));
+  padding-bottom: 0.3em;
+}
+
+.markdown-body h1 { font-size: 2em; }
+.markdown-body h2 { font-size: 1.5em; }
+.markdown-body h3 { font-size: 1.25em; }
+.markdown-body h4 { font-size: 1em; }
+.markdown-body h5 { font-size: 0.875em; }
+.markdown-body h6 { font-size: 0.85em; }
+
+/* 代码 */
+.markdown-body code {
+  padding: 0.2em 0.4em;
+  margin: 0;
+  font-size: 85%;
+  background: var(--bgColor-muted, var(--bg-secondary));
+  border-radius: 4px;
+  font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+}
+
+.markdown-body pre {
+  padding: 16px;
+  overflow: auto;
+  font-size: 85%;
+  line-height: 1.45;
+  background: var(--bgColor-muted, var(--bg-secondary));
+  border-radius: 6px;
+}
+
+.markdown-body pre code {
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  border: 0;
+}
+
+/* 引用 */
+.markdown-body blockquote {
+  padding: 0 1em;
+  color: var(--fgColor-muted, var(--text-muted));
+  border-left: 0.25em solid var(--borderColor-default, var(--border-color));
+  margin: 0;
+}
+
+/* 表格 */
+.markdown-body table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 1em 0;
+  overflow-x: auto;
+  display: block;
+}
+
+.markdown-body th,
+.markdown-body td {
+  border: 1px solid var(--borderColor-default, var(--border-color));
+  padding: 8px 12px;
+  text-align: left;
+}
+
+.markdown-body th {
+  background: var(--bgColor-muted, var(--bg-secondary));
+  font-weight: 600;
+}
+
+.markdown-body tr:nth-child(2n) {
+  background: var(--bgColor-muted, var(--bg-secondary));
+}
+
+/* 图片 */
+.markdown-body img {
+  max-width: 100%;
+  box-sizing: content-box;
+}
+
+/* 任务列表 */
+.markdown-body .task-list-item {
+  list-style: none;
+}
+
+.markdown-body .task-list-item input[type='checkbox'] {
+  margin: 0 0.2em 0.25em -1.6em;
+  vertical-align: middle;
+}
+
+/* 链接 */
+.markdown-body a {
+  color: var(--fgColor-accent, var(--accent-color));
+  text-decoration: none;
+}
+
+.markdown-body a:hover {
+  text-decoration: underline;
+}
+
+/* 水平线 */
+.markdown-body hr {
+  height: 0.25em;
+  padding: 0;
+  margin: 24px 0;
+  background: var(--borderColor-default, var(--border-color));
+  border: 0;
+}
+
+/* ============================================
+   Mermaid 图表样式
+   ============================================ */
+.mermaid-container {
+  background: var(--bgColor-muted, var(--bg-secondary));
+  border-radius: 6px;
+  padding: 16px;
+  overflow-x: auto;
+  text-align: center;
+}
+
+.mermaid-rendered {
+  background: transparent;
+  padding: 0;
+}
+
+.mermaid-rendered svg {
+  max-width: 100%;
+  height: auto;
+}
+
+.mermaid-error {
+  color: #d73a49;
+  font-size: 14px;
+  padding: 12px;
+  border: 1px solid #d73a49;
+  border-radius: 4px;
+  text-align: left;
+}
