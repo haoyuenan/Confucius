@@ -5,6 +5,7 @@ const createPromiseNoop = () => Promise.resolve()
 
 const mockElectronAPI = {
   getVersion: () => Promise.resolve('1.0.0'),
+  getEnv: () => Promise.resolve({ electron: '30.0.0', chrome: '120.0.0', node: '20.0.0', platform: 'win32', arch: 'x64' }),
   openFileDialog: () => Promise.resolve(null),
   saveFileDialog: () => Promise.resolve(null),
   readFile: (_path: string) => Promise.resolve({ content: `# File: ${_path}`, filePath: _path }),

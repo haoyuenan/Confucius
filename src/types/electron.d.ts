@@ -7,6 +7,7 @@ import type { FileTreeNode } from './file-tree'
 
 export interface ElectronAPI {
   getVersion: () => Promise<string>
+  getEnv: () => Promise<{ electron: string; chrome: string; node: string; platform: string; arch: string }>
   openFileDialog: () => Promise<FileResult | null>
   saveFileDialog: () => Promise<string | null>
   readFile: (filePath: string) => Promise<FileResult>

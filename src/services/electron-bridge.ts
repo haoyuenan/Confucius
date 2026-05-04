@@ -99,3 +99,6 @@ export function onMenuAction(callback: (action: string) => void): () => void {
 export function getVersion(): Promise<string> {
   return window.electronAPI.getVersion()
 }
+export function getEnv(): Promise<{ electron: string; chrome: string; node: string; platform: string; arch: string }> {
+  return window.electronAPI.getEnv()
+}
