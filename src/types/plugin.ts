@@ -21,12 +21,15 @@ export interface SidebarTabDef {
   component: ReactNode
 }
 
-/** 状态栏条目定义 */
+/** 状态栏条目定义 — 支持两种模式 */
 export interface StatusBarItemDef {
   id: string
   /** 优先级，越大越靠右 */
   priority: number
-  component: ReactNode
+  /** 模式A：React 组件（内置插件用） */
+  component?: ReactNode
+  /** 模式B：字符串或字符串生成函数（第三方纯 JS 插件用，每 500ms 轮询更新） */
+  label?: string | (() => string)
 }
 
 /** 命令定义 */
@@ -37,27 +40,32 @@ export interface CommandDef {
   execute: () => void
 }
 
-/** 插件运行时可访问的系统 API */
-export interface PluginContext {
-  /** 当前 CM6 EditorView（可能为 null） */
-  editorView: EditorView | null
-  /** 获取当前活跃标签 */
-  activeTab: () => TabData | null
-  /** 添加侧边栏面板，返回移除函数 */
-  addSidebarTab: (tab: SidebarTabDef) => () => void
-  /** 添加状态栏条目，返回移除函数 */
+/** 第三方插件上下文（不含 React，适用于外部纯 JS 插件） */
+export interface ExternalPluginContext {
+  /** 当前编辑器内容 */
+  getContent: () => string
+  /** 注册状态栏纯文本条目 */
   addStatusBarItem: (item: StatusBarItemDef) => () => void
-  /** 注册全局命令 */
-  registerCommand: (cmd: CommandDef) => void
-  /** 注册 CM6 扩展 */
-  registerCmExtension: (ext: Extension) => void
-  /** 监听内容变化，返回取消监听函数 */
-  onContentChange: (cb: (content: string) => void) => () => void
+  /** 注册侧边栏面板（需传入 HTML 字符串） */
+  addSidebarTab: (tab: SidebarTabDef) => () => void
+  /** 添加自定义样式 */
+  addStyle: (css: string) => () => void
+  /** 控制台日志（沙箱安全版本） */
+  console: Pick<Console, 'log' | 'warn' | 'error'>
 }
 
-/** 插件主接口 */
+/** 插件主接口 — 所有插件必须实现此接口 */
 export interface Plugin {
   manifest: PluginManifest
   onActivate?: (ctx: PluginContext) => void
   onDeactivate?: () => void
+}
+
+/** 插件运行时可访问的系统 API */
+export interface PluginContext extends ExternalPluginContext {
+  editorView: EditorView | null
+  activeTab: () => TabData | null
+  registerCommand: (cmd: CommandDef) => void
+  registerCmExtension: (ext: Extension) => void
+  onContentChange: (cb: (content: string) => void) => () => void
 }

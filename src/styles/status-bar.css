@@ -14,6 +14,7 @@
   color: var(--text-muted);
   flex-shrink: 0;
   user-select: none;
+  z-index: 10;
 }
 
 .status-left {
@@ -23,9 +24,14 @@
 .status-right {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
 }
 
 .status-item {
   white-space: nowrap;
+}
+
+/* 模式指示器加粗 */
+.status-item:first-child {
+  font-weight: 600;
 }
