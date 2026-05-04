@@ -3,6 +3,7 @@ import { useSidebarStore } from '../../stores/sidebar-store'
 import { useTabStore } from '../../stores/tab-store'
 import { flattenTree, type FileTreeNode } from '../../types/file-tree'
 import { fileNameFromPath } from '../../utils/path'
+import * as bridge from '../../services/electron-bridge'
 
 function FileTreePanel() {
   const rootPath = useSidebarStore((s) => s.rootPath)
@@ -18,10 +19,10 @@ function FileTreePanel() {
 
   // 监听文件变更
   useEffect(() => {
-    const cleanup = window.electronAPI?.onFileTreeChanged(() => {
+    const cleanup = bridge.onFileTreeChanged(() => {
       const currentRoot = useSidebarStore.getState().rootPath
       if (currentRoot) {
-        window.electronAPI.buildFileTree(currentRoot).then((tree) => {
+        bridge.buildFileTree(currentRoot).then((tree) => {
           useSidebarStore.getState().refreshFileTree(tree)
         })
       }
@@ -31,18 +32,18 @@ function FileTreePanel() {
 
   /** 打开文件夹 */
   const handleOpenFolder = useCallback(async () => {
-    const folderPath = await window.electronAPI.openFolderDialog()
+    const folderPath = await bridge.openFolderDialog()
     if (!folderPath) return
 
     setRootPath(folderPath)
-    const tree = await window.electronAPI.buildFileTree(folderPath)
+    const tree = await bridge.buildFileTree(folderPath)
     setFileTree(tree)
-    await window.electronAPI.startFileWatcher(folderPath)
+    await bridge.startFileWatcher(folderPath)
   }, [setRootPath, setFileTree])
 
   /** 关闭文件夹 */
   const handleCloseFolder = useCallback(async () => {
-    await window.electronAPI.stopFileWatcher()
+    await bridge.stopFileWatcher()
     setRootPath(null)
     setFileTree(null)
   }, [setRootPath, setFileTree])
@@ -58,7 +59,7 @@ function FileTreePanel() {
 
       selectFile(node.path)
       try {
-        const result = await window.electronAPI.readFile(node.path)
+        const result = await bridge.readFile(node.path)
         openFile(result.filePath, result.content)
       } catch (err) {
         console.error('打开文件失败:', err)
@@ -71,10 +72,7 @@ function FileTreePanel() {
   const handleContextMenu = useCallback(
     (e: React.MouseEvent, node: FileTreeNode) => {
       e.preventDefault()
-      window.electronAPI.showSidebarContextMenu({
-        nodePath: node.path,
-        nodeType: node.type,
-      })
+      bridge.showSidebarContextMenu(node.path, node.type)
     },
     [],
   )
@@ -89,14 +87,10 @@ function FileTreePanel() {
             <span className="folder-path" title={rootPath}>
               {fileNameFromPath(rootPath)}
             </span>
-            <button className="toolbar-btn" onClick={handleCloseFolder} title="关闭文件夹">
-              ✕
-            </button>
+            <button className="toolbar-btn" onClick={handleCloseFolder} title="关闭文件夹">✕</button>
           </>
         ) : (
-          <button className="open-folder-btn" onClick={handleOpenFolder}>
-            打开文件夹
-          </button>
+          <button className="open-folder-btn" onClick={handleOpenFolder}>打开文件夹</button>
         )}
       </div>
 
@@ -116,9 +110,7 @@ function FileTreePanel() {
             >
               <span className="file-icon">
                 {node.type === 'directory'
-                  ? expandedPaths.has(node.path)
-                    ? '▼'
-                    : '▶'
+                  ? expandedPaths.has(node.path) ? '▼' : '▶'
                   : '📄'}
               </span>
               <span className="file-name">{node.name}</span>

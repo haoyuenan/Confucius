@@ -50,26 +50,4 @@
   font-size: 0.85em;
 }
 
-/* ---- 模式切换按钮 ---- */
-.mode-switch {
-  position: fixed;
-  bottom: 12px;
-  right: 16px;
-  z-index: 100;
-  padding: 6px 14px;
-  border: 1px solid var(--border-color);
-  border-radius: 6px;
-  background: var(--bg-primary);
-  color: var(--text-secondary);
-  font-size: 13px;
-  font-family: inherit;
-  cursor: pointer;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-  transition: all 0.15s;
-  user-select: none;
-}
 
-.mode-switch:hover {
-  background: var(--bg-secondary);
-  color: var(--text-primary);
-}

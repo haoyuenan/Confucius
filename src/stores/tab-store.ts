@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { useEditorStore } from './editor-store'
 import { fileNameFromPath } from '../utils/path'
+import * as bridge from '../services/electron-bridge'
 
 export interface TabData {
   id: string
@@ -96,9 +97,9 @@ export const useTabStore = create<TabState>((set, get) => ({
     if (!tab) return false
 
     if (tab.isModified) {
-      const result = await window.electronAPI.confirmSave()
+      const result = await bridge.confirmSave()
       if (result === 0 && tab.filePath) {
-        await window.electronAPI.writeFile(tab.filePath, tab.content)
+        await bridge.writeFile(tab.filePath, tab.content)
         get().markTabSaved(tab.id)
       } else if (result === 2) {
         return false

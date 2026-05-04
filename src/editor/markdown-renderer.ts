@@ -1,6 +1,8 @@
 import MarkdownIt from 'markdown-it'
 import taskLists from 'markdown-it-task-lists'
+import texmath from 'markdown-it-texmath'
 import hljs from 'highlight.js'
+import katex from 'katex'
 import { sanitizeHtml } from '../utils/sanitize'
 
 const md = new MarkdownIt({
@@ -28,6 +30,13 @@ const md = new MarkdownIt({
 })
 
 md.use(taskLists, { enabled: true, label: true, labelAfter: true })
+
+// markdown-it-texmath: 在 markdown-it 层渲染 KaTeX 公式，无需 DOM 后处理
+md.use(texmath, {
+  engine: katex,
+  delimiters: 'dollars',
+  katexOptions: { throwOnError: false },
+})
 
 export function renderMarkdown(text: string): string {
   const raw = md.render(text)

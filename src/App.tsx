@@ -9,6 +9,7 @@ import ThemeSelector from './components/Settings/ThemeSelector'
 import ModeSwitch from './components/Editor/ModeSwitch'
 import { themeService } from './services/theme-service'
 import { checkLargeFile } from './editor/large-file-handler'
+import * as bridge from './services/electron-bridge'
 
 function App() {
   const version = useAppStore((s) => s.version)
@@ -39,7 +40,7 @@ function App() {
     const tab = useTabStore.getState().activeTab()
     if (!tab || !tab.filePath) return
     try {
-      await window.electronAPI.writeFile(tab.filePath, tab.content)
+      await bridge.writeFile(tab.filePath, tab.content)
       markTabSaved(tab.id)
     } catch (err) {
       console.error('保存文件失败:', err)
@@ -47,7 +48,7 @@ function App() {
   }, [markTabSaved])
 
   const handleOpenFile = useCallback(async () => {
-    const file = await window.electronAPI.openFileDialog()
+    const file = await bridge.openFileDialog()
     if (!file) return
 
     const large = checkLargeFile(file.content.length)
@@ -63,10 +64,10 @@ function App() {
   const handleSaveAs = useCallback(async () => {
     const tab = useTabStore.getState().activeTab()
     if (!tab) return
-    const fp = await window.electronAPI.saveFileDialog()
+    const fp = await bridge.saveFileDialog()
     if (!fp) return
     try {
-      await window.electronAPI.writeFile(fp, tab.content)
+      await bridge.writeFile(fp, tab.content)
       openFile(fp, tab.content)
     } catch (err) {
       console.error('另存为失败:', err)
@@ -78,7 +79,7 @@ function App() {
   }, [newUntitledTab])
 
   useEffect(() => {
-    const cleanup = window.electronAPI?.onMenuAction((action) => {
+    const cleanup = bridge.onMenuAction((action) => {
       switch (action) {
         case 'view:toggle-sidebar': toggleSidebar(); break
         case 'file:new': handleNewFile(); break
@@ -86,8 +87,8 @@ function App() {
         case 'file:save': handleSaveFile(); break
         case 'file:save-as': handleSaveAs(); break
         case 'search:focus': toggleSidebar(); setActiveTab('search'); break
-        case 'export:html': window.electronAPI.exportHtml(); break
-        case 'export:pdf': window.electronAPI.exportPdf(); break
+        case 'export:html': bridge.exportHtml(); break
+        case 'export:pdf': bridge.exportPdf(); break
         case 'theme:light': themeService.switchTheme('light'); break
         case 'theme:dark': themeService.switchTheme('dark'); break
         case 'theme:sepia': themeService.switchTheme('sepia'); break
@@ -106,11 +107,11 @@ function App() {
   }, [toggleSidebar, handleNewFile, handleOpenFile, handleSaveFile, handleSaveAs, setActiveTab, toggleFocusMode, toggleTypewriterMode])
 
   useEffect(() => {
-    window.electronAPI?.getVersion().then(setVersion).catch(console.error)
+    bridge.getVersion().then(setVersion).catch(console.error)
   }, [setVersion])
 
   useEffect(() => {
-    const cleanup = window.electronAPI?.onExportDone((info) => {
+    const cleanup = bridge.onExportDone((info) => {
       if (window.Notification?.permission === 'granted') {
         new window.Notification('导出完成', { body: `${info.format} 已导出到: ${info.path}` })
       }

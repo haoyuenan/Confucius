@@ -1,9 +1,10 @@
 import { getActiveView } from '../../editor/active-view'
 import * as fmt from '../../editor/format-helpers'
+import styles from './FormatToolbar.module.css'
 
 interface ButtonDef {
   icon: string
-  style?: string
+  btnStyle?: string
   title: string
   action: () => void
 }
@@ -29,46 +30,54 @@ function exec(command: string, level?: number): void {
   }
 }
 
-const GROUPS: ButtonDef[][] = [
-  // ── 标题 ──
-  [
-    { icon: 'H₁', title: '一级标题', action: () => exec('heading', 1) },
-    { icon: 'H₂', title: '二级标题', action: () => exec('heading', 2) },
-    { icon: 'H₃', title: '三级标题', action: () => exec('heading', 3) },
-  ],
-  // ── 行内格式 ──
-  [
-    { icon: 'B', style: 'btn-bold', title: '加粗 (Ctrl+B)', action: () => exec('bold') },
-    { icon: 'I', style: 'btn-italic', title: '斜体 (Ctrl+I)', action: () => exec('italic') },
-    { icon: 'S', style: 'btn-strike', title: '删除线', action: () => exec('strike') },
-  ],
-  // ── 块级格式 ──
-  [
-    { icon: '\u275D', title: '引用 (Ctrl+Shift+[)', action: () => exec('quote') },
-    { icon: '{ }', title: '代码块 (Ctrl+Shift+`)', action: () => exec('codeblock'), style: 'btn-code' },
-    { icon: '\u0060', title: '行内代码 (Ctrl+`)', action: () => exec('inlinecode') },
-    { icon: '\u2261', title: '无序列表 (Ctrl+Shift+L)', action: () => exec('ullist') },
-    { icon: '\u0023', title: '有序列表 (Ctrl+Shift+O)', action: () => exec('ollist') },
-  ],
-  // ── 插入 ──
-  [
-    { icon: '\u2211', title: '公式块 (Ctrl+Shift+M)', action: () => exec('mathblock') },
-    { icon: '\u2197', title: '链接 (Ctrl+K)', action: () => exec('link') },
-    { icon: '\u25A1', title: '图片', action: () => exec('image') },
-    { icon: '\u2014', title: '分割线', action: () => exec('hr') },
-  ],
+const groups: { label: string; buttons: ButtonDef[] }[] = [
+  {
+    label: '标题',
+    buttons: [
+      { icon: 'H₁', title: '一级标题 (Ctrl+1)', action: () => exec('heading', 1) },
+      { icon: 'H₂', title: '二级标题 (Ctrl+2)', action: () => exec('heading', 2) },
+      { icon: 'H₃', title: '三级标题 (Ctrl+3)', action: () => exec('heading', 3) },
+    ],
+  },
+  {
+    label: '行内',
+    buttons: [
+      { icon: 'B', btnStyle: styles.btnBold, title: '加粗 (Ctrl+B)', action: () => exec('bold') },
+      { icon: 'I', btnStyle: styles.btnItalic, title: '斜体 (Ctrl+I)', action: () => exec('italic') },
+      { icon: 'S', btnStyle: styles.btnStrike, title: '删除线', action: () => exec('strike') },
+    ],
+  },
+  {
+    label: '块级',
+    buttons: [
+      { icon: '❝', title: '引用 (Ctrl+Shift+[)', action: () => exec('quote') },
+      { icon: '{ }', btnStyle: styles.btnCode, title: '代码块 (Ctrl+Shift+`)', action: () => exec('codeblock') },
+      { icon: '`', title: '行内代码 (Ctrl+`)', action: () => exec('inlinecode') },
+      { icon: '≡', title: '无序列表 (Ctrl+Shift+L)', action: () => exec('ullist') },
+      { icon: '#', title: '有序列表 (Ctrl+Shift+O)', action: () => exec('ollist') },
+    ],
+  },
+  {
+    label: '插入',
+    buttons: [
+      { icon: '∑', title: '公式块 (Ctrl+Shift+M)', action: () => exec('mathblock') },
+      { icon: '↗', title: '链接 (Ctrl+K)', action: () => exec('link') },
+      { icon: '□', title: '图片', action: () => exec('image') },
+      { icon: '—', title: '分割线', action: () => exec('hr') },
+    ],
+  },
 ]
 
 function FormatToolbar() {
   return (
-    <div className="format-toolbar">
-      {GROUPS.map((group, gi) => (
-        <span key={gi} className="toolbar-group">
-          {gi > 0 && <span className="toolbar-divider" />}
-          {group.map((btn, bi) => (
+    <div className={styles.formatToolbar}>
+      {groups.map((group, gi) => (
+        <span key={group.label} className={styles.toolbarGroup}>
+          {gi > 0 && <span className={styles.toolbarDivider} />}
+          {group.buttons.map((btn) => (
             <button
-              key={bi}
-              className={`toolbar-btn${btn.style ? ' ' + btn.style : ''}`}
+              key={btn.title}
+              className={`${styles.toolbarBtn}${btn.btnStyle ? ` ${btn.btnStyle}` : ''}`}
               data-tooltip={btn.title}
               onClick={btn.action}
             >

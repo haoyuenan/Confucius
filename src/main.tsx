@@ -7,22 +7,29 @@ import './styles/editor.css'
 import './styles/preview.css'
 import './styles/sidebar.css'
 import './styles/wysiwyg.css'
-import './styles/toolbar.css'
-import './styles/tab-bar.css'
 import '../themes/light.css'
 import '../themes/dark.css'
 import '../themes/sepia.css'
 
-// 动态加载 highlight.js CDN 主题（由 theme-service 切换）
-// 初始加载亮色主题，切换时 theme-service 会修改 href
-const hljsLink = document.createElement('link')
-hljsLink.id = 'hljs-theme'
-hljsLink.rel = 'stylesheet'
-hljsLink.href = 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css'
-hljsLink.onerror = () => {
-  console.warn('highlight.js 主题 CDN 加载失败，降级使用默认样式')
+// ── highlight.js 主题（本地打包，移除 CDN 依赖）──
+import hljsLight from 'highlight.js/styles/github.css?inline'
+import hljsDark from 'highlight.js/styles/atom-one-dark.css?inline'
+import hljsSepia from 'highlight.js/styles/idea.css?inline'
+
+const hljsThemes: Record<string, string> = {
+  light: hljsLight,
+  dark: hljsDark,
+  sepia: hljsSepia,
 }
-document.head.appendChild(hljsLink)
+
+// 创建 3 个 <style> 元素，默认只启用 light
+;(['light', 'dark', 'sepia'] as const).forEach((name) => {
+  const style = document.createElement('style')
+  style.id = `hljs-${name}`
+  style.textContent = hljsThemes[name]
+  style.disabled = name !== 'light'
+  document.head.appendChild(style)
+})
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

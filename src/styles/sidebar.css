@@ -236,7 +236,8 @@
 
 .search-input:focus {
   border-color: var(--accent-color);
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-color) 25%, transparent);
+  box-shadow: 0 0 0 2px rgba(3, 102, 214, 0.25);
+  outline: none;
 }
 
 .search-options {
@@ -343,44 +344,7 @@
   background: var(--bg-sidebar);
 }
 
-/* ---- 主题选择器 ---- */
-.theme-selector {
-  display: flex;
-  gap: 4px;
-}
-
-.theme-btn {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  padding: 6px 4px;
-  border: 1px solid transparent;
-  border-radius: 4px;
-  background: transparent;
-  cursor: pointer;
-  font-size: 12px;
-  font-family: inherit;
-  color: var(--text-muted);
-  transition: all 0.15s;
-}
-
-.theme-btn:hover {
-  background: var(--bg-secondary);
-  color: var(--text-primary);
-}
-
-.theme-btn.active {
-  border-color: var(--accent-color);
-  color: var(--accent-color);
-  background: var(--bg-secondary);
-}
-
-.theme-icon {
-  font-size: 14px;
-  line-height: 1;
-}
+/* ---- 主题选择器（已迁移到 ThemeSelector.module.css）---- */
 
 .theme-label {
   line-height: 1;

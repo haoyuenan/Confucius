@@ -1,4 +1,5 @@
 import { useEditorStore } from '../../stores/editor-store'
+import styles from './ModeSwitch.module.css'
 
 function ModeSwitch() {
   const mode = useEditorStore((s) => s.mode)
@@ -13,7 +14,7 @@ function ModeSwitch() {
   const { icon, title } = config[mode] ?? config.split
 
   return (
-    <button className="mode-switch" onClick={toggleMode} title={title}>
+    <button className={styles.modeSwitch} onClick={toggleMode} title={title}>
       {icon}
     </button>
   )
