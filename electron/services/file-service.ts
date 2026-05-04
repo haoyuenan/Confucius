@@ -72,6 +72,23 @@ export class FileService {
     return fs.readdir(safePath, { withFileTypes: true })
   }
 
+  /** 在指定父目录下创建 Markdown 文件 */
+  async createFile(parentPath: string, fileName = '未命名.md'): Promise<string> {
+    const safeParent = this.sanitizePath(parentPath)
+    const filePath = path.join(safeParent, fileName)
+    await fs.mkdir(safeParent, { recursive: true })
+    await fs.writeFile(filePath, '', 'utf-8')
+    return filePath
+  }
+
+  /** 在指定父目录下创建目录 */
+  async createDir(parentPath: string, dirName = '新建文件夹'): Promise<string> {
+    const safeParent = this.sanitizePath(parentPath)
+    const dirPath = path.join(safeParent, dirName)
+    await fs.mkdir(dirPath, { recursive: true })
+    return dirPath
+  }
+
   /** 迭代栈构建文件树，无递归溢出风险 */
   async buildFileTree(rootPath: string): Promise<FileTreeNode> {
     const safePath = this.sanitizePath(rootPath)

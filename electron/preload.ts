@@ -1,11 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron'
-
-interface FileTreeNode {
-  name: string
-  path: string
-  type: 'file' | 'directory'
-  children?: FileTreeNode[]
-}
+import type { FileTreeNode } from './services/file-service'
 
 interface SearchResult {
   filePath: string

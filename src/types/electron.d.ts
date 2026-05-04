@@ -3,13 +3,7 @@
  */
 import type { FileResult } from './file'
 import type { SearchResult } from './search'
-
-export interface FileTreeNode {
-  name: string
-  path: string
-  type: 'file' | 'directory'
-  children?: FileTreeNode[]
-}
+import type { FileTreeNode } from './file-tree'
 
 export interface ElectronAPI {
   getVersion: () => Promise<string>

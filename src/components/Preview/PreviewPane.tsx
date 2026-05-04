@@ -5,6 +5,7 @@ import { initMermaid, renderMermaidDiagrams } from '../../editor/mermaid-rendere
 import { themeService } from '../../services/theme-service'
 import { updatePreviewContent } from '../../utils/dom-diff'
 import { useSidebarStore } from '../../stores/sidebar-store'
+import { useEditorStore } from '../../stores/editor-store'
 import { getActiveView } from '../../editor/active-view'
 import 'katex/dist/katex.min.css'
 
@@ -83,7 +84,11 @@ function PreviewPane({ content }: PreviewPaneProps) {
       updatePreviewContent(previewRef.current, html)
     }
 
-    renderMermaidDiagrams(previewRef.current)
+    // 大文件跳过 Mermaid 渲染（性能开销大）
+    const isLarge = useEditorStore.getState().isLargeFile
+    if (!isLarge) {
+      renderMermaidDiagrams(previewRef.current)
+    }
   }, [html])
 
   return <div ref={previewRef} className="preview-pane markdown-body" />

@@ -1,6 +1,4 @@
 import { ipcMain, app, dialog, BrowserWindow, Menu, shell } from 'electron'
-import path from 'path'
-import fs from 'fs/promises'
 import { FileService } from './services/file-service'
 import { FileWatcher } from './services/file-watcher'
 import { ExportService } from './services/export-service'
@@ -150,29 +148,12 @@ export function registerIpcHandlers(): void {
 
   // ---- 侧边栏操作 ----
   ipcMain.handle('sidebar:create-file', async (_event, parentPath: string) => {
-    const safeParent = fileService.sanitizePath(parentPath)
-    const win = BrowserWindow.getFocusedWindow()
-    if (!win) return false
-    const result = await dialog.showSaveDialog(win, {
-      title: '新建 Markdown 文件',
-      defaultPath: path.join(safeParent, '未命名.md'),
-      filters: [{ name: 'Markdown', extensions: ['md', 'markdown'] }],
-    })
-    if (result.canceled || !result.filePath) return false
-    await fileService.writeFile(result.filePath, '')
+    await fileService.createFile(parentPath)
     return true
   })
 
   ipcMain.handle('sidebar:create-dir', async (_event, parentPath: string) => {
-    const safeParent = fileService.sanitizePath(parentPath)
-    const win = BrowserWindow.getFocusedWindow()
-    if (!win) return false
-    const result = await dialog.showSaveDialog(win, {
-      title: '新建目录',
-      defaultPath: path.join(safeParent, '新建文件夹'),
-    })
-    if (result.canceled || !result.filePath) return false
-    await fs.mkdir(result.filePath, { recursive: true })
+    await fileService.createDir(parentPath)
     return true
   })
 
