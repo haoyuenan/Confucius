@@ -1,8 +1,4 @@
-/* ============================================
-   标签栏样式
-   ============================================ */
-
-.tab-bar {
+.tabBar {
   display: flex;
   align-items: center;
   height: 36px;
@@ -13,18 +9,15 @@
   overflow-x: auto;
   overflow-y: hidden;
 }
+.tabBar::-webkit-scrollbar { height: 0; }
 
-.tab-bar::-webkit-scrollbar {
-  height: 0;
-}
-
-.tab-list {
+.tabList {
   display: flex;
   flex: 1;
   min-width: 0;
 }
 
-.tab-item {
+.tabItem {
   display: flex;
   align-items: center;
   gap: 4px;
@@ -40,35 +33,28 @@
   flex-shrink: 0;
   height: 100%;
 }
-
-.tab-item:hover {
+.tabItem:hover {
   background: var(--bg-primary);
   color: var(--text-primary);
 }
 
-.tab-item.active {
+.active {
   background: var(--bg-primary);
   color: var(--text-primary);
   border-bottom: 2px solid var(--accent-color, #0366d6);
 }
 
-.tab-icon {
-  font-size: 12px;
-  flex-shrink: 0;
-}
+.tabIcon { font-size: 12px; flex-shrink: 0; }
 
-.tab-name {
+.tabName {
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 140px;
 }
 
-.tab-modified {
-  color: #d73a49;
-  font-size: 10px;
-}
+.tabModified { color: #d73a49; font-size: 10px; }
 
-.tab-close {
+.tabClose {
   width: 18px;
   height: 18px;
   border: none;
@@ -86,17 +72,15 @@
   margin-left: 2px;
 }
 
-.tab-item:hover .tab-close,
-.tab-item.active .tab-close {
-  opacity: 1;
-}
+.tabItem:hover .tabClose,
+.active .tabClose { opacity: 1; }
 
-.tab-close:hover {
+.tabClose:hover {
   background: var(--border-color);
   color: var(--text-primary);
 }
 
-.tab-new-btn {
+.tabNewBtn {
   width: 30px;
   height: 100%;
   border: none;
@@ -110,8 +94,7 @@
   justify-content: center;
   transition: color 0.1s, background 0.1s;
 }
-
-.tab-new-btn:hover {
+.tabNewBtn:hover {
   color: var(--text-primary);
   background: var(--bg-primary);
 }

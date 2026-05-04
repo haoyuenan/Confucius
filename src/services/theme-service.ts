@@ -33,11 +33,11 @@ class ThemeServiceImpl {
   private applyTheme(name: ThemeName): void {
     document.documentElement.setAttribute('data-theme', name)
 
-    // 同步更新 highlight.js 主题
-    const hljsLink = document.getElementById('hljs-theme') as HTMLLinkElement | null
-    if (hljsLink) {
-      hljsLink.href = this.getHljsTheme(name)
-    }
+    // 切换 hljs 主题：启用当前主题的 <style>，禁用它
+    ;(['light', 'dark', 'sepia'] as const).forEach((t) => {
+      const el = document.getElementById(`hljs-${t}`) as HTMLStyleElement | null
+      if (el) el.disabled = t !== name
+    })
 
     // 同步更新 Mermaid 主题（通过模块级引用）
     const mermaid = getMermaidInstance()
@@ -45,17 +45,6 @@ class ThemeServiceImpl {
       mermaid.initialize({
         theme: name === 'dark' ? 'dark' : name === 'sepia' ? 'neutral' : 'default',
       })
-    }
-  }
-
-  private getHljsTheme(name: ThemeName): string {
-    switch (name) {
-      case 'dark':
-        return 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css'
-      case 'sepia':
-        return 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/idea.min.css'
-      default:
-        return 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css'
     }
   }
 }

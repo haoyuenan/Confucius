@@ -1,4 +1,5 @@
 import { useTabStore } from '../../stores/tab-store'
+import styles from './TabBar.module.css'
 
 function TabBar() {
   const tabs = useTabStore((s) => s.tabs)
@@ -8,32 +9,25 @@ function TabBar() {
   const newUntitledTab = useTabStore((s) => s.newUntitledTab)
 
   return (
-    <div className="tab-bar">
-      <div className="tab-list">
+    <div className={styles.tabBar}>
+      <div className={styles.tabList}>
         {tabs.map((tab) => (
           <div
             key={tab.id}
-            className={`tab-item${tab.id === activeTabId ? ' active' : ''}`}
+            className={`${styles.tabItem}${tab.id === activeTabId ? ` ${styles.active}` : ''}`}
             onClick={() => activateTab(tab.id)}
           >
-            <span className="tab-icon">📄</span>
-            <span className="tab-name">{tab.fileName}</span>
-            {tab.isModified && <span className="tab-modified">●</span>}
+            <span className={styles.tabIcon}>📄</span>
+            <span className={styles.tabName}>{tab.fileName}</span>
+            {tab.isModified && <span className={styles.tabModified}>●</span>}
             <button
-              className="tab-close"
-              onClick={(e) => {
-                e.stopPropagation()
-                closeTab(tab.id)
-              }}
-            >
-              ✕
-            </button>
+              className={styles.tabClose}
+              onClick={(e) => { e.stopPropagation(); closeTab(tab.id) }}
+            >✕</button>
           </div>
         ))}
       </div>
-      <button className="tab-new-btn" onClick={newUntitledTab} title="新建标签">
-        +
-      </button>
+      <button className={styles.tabNewBtn} onClick={newUntitledTab} title="新建标签">+</button>
     </div>
   )
 }

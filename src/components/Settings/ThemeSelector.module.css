@@ -1,0 +1,41 @@
+.themeSelector {
+  display: flex;
+  gap: 4px;
+}
+
+.themeBtn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 6px 4px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background: transparent;
+  cursor: pointer;
+  font-size: 12px;
+  font-family: inherit;
+  color: var(--text-muted);
+  transition: all 0.15s;
+}
+
+.themeBtn:hover {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+.active {
+  border-color: var(--accent-color) !important;
+  color: var(--accent-color) !important;
+  background: var(--bg-secondary);
+}
+
+.themeIcon {
+  font-size: 14px;
+  line-height: 1;
+}
+
+.themeLabel {
+  font-size: 11px;
+}

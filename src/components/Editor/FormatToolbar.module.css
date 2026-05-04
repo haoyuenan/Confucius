@@ -1,0 +1,92 @@
+.formatToolbar {
+  display: flex;
+  align-items: center;
+  height: 44px;
+  min-height: 44px;
+  padding: 0 8px;
+  border-bottom: 1px solid var(--border-color);
+  background: var(--bg-secondary);
+  gap: 2px;
+  user-select: none;
+  flex-shrink: 0;
+}
+
+.toolbarGroup {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.toolbarDivider {
+  width: 1px;
+  height: 26px;
+  background: var(--border-color);
+  margin: 0 6px;
+  flex-shrink: 0;
+}
+
+.toolbarBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 32px;
+  border: none;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 15px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif;
+  cursor: pointer;
+  position: relative;
+  transition: background 0.12s, color 0.12s;
+}
+.toolbarBtn:hover { background: var(--bg-primary); color: var(--text-primary); }
+.toolbarBtn:active { background: var(--border-color); }
+
+/* 特殊按钮样式 */
+.btnBold { font-weight: 800; font-size: 17px; }
+.btnItalic { font-style: italic; font-size: 17px; font-family: 'Times New Roman', serif; }
+.btnStrike { text-decoration: line-through; font-size: 17px; }
+.btnCode { font-size: 16px; letter-spacing: 0; }
+
+/* Tooltip */
+.toolbarBtn::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 6px 10px;
+  background: #1f2328;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.4;
+  border-radius: 6px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.18s;
+  z-index: 99999;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+}
+.toolbarBtn:hover::after { opacity: 1; }
+
+.toolbarBtn::before {
+  content: '';
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 50%;
+  transform: translateX(-50%);
+  border: 4px solid transparent;
+  border-bottom-color: #1f2328;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.18s;
+  z-index: 99999;
+}
+.toolbarBtn:hover::before { opacity: 1; }
+
+:global([data-theme='dark']) .toolbarBtn::after { background: #2d2d2d; color: #e0e0e0; box-shadow: 0 3px 10px rgba(0,0,0,0.4); }
+:global([data-theme='dark']) .toolbarBtn::before { border-bottom-color: #2d2d2d; }

@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
 import { useSidebarStore } from '../../stores/sidebar-store'
 import { useTabStore } from '../../stores/tab-store'
+import * as bridge from '../../services/electron-bridge'
 import type { SearchResult } from '../../types/search'
 
 function SearchPanel() {
@@ -28,7 +29,7 @@ function SearchPanel() {
       abortRef.current = false
 
       try {
-        const results = await window.electronAPI.searchQuery({
+        const results = await bridge.searchQuery({
           rootPath,
           query: q.trim(),
           caseSensitive,
@@ -69,7 +70,7 @@ function SearchPanel() {
   const handleResultClick = useCallback(
     async (result: SearchResult) => {
       try {
-        const file = await window.electronAPI.readFile(result.filePath)
+        const file = await bridge.readFile(result.filePath)
         openFile(file.filePath, file.content)
       } catch (err) {
         console.error('打开搜索结果文件失败:', err)
@@ -83,11 +84,7 @@ function SearchPanel() {
     const before = text.slice(0, start)
     const match = text.slice(start, end)
     const after = text.slice(end)
-    return (
-      <>
-        {before}<mark className="search-highlight">{match}</mark>{after}
-      </>
-    )
+    return <>{before}<mark className="search-highlight">{match}</mark>{after}</>
   }
 
   return (
@@ -105,22 +102,14 @@ function SearchPanel() {
 
       <div className="search-options">
         <label className="search-option">
-          <input
-            type="checkbox"
-            checked={caseSensitive}
-            onChange={(e) => setCaseSensitive(e.target.checked)}
-          />
+          <input type="checkbox" checked={caseSensitive} onChange={(e) => setCaseSensitive(e.target.checked)} />
           区分大小写
         </label>
       </div>
 
       <div className="search-status">
         {isSearching && <span className="search-loading">搜索中...</span>}
-        {!isSearching && query && (
-          <span className="search-count">
-            找到 {searchResults.length} 个结果
-          </span>
-        )}
+        {!isSearching && query && <span className="search-count">找到 {searchResults.length} 个结果</span>}
       </div>
 
       <div className="search-results">

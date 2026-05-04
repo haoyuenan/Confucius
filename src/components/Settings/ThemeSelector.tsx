@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { themeService, type ThemeName } from '../../services/theme-service'
+import styles from './ThemeSelector.module.css'
 
 const THEMES: { id: ThemeName; label: string; icon: string }[] = [
   { id: 'light', label: '亮色', icon: '☀️' },
@@ -11,7 +12,6 @@ function ThemeSelector() {
   const [current, setCurrent] = useState<ThemeName>(() => themeService.getCurrentTheme())
 
   useEffect(() => {
-    // 监听 data-theme 变化以同步状态
     const observer = new MutationObserver(() => {
       const theme = document.documentElement.getAttribute('data-theme') as ThemeName
       if (theme) setCurrent(theme)
@@ -21,16 +21,16 @@ function ThemeSelector() {
   }, [])
 
   return (
-    <div className="theme-selector">
+    <div className={styles.themeSelector}>
       {THEMES.map((t) => (
         <button
           key={t.id}
-          className={`theme-btn ${current === t.id ? 'active' : ''}`}
+          className={`${styles.themeBtn}${current === t.id ? ` ${styles.active}` : ''}`}
           onClick={() => themeService.switchTheme(t.id)}
           title={t.label}
         >
-          <span className="theme-icon">{t.icon}</span>
-          <span className="theme-label">{t.label}</span>
+          <span className={styles.themeIcon}>{t.icon}</span>
+          <span className={styles.themeLabel}>{t.label}</span>
         </button>
       ))}
     </div>
