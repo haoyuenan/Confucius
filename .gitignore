@@ -4,6 +4,7 @@ dist-electron/
 dist-release/
 .vite/
 .omc/
+.claude/
 *.log
 .DS_Store
 Thumbs.db

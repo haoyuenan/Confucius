@@ -35,19 +35,12 @@ export function useSyncScroll(
   const cleanupsRef = useRef<(() => void)[]>([])
 
   useEffect(() => {
-    // 清理旧监听
     cleanupsRef.current.forEach((fn) => fn())
     cleanupsRef.current = []
 
     if (!enabled || !editorEl || !previewEl) return
 
     let scrollRaf = 0
-    const observer = new MutationObserver(() => {
-      // 预览内容变化后（Mermaid/KaTeX），将编辑区滚动同步到预览比例
-      if (!syncing) {
-        applyPercent(editorEl, calcPercent(previewEl))
-      }
-    })
 
     const onEditorScroll = (): void => {
       if (syncing) return
@@ -55,7 +48,8 @@ export function useSyncScroll(
       cancelAnimationFrame(scrollRaf)
       scrollRaf = requestAnimationFrame(() => {
         applyPercent(previewEl, calcPercent(editorEl))
-        syncing = false
+        // 延迟释放锁，确保预览滚动事件已被跳过
+        requestAnimationFrame(() => { syncing = false })
       })
     }
 
@@ -65,26 +59,18 @@ export function useSyncScroll(
       cancelAnimationFrame(scrollRaf)
       scrollRaf = requestAnimationFrame(() => {
         applyPercent(editorEl, calcPercent(previewEl))
-        syncing = false
+        requestAnimationFrame(() => { syncing = false })
       })
     }
 
     editorEl.addEventListener('scroll', onEditorScroll, { passive: true })
     previewEl.addEventListener('scroll', onPreviewScroll, { passive: true })
 
-    observer.observe(previewEl, {
-      childList: true,
-      subtree: true,
-      attributes: false,
-      characterData: false,
-    })
-
     cleanupsRef.current = [
       () => {
         editorEl.removeEventListener('scroll', onEditorScroll)
         previewEl.removeEventListener('scroll', onPreviewScroll)
         cancelAnimationFrame(scrollRaf)
-        observer.disconnect()
       },
     ]
 

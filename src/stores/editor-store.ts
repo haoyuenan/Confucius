@@ -38,7 +38,7 @@ export const useEditorStore = create<EditorState>((set) => ({
   bumpContentKey: () => set((s) => ({ contentKey: s.contentKey + 1 })),
   setMode: (mode) => set({ mode }),
   toggleMode: () => set((s) => ({
-    mode: s.mode === 'split' ? 'wysiwyg' : s.mode === 'wysiwyg' ? 'preview' : 'split',
+    mode: s.mode === 'split' ? 'wysiwyg' : 'split',
   })),
   setFocusMode: (v) => set({ focusMode: v }),
   toggleFocusMode: () => set((s) => ({ focusMode: !s.focusMode })),
