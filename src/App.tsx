@@ -7,8 +7,11 @@ import Sidebar from './components/Sidebar/Sidebar'
 import EditorLayout from './components/Editor/EditorLayout'
 import ThemeSelector from './components/Settings/ThemeSelector'
 import ModeSwitch from './components/Editor/ModeSwitch'
+import StatusBar from './components/Editor/StatusBar'
 import { themeService } from './services/theme-service'
 import { checkLargeFile } from './editor/large-file-handler'
+import { pluginManager } from './services/plugin-manager'
+import { WordCountPlugin } from './plugins/builtins/word-count'
 import * as bridge from './services/electron-bridge'
 
 function App() {
@@ -35,6 +38,12 @@ function App() {
       newUntitledTab()
     }
   }, [newUntitledTab])
+
+  // 初始化插件系统
+  useEffect(() => {
+    pluginManager.registerBuiltins([new WordCountPlugin()])
+    pluginManager.activateAll()
+  }, [])
 
   const handleSaveFile = useCallback(async () => {
     const tab = useTabStore.getState().activeTab()
@@ -140,6 +149,7 @@ function App() {
         <main className="app-main"><EditorLayout /></main>
         <ModeSwitch />
       </div>
+      <StatusBar />
     </div>
   )
 }
