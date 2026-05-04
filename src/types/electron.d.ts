@@ -22,6 +22,7 @@ export interface ElectronAPI {
 
   // Phase 3
   openFolderDialog: () => Promise<string | null>
+  openPluginDialog: () => Promise<{ content: string; filePath: string } | null>
   buildFileTree: (rootPath: string) => Promise<FileTreeNode>
   startFileWatcher: (rootPath: string) => Promise<void>
   stopFileWatcher: () => Promise<void>

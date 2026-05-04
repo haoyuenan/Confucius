@@ -45,6 +45,22 @@ export function registerIpcHandlers(): void {
     return result.filePath
   })
 
+  // ---- 插件选择对话框 ----
+  ipcMain.handle('dialog:open-plugin', async () => {
+    const win = BrowserWindow.getFocusedWindow()
+    if (!win) return null
+    const result = await dialog.showOpenDialog(win, {
+      title: '加载插件',
+      filters: [
+        { name: 'JavaScript 插件', extensions: ['js', 'mjs'] },
+        { name: '所有文件', extensions: ['*'] },
+      ],
+      properties: ['openFile'],
+    })
+    if (result.canceled || result.filePaths.length === 0) return null
+    return await fileService.readFileContent(result.filePaths[0])
+  })
+
   ipcMain.handle('dialog:open-folder', async () => {
     const win = BrowserWindow.getFocusedWindow()
     if (!win) return null

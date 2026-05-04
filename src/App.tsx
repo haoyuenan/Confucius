@@ -1,4 +1,4 @@
-import { useEffect, useCallback } from 'react'
+import { useEffect, useCallback, useState } from 'react'
 import { useAppStore } from './stores/app-store'
 import { useEditorStore } from './stores/editor-store'
 import { useTabStore } from './stores/tab-store'
@@ -12,9 +12,11 @@ import { themeService } from './services/theme-service'
 import { checkLargeFile } from './editor/large-file-handler'
 import { pluginManager } from './services/plugin-manager'
 import { StatusBarPlugin } from './plugins/builtins/status-bar-info'
+import PluginManagerDialog from './components/Settings/PluginManagerDialog'
 import * as bridge from './services/electron-bridge'
 
 function App() {
+  const [showPluginDialog, setShowPluginDialog] = useState(false)
   const version = useAppStore((s) => s.version)
   const sidebarVisible = useAppStore((s) => s.sidebarVisible)
 
@@ -103,10 +105,9 @@ function App() {
         case 'theme:sepia': themeService.switchTheme('sepia'); break
         case 'mode:toggle': useEditorStore.getState().toggleMode(); break
         case 'mode:preview':
-          setMode(
-            useEditorStore.getState().mode === 'preview' ? 'split' : 'preview',
-          )
+          setMode(useEditorStore.getState().mode === 'preview' ? 'split' : 'preview')
           break
+        case 'plugin:manage': setShowPluginDialog(true); break
         case 'focus:mode': toggleFocusMode(); break
         case 'typewriter:mode': toggleTypewriterMode(); break
         case 'file:close': window.close(); break
@@ -150,6 +151,7 @@ function App() {
         <ModeSwitch />
       </div>
       <StatusBar />
+      {showPluginDialog && <PluginManagerDialog onClose={() => setShowPluginDialog(false)} />}
     </div>
   )
 }
