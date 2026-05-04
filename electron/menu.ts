@@ -1,4 +1,4 @@
-import { app, Menu, BrowserWindow, MenuItemConstructorOptions, dialog } from 'electron'
+import { app, Menu, BrowserWindow, MenuItemConstructorOptions } from 'electron'
 
 export function setupMenu(win: BrowserWindow): void {
   const isMac = process.platform === 'darwin'
@@ -98,9 +98,7 @@ export function setupMenu(win: BrowserWindow): void {
       { type: 'separator' },
       {
         label: '关于 Confucius',
-        click: () => {
-          dialog.showMessageBox(win, { type: 'info', title: '关于 Confucius', message: 'Confucius', detail: `版本: ${app.getVersion()}\n本地 Markdown 编辑器` })
-        },
+        click: () => win.webContents.send('menu:action', 'app:about'),
       },
     ],
   }

@@ -14,6 +14,13 @@ let fileWatcher: FileWatcher | null = null
 export function registerIpcHandlers(): void {
   // ---- 应用 ----
   ipcMain.handle('app:get-version', () => app.getVersion())
+  ipcMain.handle('app:get-env', () => ({
+    electron: process.versions.electron,
+    chrome: process.versions.chrome,
+    node: process.versions.node,
+    platform: process.platform,
+    arch: process.arch,
+  }))
 
   // ---- 文件对话框 ----
   ipcMain.handle('dialog:open-file', async () => {

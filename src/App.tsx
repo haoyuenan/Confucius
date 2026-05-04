@@ -14,10 +14,12 @@ import { PluginEngine } from './engine/PluginEngine'
 import { HostAPIBridgeImpl } from './engine/HostAPIBridge'
 import { StatusBarPlugin } from './plugins/builtins/status-bar-info'
 import PluginManagerDialog from './components/Settings/PluginManagerDialog'
+import AboutDialog from './components/Settings/AboutDialog'
 import * as bridge from './services/electron-bridge'
 
 function App() {
   const [showPluginDialog, setShowPluginDialog] = useState(false)
+  const [showAboutDialog, setShowAboutDialog] = useState(false)
   const version = useAppStore((s) => s.version)
   const sidebarVisible = useAppStore((s) => s.sidebarVisible)
 
@@ -117,6 +119,7 @@ function App() {
           setMode(useEditorStore.getState().mode === 'preview' ? 'split' : 'preview')
           break
         case 'plugin:manage': setShowPluginDialog(true); break
+        case 'app:about': setShowAboutDialog(true); break
         case 'focus:mode': toggleFocusMode(); break
         case 'typewriter:mode': toggleTypewriterMode(); break
         case 'file:close': window.close(); break
@@ -161,6 +164,7 @@ function App() {
       </div>
       <StatusBar />
       {showPluginDialog && <PluginManagerDialog onClose={() => setShowPluginDialog(false)} />}
+      {showAboutDialog && <AboutDialog onClose={() => setShowAboutDialog(false)} />}
     </div>
   )
 }

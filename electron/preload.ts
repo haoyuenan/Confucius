@@ -13,6 +13,9 @@ interface SearchResult {
 contextBridge.exposeInMainWorld('electronAPI', {
   getVersion: (): Promise<string> => ipcRenderer.invoke('app:get-version'),
 
+  getEnv: (): Promise<{ electron: string; chrome: string; node: string; platform: string; arch: string }> =>
+    ipcRenderer.invoke('app:get-env'),
+
   openFileDialog: (): Promise<{ content: string; filePath: string } | null> =>
     ipcRenderer.invoke('dialog:open-file'),
 
