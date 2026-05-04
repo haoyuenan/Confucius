@@ -45,12 +45,10 @@ describe('editor-store', () => {
     expect(useEditorStore.getState().mode).toBe('preview')
   })
 
-  test('toggleMode 循环 split→wysiwyg→preview→split', () => {
+  test('toggleMode 切换 split ↔ wysiwyg', () => {
     expect(useEditorStore.getState().mode).toBe('split')
     useEditorStore.getState().toggleMode()
     expect(useEditorStore.getState().mode).toBe('wysiwyg')
-    useEditorStore.getState().toggleMode()
-    expect(useEditorStore.getState().mode).toBe('preview')
     useEditorStore.getState().toggleMode()
     expect(useEditorStore.getState().mode).toBe('split')
   })
