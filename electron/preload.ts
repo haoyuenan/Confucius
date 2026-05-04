@@ -101,4 +101,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.on('export:done', handler)
     return () => ipcRenderer.removeListener('export:done', handler)
   },
+
+  // Phase 2: 插件系统
+  scannerScan: (dirPath: string): Promise<any[]> => ipcRenderer.invoke('scanner:scan', dirPath),
+  scannerReadEntry: (entryPath: string): Promise<{ code: string }> =>
+    ipcRenderer.invoke('scanner:read-entry', entryPath),
 })

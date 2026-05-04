@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useEditorStore } from '../../stores/editor-store'
 import { getActiveView } from '../../editor/active-view'
-import type { Plugin, PluginContext } from '../../types/plugin'
+import type { Plugin, PluginContext } from '../../engine/types/plugin'
 
 /* ─── 字数统计组件 ─── */
 function WordCount() {
@@ -53,7 +53,6 @@ function CursorPos() {
 /* ─── 文件信息组件 ─── */
 function FileMeta() {
   const content = useEditorStore((s) => s.content)
-  // 通过内容判断编码（只是标记，实际编码由电子进程检测）
   const ext = 'MD'
   const sizeKB = (content.length / 1024).toFixed(1)
   return <>{`${ext}  |  UTF-8  |  ${sizeKB} KB`}</>
@@ -76,6 +75,7 @@ export class StatusBarPlugin implements Plugin {
     id: 'builtin:status-bar',
     name: '状态栏信息',
     version: '1.1.0',
+    apiVersion: '^1.0.0',
     description: '显示字数、光标位置、文件信息、编辑模式等',
   }
 

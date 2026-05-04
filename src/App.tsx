@@ -10,7 +10,8 @@ import ModeSwitch from './components/Editor/ModeSwitch'
 import StatusBar from './components/Editor/StatusBar'
 import { themeService } from './services/theme-service'
 import { checkLargeFile } from './editor/large-file-handler'
-import { pluginManager } from './services/plugin-manager'
+import { PluginEngine } from './engine/PluginEngine'
+import { HostAPIBridgeImpl } from './engine/HostAPIBridge'
 import { StatusBarPlugin } from './plugins/builtins/status-bar-info'
 import PluginManagerDialog from './components/Settings/PluginManagerDialog'
 import * as bridge from './services/electron-bridge'
@@ -41,10 +42,18 @@ function App() {
     }
   }, [newUntitledTab])
 
-  // 初始化插件系统
+  // 初始化插件引擎
   useEffect(() => {
-    pluginManager.registerBuiltins([new StatusBarPlugin()])
-    pluginManager.activateAll()
+    const engine = new PluginEngine({
+      bridge: new HostAPIBridgeImpl(),
+      // 内置插件目录（开发时映射到项目根目录）
+      builtinDir: 'plugins/builtins',
+      builtinPlugins: {
+        'builtin:status-bar': new StatusBarPlugin(),
+      },
+    })
+    engine.start()
+    ;(window as any).__pluginEngine = engine
   }, [])
 
   const handleSaveFile = useCallback(async () => {

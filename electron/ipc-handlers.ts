@@ -5,10 +5,12 @@ import { FileService } from './services/file-service'
 import { FileWatcher } from './services/file-watcher'
 import { ExportService } from './services/export-service'
 import { SearchService } from './services/search-service'
+import { ScannerService } from './services/scanner-service'
 
 const fileService = new FileService()
 const searchService = new SearchService()
 const exportService = new ExportService()
+const scannerService = new ScannerService()
 let fileWatcher: FileWatcher | null = null
 
 export function registerIpcHandlers(): void {
@@ -209,5 +211,14 @@ export function registerIpcHandlers(): void {
     const win = BrowserWindow.getFocusedWindow()
     if (!win) return
     await exportService.exportPdf(win)
+  })
+
+  // ---- 插件扫描 ----
+  ipcMain.handle('scanner:scan', async (_event, dirPath: string) => {
+    return await scannerService.scanDirectory(dirPath)
+  })
+
+  ipcMain.handle('scanner:read-entry', async (_event, entryPath: string) => {
+    return await scannerService.readEntry(entryPath)
   })
 }
