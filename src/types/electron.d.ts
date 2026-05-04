@@ -46,6 +46,10 @@ export interface ElectronAPI {
   exportHtml: () => Promise<void>
   exportPdf: () => Promise<void>
   onExportDone: (callback: (info: { format: string; path: string }) => void) => () => void
+
+  // Phase 2: 插件扫描
+  scannerScan: (dirPath: string) => Promise<any[]>
+  scannerReadEntry: (entryPath: string) => Promise<{ code: string }>
 }
 
 /** 导出预览 HTML 的函数签名 */
