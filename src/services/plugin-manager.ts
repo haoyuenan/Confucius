@@ -11,7 +11,6 @@ class PluginManager {
   private contentListeners: Map<string, Set<(content: string) => void>> = new Map()
   private cmExtensions: Extension[] = []
 
-  /** 注册插件 */
   register(plugin: Plugin): void {
     if (this.registry.has(plugin.manifest.id)) {
       console.warn(`插件 ${plugin.manifest.id} 已注册，跳过`)
@@ -20,38 +19,30 @@ class PluginManager {
     this.registry.set(plugin.manifest.id, plugin)
   }
 
-  /** 注册所有内置插件 */
   registerBuiltins(plugins: Plugin[]): void {
     plugins.forEach((p) => this.register(p))
   }
 
-  /** 激活指定插件 */
   activate(id: string): boolean {
     const plugin = this.registry.get(id)
-    if (!plugin) {
-      console.warn(`插件 ${id} 未注册`)
-      return false
-    }
+    if (!plugin) { console.warn(`插件 ${id} 未注册`); return false }
     if (this.activeIds.has(id)) return true
-
     try {
       const ctx = this.createContext(plugin.manifest)
       plugin.onActivate?.(ctx)
       this.activeIds.add(id)
-      console.log(`插件已激活: ${plugin.manifest.name} (${id})`)
+      console.log(`✅ 插件已激活: ${plugin.manifest.name} (${id})`)
       return true
     } catch (err) {
-      console.error(`插件 ${id} 激活失败:`, err)
+      console.error(`❌ 插件 ${id} 激活失败:`, err)
       return false
     }
   }
 
-  /** 激活所有已注册插件 */
   activateAll(): void {
     this.registry.forEach((_, id) => this.activate(id))
   }
 
-  /** 卸载指定插件 */
   deactivate(id: string): void {
     const plugin = this.registry.get(id)
     if (!plugin || !this.activeIds.has(id)) return
@@ -65,48 +56,93 @@ class PluginManager {
     }
   }
 
-  /** 通知内容变化（由 EditorLayout/EditorPane 调用） */
   notifyContentChange(content: string): void {
     this.contentListeners.forEach((cbs) => {
-      cbs.forEach((cb) => {
-        try { cb(content) } catch { /* 单个监听器异常不影响其他 */ }
-      })
+      cbs.forEach((cb) => { try { cb(content) } catch { /* ignore */ } })
     })
   }
 
-  /** 获取已注册的 CM6 扩展列表 */
   getCmExtensions(): Extension[] {
     return [...this.cmExtensions]
+  }
+
+  /* ── 外部插件加载 ── */
+
+  /** 加载外部 .js 插件文件（纯 JS 沙箱执行） */
+  loadExternalPlugin(code: string, fileName?: string): boolean {
+    try {
+      const sandbox = { module: { exports: {} as any }, exports: {} as any, console }
+      const fn = new Function('module', 'exports', 'console', code)
+      fn(sandbox.module, sandbox.exports, sandbox.console)
+      const plugin: Plugin = sandbox.module.exports.default || sandbox.module.exports
+
+      if (!plugin?.manifest?.id) {
+        throw new Error('插件格式无效：缺少 manifest.id')
+      }
+
+      this.register(plugin)
+      this.activate(plugin.manifest.id)
+      console.log(`✅ 外部插件加载成功: ${plugin.manifest.name} (${fileName ?? 'unknown'})`)
+      return true
+    } catch (err) {
+      console.error(`❌ 外部插件加载失败:`, err)
+      return false
+    }
+  }
+
+  /** 获取已注册的插件列表 */
+  getRegisteredPlugins(): PluginManifest[] {
+    return Array.from(this.registry.values()).map((p) => p.manifest)
   }
 
   private createContext(manifest: PluginManifest): PluginContext {
     const pluginId = manifest.id
     const store = usePluginStore.getState()
+    let cleanupFns: (() => void)[] = []
 
-    return {
+    const ctx: PluginContext = {
       get editorView() { return getActiveView() },
       activeTab: () => useTabStore.getState().activeTab(),
+      getContent: () => document.querySelector('.cm-content')?.textContent ?? '',
 
-      addSidebarTab: (tab) => store.addSidebarTab(tab),
+      addStatusBarItem: (item) => {
+        const remove = store.addStatusBarItem(item)
+        cleanupFns.push(remove)
+        return remove
+      },
 
-      addStatusBarItem: (item) => store.addStatusBarItem(item),
+      addSidebarTab: (tab) => {
+        const remove = store.addSidebarTab(tab)
+        cleanupFns.push(remove)
+        return remove
+      },
+
+      addStyle: (css) => {
+        const style = document.createElement('style')
+        style.id = `plugin-style-${pluginId}`
+        style.textContent = css
+        document.head.appendChild(style)
+        const remove = () => style.remove()
+        cleanupFns.push(remove)
+        return remove
+      },
+
+      console: { log: console.log.bind(console), warn: console.warn.bind(console), error: console.error.bind(console) },
 
       registerCommand: (cmd) => store.registerCommand(cmd),
 
-      registerCmExtension: (ext) => {
-        this.cmExtensions.push(ext)
-      },
+      registerCmExtension: (ext) => { this.cmExtensions.push(ext) },
 
       onContentChange: (cb) => {
         if (!this.contentListeners.has(pluginId)) {
           this.contentListeners.set(pluginId, new Set())
         }
         this.contentListeners.get(pluginId)!.add(cb)
-        return () => {
-          this.contentListeners.get(pluginId)?.delete(cb)
-        }
+        return () => { this.contentListeners.get(pluginId)?.delete(cb) }
       },
     }
+
+    return ctx
   }
 }
 

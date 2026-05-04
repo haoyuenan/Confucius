@@ -1,0 +1,13 @@
+/* status-bar-plus 插件样式 */
+/* 注：插件通过 ctx.addStyle() 注入，此文件仅作为参考 */
+
+#clock {
+  font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+  min-width: 70px;
+  text-align: center;
+}
+
+#git-branch::before {
+  content: '⎇ ';
+  font-size: 12px;
+}

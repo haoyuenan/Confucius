@@ -1,0 +1,9 @@
+{
+  "id": "status-bar-plus",
+  "name": "状态栏增强",
+  "version": "1.0.0",
+  "description": "在状态栏额外显示：Git 分支、系统时间、内存占用",
+  "author": "Confucius Plugin Example",
+  "entry": "index.js",
+  "style": "style.css"
+}

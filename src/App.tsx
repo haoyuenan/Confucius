@@ -11,7 +11,7 @@ import StatusBar from './components/Editor/StatusBar'
 import { themeService } from './services/theme-service'
 import { checkLargeFile } from './editor/large-file-handler'
 import { pluginManager } from './services/plugin-manager'
-import { WordCountPlugin } from './plugins/builtins/word-count'
+import { StatusBarPlugin } from './plugins/builtins/status-bar-info'
 import * as bridge from './services/electron-bridge'
 
 function App() {
@@ -41,7 +41,7 @@ function App() {
 
   // 初始化插件系统
   useEffect(() => {
-    pluginManager.registerBuiltins([new WordCountPlugin()])
+    pluginManager.registerBuiltins([new StatusBarPlugin()])
     pluginManager.activateAll()
   }, [])
 
