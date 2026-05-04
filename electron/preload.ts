@@ -40,6 +40,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   openFolderDialog: (): Promise<string | null> => ipcRenderer.invoke('dialog:open-folder'),
 
+  openPluginDialog: (): Promise<{ content: string; filePath: string } | null> =>
+    ipcRenderer.invoke('dialog:open-plugin'),
+
   buildFileTree: (rootPath: string): Promise<FileTreeNode> =>
     ipcRenderer.invoke('file-tree:build', rootPath),
 

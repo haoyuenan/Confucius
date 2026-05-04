@@ -52,14 +52,11 @@ app.whenReady().then(() => {
   })
 })
 
-// 所有窗口关闭时退出（macOS 除外）
+// 所有窗口关闭时退出
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
-    app.quit()
+    // 使用 app.exit(0) 而非 app.quit()，避免 vite-plugin-electron
+    // 在开发模式下对已退出的进程重复调用 tree-kill 产生乱码错误
+    app.exit(0)
   }
-})
-
-// 确保窗口引用被释放
-app.on('before-quit', () => {
-  mainWindow = null
 })

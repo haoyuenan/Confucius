@@ -29,7 +29,7 @@ class PluginManager {
     if (this.activeIds.has(id)) return true
     try {
       const ctx = this.createContext(plugin.manifest)
-      plugin.onActivate?.(ctx)
+      plugin.onActivate?.call(plugin, ctx)
       this.activeIds.add(id)
       console.log(`✅ 插件已激活: ${plugin.manifest.name} (${id})`)
       return true
@@ -47,7 +47,7 @@ class PluginManager {
     const plugin = this.registry.get(id)
     if (!plugin || !this.activeIds.has(id)) return
     try {
-      plugin.onDeactivate?.()
+      plugin.onDeactivate?.call(plugin)
       this.activeIds.delete(id)
       this.contentListeners.delete(id)
       console.log(`插件已卸载: ${plugin.manifest.name} (${id})`)
@@ -69,26 +69,32 @@ class PluginManager {
   /* ── 外部插件加载 ── */
 
   /** 加载外部 .js 插件文件（纯 JS 沙箱执行） */
-  loadExternalPlugin(code: string, fileName?: string): boolean {
+  loadExternalPlugin(code: string, fileName?: string): { ok: boolean; error?: string } {
     try {
-      const sandbox = { module: { exports: {} as any }, exports: {} as any, console }
-      const fn = new Function('module', 'exports', 'console', code)
-      fn(sandbox.module, sandbox.exports, sandbox.console)
-      const plugin: Plugin = sandbox.module.exports.default || sandbox.module.exports
+      // 插件格式要求：直接通过 module.exports = { manifest, onActivate, onDeactivate } 导出
+      const sandbox = { module: { exports: {} as any }, exports: {} as any }
+      const fn = new Function('module', 'exports', code)
+      fn(sandbox.module, sandbox.exports)
+      const plugin: Plugin = sandbox.module.exports?.default || sandbox.module.exports
 
-      if (!plugin?.manifest?.id) {
-        throw new Error('插件格式无效：缺少 manifest.id')
-      }
+      if (!plugin) throw new Error('module.exports 未定义')
+      if (!plugin?.manifest?.id) throw new Error('插件格式无效：缺少 manifest.id')
+      if (!plugin?.onActivate) throw new Error('插件格式无效：缺少 onActivate 方法')
 
       this.register(plugin)
-      this.activate(plugin.manifest.id)
+      if (!this.activate(plugin.manifest.id)) {
+        throw new Error('插件激活失败（查看控制台了解详情）')
+      }
       console.log(`✅ 外部插件加载成功: ${plugin.manifest.name} (${fileName ?? 'unknown'})`)
-      return true
+      return { ok: true }
     } catch (err) {
-      console.error(`❌ 外部插件加载失败:`, err)
-      return false
+      const msg = err instanceof Error ? err.message : String(err)
+      console.error(`❌ 外部插件加载失败 [${fileName ?? 'unknown'}]:`, msg)
+      return { ok: false, error: msg }
     }
   }
+
+  /** 获取已注册的插件列表 */
 
   /** 获取已注册的插件列表 */
   getRegisteredPlugins(): PluginManifest[] {

@@ -43,6 +43,9 @@ export function onFileTreeChanged(callback: () => void): () => void {
 export function openFolderDialog(): Promise<string | null> {
   return window.electronAPI.openFolderDialog()
 }
+export function openPluginDialog(): Promise<{ content: string; filePath: string } | null> {
+  return window.electronAPI.openPluginDialog()
+}
 export function showSidebarContextMenu(nodePath: string, nodeType: string): Promise<void> {
   return window.electronAPI.showSidebarContextMenu({ nodePath, nodeType })
 }

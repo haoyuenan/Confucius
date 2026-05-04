@@ -43,13 +43,30 @@ export function setupMenu(win: BrowserWindow): void {
   const viewMenu: MenuItemConstructorOptions = {
     label: '视图',
     submenu: [
+      // ── 布局 ──
       { label: '切换侧边栏', accelerator: 'CmdOrCtrl+\\', click: () => win.webContents.send('menu:action', 'view:toggle-sidebar') },
       { type: 'separator' },
-      { label: '搜索', accelerator: 'CmdOrCtrl+Shift+F', click: () => win.webContents.send('menu:action', 'search:focus') },
+      // ── 编辑模式 ──
+      {
+        label: '切换编辑模式',
+        accelerator: 'CmdOrCtrl+Shift+P',
+        click: () => win.webContents.send('menu:action', 'mode:toggle'),
+      },
+      {
+        label: '切换预览模式',
+        accelerator: 'CmdOrCtrl+Shift+O',
+        type: 'checkbox',
+        click: () => win.webContents.send('menu:action', 'mode:preview'),
+      },
       { type: 'separator' },
+      // ── 阅读辅助 ──
       { label: '专注模式', type: 'checkbox', accelerator: 'F11', click: () => win.webContents.send('menu:action', 'focus:mode') },
       { label: '打字机模式', type: 'checkbox', accelerator: 'F12', click: () => win.webContents.send('menu:action', 'typewriter:mode') },
       { type: 'separator' },
+      // ── 工具 ──
+      { label: '搜索', accelerator: 'CmdOrCtrl+Shift+F', click: () => win.webContents.send('menu:action', 'search:focus') },
+      { type: 'separator' },
+      // ── 外观 ──
       {
         label: '主题',
         submenu: [
@@ -58,21 +75,12 @@ export function setupMenu(win: BrowserWindow): void {
           { label: '护眼', click: () => win.webContents.send('menu:action', 'theme:sepia') },
         ],
       },
-      {
-        label: '切换预览模式',
-        accelerator: 'CmdOrCtrl+Shift+O',
-        type: 'checkbox',
-        click: () => win.webContents.send('menu:action', 'mode:preview'),
-      },
-      {
-        label: '切换编辑模式',
-        accelerator: 'CmdOrCtrl+Shift+P',
-        click: () => win.webContents.send('menu:action', 'mode:toggle'),
-      },
       { type: 'separator' },
+      // ── 开发者 ──
       { role: 'toggleDevTools', label: '开发者工具' },
       { role: 'reload', label: '重新加载' },
       { type: 'separator' },
+      // ── 缩放 ──
       { role: 'zoomIn', label: '放大' },
       { role: 'zoomOut', label: '缩小' },
       { role: 'resetZoom', label: '重置缩放' },
@@ -82,6 +90,12 @@ export function setupMenu(win: BrowserWindow): void {
   const helpMenu: MenuItemConstructorOptions = {
     label: '帮助',
     submenu: [
+      {
+        label: '插件管理',
+        accelerator: 'CmdOrCtrl+Shift+I',
+        click: () => win.webContents.send('menu:action', 'plugin:manage'),
+      },
+      { type: 'separator' },
       {
         label: '关于 Confucius',
         click: () => {
