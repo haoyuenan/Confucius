@@ -8,8 +8,3 @@ export interface LargeFileInfo {
 export function checkLargeFile(size: number): LargeFileInfo {
   return { isLarge: size >= LARGE_FILE_THRESHOLD, size }
 }
-
-export const LARGE_FILE_DISABLED_FEATURES = {
-  wysiwygMode: true,
-  mermaid: true,
-} as const
