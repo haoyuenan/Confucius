@@ -1,7 +1,7 @@
 # 测试方案
 
-**版本**：v1.1  
-**当前状态**：✅ 121 测试全部通过
+**版本**：v1.2  
+**当前状态**：✅ 117 测试全部通过（20 文件）
 
 ---
 
@@ -14,10 +14,10 @@
          │   (10%)  │
         ┌┼──────────┼┐
         │ 集成测试   │  ← React Testing Library + Vitest
-        │   (30%)   │
+        │   (30%)    │
        ┌┼────────────┼┐
        │  单元测试    │  ← Vitest
-       │    (60%)    │
+       │    (60%)     │
        └──────────────┘
 ```
 
@@ -37,10 +37,10 @@
 test/
 ├── setup.ts                       # 全局 setup（jsdom + mock electronAPI）
 ├── unit/
-│   ├── stores/                    # ✅ 39 cases
+│   ├── stores/                    # ✅ 34 cases
 │   │   ├── tab-store.test.ts
 │   │   ├── editor-store.test.ts
-│   │   ├── app-store.test.ts
+│   │   ├── app-store.test.ts        (3 cases, 移除冗余文件状态后精简)
 │   │   └── sidebar-store.test.ts
 │   ├── editor/                    # ✅ 23 cases
 │   │   └── format-helpers.test.ts
@@ -77,12 +77,12 @@ test/
 
 | 层 | 模块 | 用例数 | 状态 |
 |----|------|--------|------|
-| Store | tab/editor/app/sidebar | 39 | ✅ |
+| Store | tab/editor/app/sidebar | 34 | ✅ |
 | 工具 | sanitize/path/dom-diff/large-file | 39 | ✅ |
 | 服务 | theme-service/encoding-detector | 11 | ✅ |
 | 组件 | TabBar/FormatToolbar/PreviewPane/ThemeSelector/FileTree/Search | 22 | ✅ |
 | 流程 | 打开文件/切换标签/主题切换 | 10 | ✅ |
-| **总计** | | **121** | ✅ |
+| **总计** | | **117** | ✅ |
 
 ---
 
