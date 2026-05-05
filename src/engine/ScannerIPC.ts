@@ -17,7 +17,7 @@ export interface PluginPackage {
 
 export async function scanPluginDir(dirPath: string): Promise<PluginPackage[]> {
   const raw = await window.electronAPI.scannerScan(dirPath)
-  return raw.map((p: any) => ({ ...p, source: dirPath.includes('builtins') ? 'builtin' : 'user' as const }))
+  return raw.map((p) => ({ ...p, source: dirPath.includes('builtins') ? 'builtin' : 'user' as const }))
 }
 
 export async function readPluginEntry(entryPath: string): Promise<string> {

@@ -1,5 +1,6 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import type { FileTreeNode } from './services/file-service'
+import type { PluginPackage } from './services/scanner-service'
 
 interface SearchResult {
   filePath: string
@@ -100,7 +101,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   },
 
   // Phase 2: 插件系统
-  scannerScan: (dirPath: string): Promise<any[]> => ipcRenderer.invoke('scanner:scan', dirPath),
+  scannerScan: (dirPath: string): Promise<PluginPackage[]> => ipcRenderer.invoke('scanner:scan', dirPath),
   scannerReadEntry: (entryPath: string): Promise<{ code: string }> =>
     ipcRenderer.invoke('scanner:read-entry', entryPath),
 })

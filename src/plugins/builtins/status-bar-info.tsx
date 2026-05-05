@@ -15,7 +15,7 @@ function WordCount() {
   const chinese = (content.match(/[\u4e00-\u9fff]/g) || []).length
   const english = content
     .replace(/[\u4e00-\u9fff]/g, ' ')
-    .split(/[\s,;.!?()\[\]{}"'':：；。！？（）【】“”]+/)
+    .split(/[\s,;.!?()[\]{}"'':：；。！？（）【】""]+/)
     .filter(Boolean).length
   const words = chinese + english
   const lines = content.split('\n').length

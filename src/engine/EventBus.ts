@@ -24,7 +24,7 @@ export type EventName = keyof EventDefinitions
 export type EventPayload<N extends EventName> = EventDefinitions[N]
 
 export class EventBus {
-  private listeners = new Map<string, Set<{ pluginId: string; handler: (payload: any) => void }>>()
+  private listeners = new Map<EventName, Set<{ pluginId: string; handler: (payload: EventPayload<EventName>) => void }>>()
 
   /** 订阅事件，返回取消订阅函数 */
   on<N extends EventName>(
@@ -35,7 +35,7 @@ export class EventBus {
     if (!this.listeners.has(event)) {
       this.listeners.set(event, new Set())
     }
-    const entry = { pluginId, handler: handler as (p: any) => void }
+    const entry = { pluginId, handler: handler as (p: EventPayload<EventName>) => void }
     this.listeners.get(event)!.add(entry)
 
     return () => {

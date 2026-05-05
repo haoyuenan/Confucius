@@ -38,7 +38,7 @@ export class HostAPIBridgeImpl implements HostAPIBridge {
   }
 
   onContentChange(cb: (content: string) => void): () => void {
-    return useEditorStore.subscribe((state: any) => cb(state.content ?? ''))
+    return useEditorStore.subscribe((state) => cb(state.content ?? ''))
   }
 
   getAppVersion(): string {

@@ -1,16 +1,46 @@
 import { useState, useEffect, useCallback } from 'react'
 import * as bridge from '../../services/electron-bridge'
+import type { PluginManifest } from '../../engine/types/plugin'
+import type { PluginPackage } from '../../engine/ScannerIPC'
+import type { PluginEngine } from '../../engine/PluginEngine'
 
 interface Props { onClose: () => void }
 type TabType = 'loaded' | 'available' | 'disabled'
 
-function getEngine(): any { return (window as any).__pluginEngine }
+function getEngine(): PluginEngine | undefined { return (window as { __pluginEngine?: PluginEngine }).__pluginEngine }
+
+/** 插件详情信息 - 用于显示扩展详情 */
+interface PluginDetailInfo {
+  id: string
+  name: string
+  version: string
+  apiVersion?: string
+  description?: string
+  permissions?: string[]
+  entryPath?: string
+  dependencies?: string[]
+}
+
+function getDetailInfo(plugin: PluginManifest | PluginPackage): PluginDetailInfo {
+  const manifest = plugin as PluginManifest
+  const pkg = plugin as PluginPackage
+  return {
+    id: plugin.id,
+    name: plugin.name,
+    version: plugin.version,
+    apiVersion: plugin.apiVersion,
+    description: plugin.description,
+    permissions: manifest.permissions,
+    entryPath: pkg.entryPath,
+    dependencies: manifest.dependencies,
+  }
+}
 
 function PluginManagerDialog({ onClose }: Props) {
   const engine = getEngine()
   const [activeTab, setActiveTab] = useState<TabType>('loaded')
-  const [loadedPlugins, setLoadedPlugins] = useState<any[]>(() => engine?.getPlugins() ?? [])
-  const [availablePlugins, setAvailablePlugins] = useState<any[]>([])
+  const [loadedPlugins, setLoadedPlugins] = useState<PluginManifest[]>(() => engine?.getPlugins() ?? [])
+  const [availablePlugins, setAvailablePlugins] = useState<PluginPackage[]>([])
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [msg, setMsg] = useState('')
   const [msgType, setMsgType] = useState<'success' | 'error'>('success')
@@ -42,7 +72,7 @@ function PluginManagerDialog({ onClose }: Props) {
     else { showMsg('error', `❌ 加载失败: ${fileName}\n${result.error ?? ''}`) }
   }, [refreshLoaded, refreshAvailable, showMsg])
 
-  const handleLoadAvailable = useCallback(async (pkg: any) => {
+  const handleLoadAvailable = useCallback(async (pkg: PluginPackage) => {
     const e = getEngine()
     if (!e) return
     try {
@@ -62,8 +92,8 @@ function PluginManagerDialog({ onClose }: Props) {
     if (e.configDB.isEnabled(id)) {
       e.deactivate(id); showMsg('success', `已禁用: ${name}`)
     } else {
-      const all = Array.from(e['registry'].values())
-      const plugin = all.find((p: any) => p.manifest.id === id)
+      const all = Array.from(e.registry.values())
+      const plugin = all.find((p) => p.manifest.id === id)
       if (plugin) { e.register(plugin); e.activate(id); showMsg('success', `已启用: ${name}`) }
     }
     refreshLoaded()
@@ -93,13 +123,15 @@ function PluginManagerDialog({ onClose }: Props) {
   if (engine) for (const p of loadedPlugins) enabledMap[p.id] = engine.configDB.isEnabled(p.id)
 
   const loaded = loadedPlugins
-  const disabled = loadedPlugins.filter((p: any) => !(enabledMap[p.id] ?? true))
+  const disabled = loadedPlugins.filter((p) => !(enabledMap[p.id] ?? true))
 
   const tabs: { key: TabType; label: string; count: number }[] = [
     { key: 'loaded', label: '已加载', count: loaded.length - disabled.length },
     { key: 'available', label: '可用', count: availablePlugins.length },
     { key: 'disabled', label: '已禁用', count: disabled.length },
   ]
+
+  const enabledPlugins = loaded.filter((p) => enabledMap[p.id] !== false)
 
   return (
     <div className="dialog-overlay" onClick={handleOverlay}>
@@ -124,7 +156,7 @@ function PluginManagerDialog({ onClose }: Props) {
         </div>
 
         <div className="plugin-list">
-          {activeTab === 'loaded' && loaded.filter((p: any) => enabledMap[p.id] !== false).length === 0 && (
+          {activeTab === 'loaded' && enabledPlugins.length === 0 && (
             <div className="plugin-empty">暂无已加载的插件</div>
           )}
           {activeTab === 'available' && availablePlugins.length === 0 && (
@@ -134,7 +166,7 @@ function PluginManagerDialog({ onClose }: Props) {
             <div className="plugin-empty">没有已禁用的插件</div>
           )}
 
-          {activeTab === 'loaded' && loaded.filter((p: any) => enabledMap[p.id] !== false).map((p: any) => (
+          {activeTab === 'loaded' && enabledPlugins.map((p) => (
             <PluginItem
               key={p.id}
               plugin={p}
@@ -147,7 +179,7 @@ function PluginManagerDialog({ onClose }: Props) {
             />
           ))}
 
-          {activeTab === 'available' && availablePlugins.map((p: any) => (
+          {activeTab === 'available' && availablePlugins.map((p) => (
             <PluginItem
               key={p.id}
               plugin={p}
@@ -159,7 +191,7 @@ function PluginManagerDialog({ onClose }: Props) {
             />
           ))}
 
-          {activeTab === 'disabled' && disabled.map((p: any) => (
+          {activeTab === 'disabled' && disabled.map((p) => (
             <PluginItem
               key={p.id}
               plugin={p}
@@ -184,18 +216,25 @@ function PluginManagerDialog({ onClose }: Props) {
 }
 
 /* ─── 插件条目组件 ─── */
-function PluginItem({ plugin, enabled, expanded, onToggle, onUnload, onExpand, showUnload }: {
-  plugin: any; enabled: boolean; expanded: boolean
-  onToggle: () => void; onUnload?: () => void; onExpand: () => void
+interface PluginItemProps {
+  plugin: PluginManifest | PluginPackage
+  enabled: boolean
+  expanded: boolean
+  onToggle: () => void
+  onUnload?: () => void
+  onExpand: () => void
   showUnload: boolean
-}) {
+}
+
+function PluginItem({ plugin, enabled, expanded, onToggle, onUnload, onExpand, showUnload }: PluginItemProps) {
+  const info = getDetailInfo(plugin)
   return (
     <div>
       <div className="plugin-item">
         <div className="plugin-info">
-          <span className="plugin-name">{plugin.name}</span>
-          <span className="plugin-ver">v{plugin.version}</span>
-          {plugin.description && <span className="plugin-desc">{plugin.description}</span>}
+          <span className="plugin-name">{info.name}</span>
+          <span className="plugin-ver">v{info.version}</span>
+          {info.description && <span className="plugin-desc">{info.description}</span>}
           <label className="plugin-toggle-label">
             <input type="checkbox" checked={enabled} onChange={onToggle} />
             <span className="plugin-toggle-text">{enabled ? '已启用' : '已禁用'}</span>
@@ -212,13 +251,13 @@ function PluginItem({ plugin, enabled, expanded, onToggle, onUnload, onExpand, s
       </div>
       {expanded && (
         <div className="plugin-detail">
-          <div className="detail-row"><span className="detail-label">ID</span><span className="detail-value">{plugin.id}</span></div>
-          <div className="detail-row"><span className="detail-label">版本</span><span className="detail-value">v{plugin.version}</span></div>
-          <div className="detail-row"><span className="detail-label">API</span><span className="detail-value">{plugin.apiVersion || '任意'}</span></div>
-          <div className="detail-row"><span className="detail-label">权限</span><span className="detail-value">{(plugin.permissions || ['无']).join(', ')}</span></div>
-          {plugin.entryPath && <div className="detail-row"><span className="detail-label">路径</span><span className="detail-value detail-path">{plugin.entryPath}</span></div>}
-          {plugin.dependencies?.length > 0 && (
-            <div className="detail-row"><span className="detail-label">依赖</span><span className="detail-value">{plugin.dependencies.join(', ')}</span></div>
+          <div className="detail-row"><span className="detail-label">ID</span><span className="detail-value">{info.id}</span></div>
+          <div className="detail-row"><span className="detail-label">版本</span><span className="detail-value">v{info.version}</span></div>
+          <div className="detail-row"><span className="detail-label">API</span><span className="detail-value">{info.apiVersion || '任意'}</span></div>
+          <div className="detail-row"><span className="detail-label">权限</span><span className="detail-value">{(info.permissions || ['无']).join(', ')}</span></div>
+          {info.entryPath && <div className="detail-row"><span className="detail-label">路径</span><span className="detail-value detail-path">{info.entryPath}</span></div>}
+          {info.dependencies && info.dependencies.length > 0 && (
+            <div className="detail-row"><span className="detail-label">依赖</span><span className="detail-value">{info.dependencies.join(', ')}</span></div>
           )}
         </div>
       )}
