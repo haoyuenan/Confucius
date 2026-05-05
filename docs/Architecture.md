@@ -1,83 +1,135 @@
-### 🏗️ 技术架构设计方案
+# 技术架构概览
 
-#### 1. 技术栈选型
+## 技术栈
 
-| 层级 | 技术选型 | 原因与说明 |
-| :--- | :--- | :--- |
-| **桌面端框架** | **Electron** | 主流选择（Typora、VSCode均基于此），使用Web前端技术，社区成熟生态完善。 |
-| **前端框架** | **React / TypeScript** | TypeScript + React。 |
-| **编辑器内核** | **CodeMirror 6** | **深度定制首选**。ProseMirror 架构强大，能精确控制文档模型；CodeMirror 6 性能卓越。Typora 类编辑器多选其一。 |
-| **Markdown 解析** | **markdown-it** | 高性能且通过插件生态支持 GFM、表格等扩展语法，Typora 类编辑器广泛使用。 |
-| **代码高亮** | **highlight.js** | 通用选择。 |
-| **数学公式** | **KaTeX** | 渲染速度快，被许多在线和桌面编辑器采用。 |
-| **图表支持** | **Mermaid** | 事实标准。 |
-| **构建工具** | **Vite** | Vite 更快，Webpack 更传统。 |
-| **本地存储** | **Node.js `fs` 模块 + SQLite (可选)** | 直接用 Node.js 读写 `.md` 文件。若需全文搜索等功能，可引入 SQLite 建立索引。 |
-| **跨平台打包** | **electron-builder** | 将应用打包成 `.exe`、`.dmg` 或 `.deb` 等安装包。 |
+| 层级 | 技术 | 说明 |
+|------|------|------|
+| 桌面框架 | Electron ^28 | 主进程 + 渲染进程双进程架构 |
+| 前端 | React 18 + TypeScript | 组件化 UI |
+| 构建 | Vite 5 + vite-plugin-electron | HMR + 主进程热重启 |
+| 编辑器 | CodeMirror 6 | Markdown 编辑内核 |
+| Markdown 渲染 | markdown-it + 插件 | GFM、Task List、KaTeX |
+| 代码高亮 | highlight.js | — |
+| 数学公式 | KaTeX | 行内 + 块级 |
+| 图表 | Mermaid | 流程图、时序图等 |
+| 状态管理 | Zustand | 5 个 Store |
+| 安全防护 | DOMPurify | XSS 过滤 |
+| DOM 更新 | morphdom | 预览区增量更新 |
+| 编码检测 | jschardet + iconv-lite | UTF-8/GBK/Big5 等 |
+| 测试 | Vitest + React Testing Library | 121 测试通过 |
+| 打包 | electron-builder | Windows/macOS/Linux |
 
-#### 2. 系统架构设计
-
-项目可遵循清晰的 Electron 分层架构：
-
-*   **主进程 (Main Process)**：
-    *   **窗口管理**：创建和控制应用主窗口。
-    *   **生命周期管理**：处理应用启动、退出等。
-    *   **原生菜单**：创建和管理应用的原生菜单栏。
-    *   **IPC 通信**：作为主从进程间的通信桥梁。
-
-*   **渲染进程 (Renderer Process)**：
-    *   **编辑器界面**：由 React 等框架构建所有UI，负责与用户交互。
-    *   **编辑器核心实例**：如 CodeMirror 6 的实例，是编辑器的"大脑"。
-    *   **业务逻辑**：实现快捷键、主题切换、导出等功能逻辑。
-    *   **渲染器**：Markdown 解析、代码高亮、公式渲染等服务。
-    *   **格式化工具栏**：位于编辑器顶部，通过模块级引用访问 CM6 EditorView 实例，
-
-*   **本地文件系统 (File System)**：
-    *   监听用户本地的 `.md` 文件变化，并提供打开、保存、重命名等文件操作能力。
-
-一个清晰的分层是实现复杂功能的基础，接下来是关于如何实现"即时渲染"的核心设计。
-
-#### 3. 渲染进程组件架构（更新）
+## 进程架构
 
 ```
-App.tsx
-├── TitleBar (自定义标题栏)
-├── Sidebar (打开状态时显示)
-│   ├── FileTreePanel
-│   ├── OutlinePanel
-│   └── SearchPanel
-├── FormatToolbar (新增：编辑器顶部工具栏)
-│   ├── HeadingGroup (H1 / H2 / H3)
-│   ├── InlineGroup (B / I / S)
-│   ├── BlockGroup (引用 / 代码块 / 列表)
-│   └── InsertGroup (链接 / 图片)
-├── EditorLayout
-│   ├── EditorPane (CM6 编辑器)
-│   └── PreviewPane (Markdown 预览 — 仅 split 模式)
-└── ModeSwitch (右下角模式切换)
+Electron 主进程 (electron/)
+├── main.ts               # 窗口管理、生命周期
+├── menu.ts              # 原生菜单
+├── ipc-handlers.ts      # IPC 路由
+├── preload.ts           # 上下文桥接
+└── services/
+    ├── file-service.ts    # 文件读写、文件树
+    ├── file-watcher.ts    # fs.watch 监听
+    ├── search-service.ts  # 全文搜索
+    ├── export-service.ts  # HTML/PDF 导出
+    ├── encoding-detector.ts # 编码检测
+    └── scanner-service.ts # 插件目录扫描
+
+渲染进程 (src/)
+├── App.tsx               # 根组件、菜单 IPC 处理
+├── main.tsx              # 入口 + 主题 CSS 加载
+├── components/
+│   ├── Editor/           # 编辑器布局/面板/工具栏/标签栏/状态栏
+│   ├── Preview/          # Markdown 预览
+│   ├── Sidebar/          # 文件树/大纲/搜索
+│   └── Settings/         # 主题选择器/插件管理对话框
+├── editor/
+│   ├── cm6-setup.ts      # CM6 初始化
+│   ├── keybindings.ts    # 编辑器快捷键
+│   ├── format-helpers.ts # 格式化函数（工具栏+快捷键共用）
+│   ├── markdown-renderer.ts # markdown-it 配置
+│   ├── mermaid-renderer.ts  # Mermaid 渲染
+│   ├── wysiwyg-plugin.ts    # WYSIWYG 模式
+│   ├── focus-mode.ts        # 专注模式
+│   ├── typewriter-mode.ts   # 打字机模式
+│   ├── sync-scroll.ts       # 滚动同步
+│   ├── outline-parser.ts    # 大纲提取
+│   ├── active-view.ts       # 模块级 EditorView 引用
+│   └── large-file-handler.ts # 大文件检测
+├── stores/               # Zustand 状态管理
+│   ├── app-store.ts
+│   ├── editor-store.ts
+│   ├── sidebar-store.ts
+│   ├── tab-store.ts
+│   └── plugin-store.ts
+├── engine/               # 插件引擎（部分实现）
+│   ├── PluginEngine.ts
+│   ├── HostAPIBridge.ts
+│   ├── DependencyGraph.ts
+│   ├── EventBus.ts
+│   ├── ConfigDB.ts
+│   └── SandboxFactory.ts
+├── services/
+│   ├── electron-bridge.ts    # IPC 封装层
+│   ├── theme-service.ts      # 主题切换
+│   └── plugin-manager.ts     # 插件管理器（简化版）
+└── utils/
+    ├── sanitize.ts       # DOMPurify
+    ├── dom-diff.ts       # morphdom 增量更新
+    └── path.ts           # 路径工具
 ```
 
-**关键数据流**：
+## 关键数据流
+
+### 文件打开
 
 ```
-FormatToolbar 点击按钮
-       │
-       ▼
-读取 activeEditorView（模块级引用）
-       │
-       ▼
-调用 formatHelpers.ts 中的对应函数
-  - 函数接收 view + 选区的 from/to
-  - dispatch changes 到 CM6
-       │
-       ▼
-CM6 更新文档 → updateListener → onChange → editorStore.setContent()
+文件树/搜索结果点击
+  → electron-bridge.readFile()
+  → IPC file:read → FileService → fs.readFile
+  → tab-store.openFile(filePath, content)
+  → editor-store.setContent()
+  → EditorPane dispatch 到 CM6
+  → PreviewPane 渲染 markdown-it → SVG/HTML
 ```
 
-#### 4. 核心设计：实现"即时渲染"
+### 编辑 → 预览
 
-Typora 的核心体验是即时渲染。一个关键的设计模式是**混淆源码文本与渲染节点**：
-*   **数据结构**：不丢弃语法符号。解析后，`**粗体**` 在文档树中并非一个单一的"加粗"节点，而是一个序列节点，如 `"**"` (标记为语法符号) -> `"粗体"` (标记为加粗) -> `"**"` (标记为语法符号)。
-*   **显示逻辑**：通过 Decoration 插件，根据节点的类型和属性，决定在编辑器视图中显示还是隐藏某些标记。这样，光标移动时，可以智地能切换显示状态，实现"光标移入显示源码，移出显示效果"。
+```
+CM6 updateListener (150ms 防抖)
+  → format-helpers → dispatch changes
+  → editor-store.setContent()
+  → PreviewPane useMemo → renderMarkdown()
+  → morphdom 增量更新
+  → renderMermaidDiagrams()
+  → renderMathInElement()
+```
 
-这个设计很精妙，但对初学者可能很复杂。一个更稳妥的方案是先实现 **"编辑区"+"预览区"双栏模式**（类似许多在线编辑器），等核心文件管理功能稳定后，再加入即时渲染功能进行迭代。这是更稳健的路径。
+### 模式切换
+
+```
+菜单 Ctrl+Shift+P / ModeSwitch 按钮
+  → editor-store.toggleMode()
+  → EditorLayout 根据 mode 渲染 split/wysiwyg
+  → key={activeTabId} 触发 CM6 重建
+```
+
+## IPC 通道命名
+
+| 通道 | 方向 | 说明 |
+|------|------|------|
+| `app:get-version` | R→M | 获取版本 |
+| `dialog:open-file` | R→M | 打开文件对话框 |
+| `dialog:save-file` | R→M | 保存文件对话框 |
+| `dialog:open-folder` | R→M | 打开文件夹对话框 |
+| `dialog:open-plugin` | R→M | 加载插件对话框 |
+| `file:read/write` | R→M | 文件读写 |
+| `file:confirm-save` | R→M | 保存确认对话框 |
+| `file-tree:build` | R→M | 构建文件树 |
+| `file-watcher:start/stop` | R→M | 文件变更监听 |
+| `sidebar:context-menu` | R→M | 右键菜单 |
+| `sidebar:action` | M→R | 侧边栏操作 |
+| `search:query` | R→M | 全局搜索 |
+| `export:html/pdf` | R→M | 导出 |
+| `scanner:scan` | R→M | 插件目录扫描 |
+| `menu:action` | M→R | 菜单操作（统一） |
