@@ -16,7 +16,7 @@
 | 安全防护 | DOMPurify | XSS 过滤 |
 | DOM 更新 | morphdom | 预览区增量更新 |
 | 编码检测 | jschardet + iconv-lite | UTF-8/GBK/Big5 等 |
-| 测试 | Vitest + React Testing Library | 121 测试通过 |
+| 测试 | Vitest + React Testing Library | 117 测试通过 |
 | 打包 | electron-builder | Windows/macOS/Linux |
 
 ## 进程架构
@@ -28,55 +28,74 @@ Electron 主进程 (electron/)
 ├── ipc-handlers.ts      # IPC 路由
 ├── preload.ts           # 上下文桥接
 └── services/
-    ├── file-service.ts    # 文件读写、文件树
+    ├── file-service.ts    # 文件读写、文件树（含 sanitizePath）
     ├── file-watcher.ts    # fs.watch 监听
-    ├── search-service.ts  # 全文搜索
+    ├── search-service.ts  # 并行全文搜索
     ├── export-service.ts  # HTML/PDF 导出
     ├── encoding-detector.ts # 编码检测
     └── scanner-service.ts # 插件目录扫描
 
 渲染进程 (src/)
 ├── App.tsx               # 根组件、菜单 IPC 处理
-├── main.tsx              # 入口 + 主题 CSS 加载
+├── main.tsx              # 入口 + 主题/样式 CSS 加载
 ├── components/
 │   ├── Editor/           # 编辑器布局/面板/工具栏/标签栏/状态栏
 │   ├── Preview/          # Markdown 预览
 │   ├── Sidebar/          # 文件树/大纲/搜索
-│   └── Settings/         # 主题选择器/插件管理对话框
+│   └── Settings/         # 主题选择器/插件管理对话框/关于
 ├── editor/
 │   ├── cm6-setup.ts      # CM6 初始化
 │   ├── keybindings.ts    # 编辑器快捷键
 │   ├── format-helpers.ts # 格式化函数（工具栏+快捷键共用）
-│   ├── markdown-renderer.ts # markdown-it 配置
+│   ├── markdown-renderer.ts # markdown-it + texmath 配置
 │   ├── mermaid-renderer.ts  # Mermaid 渲染
 │   ├── wysiwyg-plugin.ts    # WYSIWYG 模式
 │   ├── focus-mode.ts        # 专注模式
 │   ├── typewriter-mode.ts   # 打字机模式
-│   ├── sync-scroll.ts       # 滚动同步
+│   ├── sync-scroll.ts       # 编辑/预览滚动同步
 │   ├── outline-parser.ts    # 大纲提取
 │   ├── active-view.ts       # 模块级 EditorView 引用
 │   └── large-file-handler.ts # 大文件检测
-├── stores/               # Zustand 状态管理
-│   ├── app-store.ts
-│   ├── editor-store.ts
-│   ├── sidebar-store.ts
-│   ├── tab-store.ts
-│   └── plugin-store.ts
-├── engine/               # 插件引擎（部分实现）
-│   ├── PluginEngine.ts
-│   ├── HostAPIBridge.ts
-│   ├── DependencyGraph.ts
-│   ├── EventBus.ts
-│   ├── ConfigDB.ts
-│   └── SandboxFactory.ts
+├── engine/               # 插件引擎（已全部实现）
+│   ├── PluginEngine.ts   # 引擎核心（注册/激活/依赖/事件/持久化）
+│   ├── HostAPIBridge.ts  # 宿主适配器
+│   ├── DependencyGraph.ts # 依赖图（拓扑排序）
+│   ├── EventBus.ts       # 事件总线（12 内置事件）
+│   ├── ConfigDB.ts       # 配置持久化
+│   ├── SandboxFactory.ts # 沙箱执行器（Proxy 隔离）
+│   ├── ScannerIPC.ts     # 目录扫描 IPC 封装
+│   └── types/
+│       ├── host-api.ts   # HostAPIBridge 接口
+│       └── plugin.ts     # 插件类型定义
 ├── services/
-│   ├── electron-bridge.ts    # IPC 封装层
-│   ├── theme-service.ts      # 主题切换
-│   └── plugin-manager.ts     # 插件管理器（简化版）
-└── utils/
-    ├── sanitize.ts       # DOMPurify
-    ├── dom-diff.ts       # morphdom 增量更新
-    └── path.ts           # 路径工具
+│   ├── electron-bridge.ts    # IPC 封装层（22 个函数）
+│   └── theme-service.ts      # 主题切换 + hljs/Mermaid 联动
+├── stores/
+│   ├── app-store.ts       # 应用配置（版本/侧边栏）
+│   ├── editor-store.ts    # 编辑器状态
+│   ├── sidebar-store.ts   # 侧边栏状态
+│   ├── tab-store.ts       # 多标签管理
+│   └── plugin-store.ts    # 插件 UI 状态
+├── utils/
+│   ├── sanitize.ts       # DOMPurify
+│   ├── dom-diff.ts       # morphdom 增量更新
+│   └── path.ts           # 路径工具
+├── plugins/builtins/
+│   ├── status-bar-info.tsx     # 内置状态栏插件
+│   └── status-bar/
+│       └── manifest.json       # 插件清单
+└── styles/
+    ├── global.css          # CSS 变量 + 基础重置
+    ├── editor.css          # 编辑器/分栏
+    ├── preview.css         # Markdown 预览
+    ├── sidebar.css         # 侧边栏
+    ├── dialog.css          # 对话框（插件管理/关于）
+    ├── status-bar.css      # 状态栏
+    ├── wysiwyg.css         # WYSIWYG 装饰样式
+    └── TabBar.module.css   # CSS Modules（4 个组件）
+    └── FormatToolbar.module.css
+    └── ModeSwitch.module.css
+    └── ThemeSelector.module.css
 ```
 
 ## 关键数据流
@@ -101,8 +120,7 @@ CM6 updateListener (150ms 防抖)
   → editor-store.setContent()
   → PreviewPane useMemo → renderMarkdown()
   → morphdom 增量更新
-  → renderMermaidDiagrams()
-  → renderMathInElement()
+  → renderMermaidDiagrams()（大文件跳过）
 ```
 
 ### 模式切换
@@ -110,7 +128,7 @@ CM6 updateListener (150ms 防抖)
 ```
 菜单 Ctrl+Shift+P / ModeSwitch 按钮
   → editor-store.toggleMode()
-  → EditorLayout 根据 mode 渲染 split/wysiwyg
+  → EditorLayout 根据 mode 渲染 split/wysiwyg/preview
   → key={activeTabId} 触发 CM6 重建
 ```
 
@@ -119,6 +137,7 @@ CM6 updateListener (150ms 防抖)
 | 通道 | 方向 | 说明 |
 |------|------|------|
 | `app:get-version` | R→M | 获取版本 |
+| `app:get-env` | R→M | 获取 Electron/Chrome/Node 版本 |
 | `dialog:open-file` | R→M | 打开文件对话框 |
 | `dialog:save-file` | R→M | 保存文件对话框 |
 | `dialog:open-folder` | R→M | 打开文件夹对话框 |
@@ -129,7 +148,9 @@ CM6 updateListener (150ms 防抖)
 | `file-watcher:start/stop` | R→M | 文件变更监听 |
 | `sidebar:context-menu` | R→M | 右键菜单 |
 | `sidebar:action` | M→R | 侧边栏操作 |
+| `sidebar:create-file/dir` | R→M | 新建文件/目录 |
+| `sidebar:rename/delete/reveal` | R→M | 重命名/删除/显示 |
 | `search:query` | R→M | 全局搜索 |
 | `export:html/pdf` | R→M | 导出 |
-| `scanner:scan` | R→M | 插件目录扫描 |
-| `menu:action` | M→R | 菜单操作（统一） |
+| `scanner:scan/read-entry` | R→M | 插件目录扫描 |
+| `menu:action` | M→R | 菜单操作（统一路由） |

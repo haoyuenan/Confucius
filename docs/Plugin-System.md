@@ -20,7 +20,7 @@
 
 ```
 ┌─────────────────────────────────────────────────┐
-│                  宿主应用                         │
+│                  宿主应用                       │
 │  ┌───────────────────────────────────────────┐  │
 │  │  HostAPIBridge 接口                       │  │
 │  │  getEditorContent() / addStatusBarItem()  │  │
@@ -30,12 +30,12 @@
 │  ┌──────────────────▼────────────────────────┐  │
 │  │  PluginEngine                             │  │
 │  │  ┌──────────┐ ┌──────────┐ ┌───────────┐  │  │
-│  │  │ Scanner   │ │ Registry │ │ EventBus  │  │  │
-│  │  │ 发现插件   │ │ 注册表    │ │ 插件间通信 │  │  │
+│  │  │ Scanner  │ │ Registry │ │ EventBus  │  │  │
+│  │  │ 发现插件 │ │ 注册表   │ │ 插件间通信│  │  │
 │  │  └──────────┘ └──────────┘ └───────────┘  │  │
 │  │  ┌──────────┐ ┌──────────┐ ┌───────────┐  │  │
 │  │  │ DepGraph │ │ ConfigDB │ │ Sandbox   │  │  │
-│  │  │ 依赖解析  │ │ 配置持久化 │ │ 沙箱执行  │  │  │
+│  │  │ 依赖解析 │ │配置持久化│ │ 沙箱执行  │  │  │
 │  │  └──────────┘ └──────────┘ └───────────┘  │  │
 │  └───────────────────────────────────────────┘  │
 └─────────────────────────────────────────────────┘
@@ -201,15 +201,17 @@ class ConfigDB {
 
 | 模块 | 状态 | 文件 |
 |------|------|------|
-| `PluginManager`（简化版） | ✅ 已实现 | `src/services/plugin-manager.ts` |
+| `HostAPIBridge` 接口 + 实现 | ✅ 已实现 | `src/engine/types/host-api.ts` + `src/engine/HostAPIBridge.ts` |
+| `PluginEngine`（完整版） | ✅ 已实现并集成 | `src/engine/PluginEngine.ts` |
+| `Scanner` 目录扫描 | ✅ 已实现 | `electron/services/scanner-service.ts` + `src/engine/ScannerIPC.ts` |
+| `DependencyGraph` 依赖管理 | ✅ 已实现 | `src/engine/DependencyGraph.ts` |
+| `EventBus` 事件总线 | ✅ 已实现 | `src/engine/EventBus.ts` |
+| `ConfigDB` 配置持久化 | ✅ 已实现 | `src/engine/ConfigDB.ts` |
+| `SandboxFactory` 沙箱执行 | ✅ 已实现 | `src/engine/SandboxFactory.ts` |
 | `PluginStore` | ✅ 已实现 | `src/stores/plugin-store.ts` |
-| `HostAPIBridge` 接口 | ❌ 未实现 | — |
-| `PluginEngine`（完整版） | ❌ 未实现 | — |
-| `Scanner` 目录扫描 | ❌ 未实现 | — |
-| `DependencyGraph` | ❌ 未实现 | — |
-| `EventBus` | ❌ 未实现 | — |
-| `ConfigDB` | ⚠️ 部分 | `src/engine/ConfigDB.ts` 已存在 |
-| `SandboxFactory` | ⚠️ 部分 | `src/engine/SandboxFactory.ts` 已存在 |
-| 内置插件目录化 | ⚠️ 部分 | `plugins/builtins/status-bar/` 已存在 |
+| 内置插件目录化 | ✅ 已实现 | `plugins/builtins/status-bar/manifest.json` |
+| 插件管理 UI | ✅ 已实现 | `src/components/Settings/PluginManagerDialog.tsx` |
+| 外部插件加载 | ✅ 已实现 | 通过 UI 选择 .js 文件加载 |
+| 旧 `PluginManager`（简化版） | ❌ 已删除，由 PluginEngine 替代 | `src/services/plugin-manager.ts` 已移除 |
 
-> **说明**：`src/engine/` 下的 `PluginEngine.ts`、`DependencyGraph.ts`、`EventBus.ts`、`HostAPIBridge.ts` 等模块已作为基础设施实现，但尚未与 `PluginManager` 打通。完整的解耦和目录扫描能力为 Phase 7+ 规划内容。
+> **说明**：`src/engine/` 下的全部 6 个核心模块（PluginEngine、HostAPIBridge、DependencyGraph、EventBus、ConfigDB、SandboxFactory）均已实现并集成。应用通过 `PluginEngine.start()` 初始化，支持内置插件注册 + 外部插件热加载 + 依赖排序 + 事件通信 + 配置持久化。详见 [Plugin-Dev-Guide.md](./Plugin-Dev-Guide.md)。
