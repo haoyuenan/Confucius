@@ -33,8 +33,9 @@ export class ScannerService {
         const pkg = await this.loadManifest(path.join(dirPath, entry.name))
         if (pkg) result.push(pkg)
       }
-    } catch (err: any) {
-      if (err.code !== 'ENOENT') {
+    } catch (err: unknown) {
+      const code = (err as NodeJS.ErrnoException)?.code
+      if (code !== 'ENOENT') {
         console.warn(`扫描插件目录失败 ${dirPath}:`, err)
       }
     }

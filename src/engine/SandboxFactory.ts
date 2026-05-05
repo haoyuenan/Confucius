@@ -27,15 +27,15 @@ const BLOCKED = new Set([
  */
 export class SandboxFactory {
   execute(code: string): Plugin {
-    const sandbox = { module: { exports: {} as any }, exports: {} as any }
+    const sandbox = { module: { exports: {} as Partial<Plugin> }, exports: {} as Partial<Plugin> }
 
     const handler: ProxyHandler<typeof globalThis> = {
       has: () => true,
       get: (target, prop) => {
         const key = String(prop)
-        if (SAFE_GLOBALS.has(key)) return (target as any)[key]
+        if (SAFE_GLOBALS.has(key)) return (target as Record<string, unknown>)[key]
         if (BLOCKED.has(key)) return undefined
-        if (key.startsWith('__')) return (target as any)[key]
+        if (key.startsWith('__')) return (target as Record<string, unknown>)[key]
         return undefined
       },
       set: () => true,
@@ -43,9 +43,9 @@ export class SandboxFactory {
 
     const sandboxGlobal = new Proxy(globalThis, handler)
     const fn = new Function('module', 'exports', code)
-    fn.call(sandboxGlobal as any, sandbox.module, sandbox.exports)
+    fn.call(sandboxGlobal as unknown, sandbox.module, sandbox.exports)
 
-    const plugin: Plugin = sandbox.module.exports?.default || sandbox.module.exports
+    const plugin: Plugin = (sandbox.module.exports as { default?: Plugin })?.default || sandbox.module.exports as Plugin
     if (!plugin) throw new Error('module.exports 未定义')
     if (!plugin.manifest?.id) throw new Error('缺少 manifest.id')
     if (!plugin.onActivate) throw new Error('缺少 onActivate 方法')

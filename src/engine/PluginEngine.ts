@@ -1,5 +1,7 @@
 import type { HostAPIBridge } from './types/host-api'
 import type { Plugin, PluginManifest, PluginContext } from './types/plugin'
+import type { PluginPackage } from './ScannerIPC'
+import type { EventName, EventPayload } from './EventBus'
 import { SandboxFactory } from './SandboxFactory'
 import { scanPluginDir, readPluginEntry } from './ScannerIPC'
 import { DependencyGraph, CyclicDependencyError } from './DependencyGraph'
@@ -19,10 +21,12 @@ export class PluginEngine {
   readonly events: EventBus
   readonly configDB: ConfigDB
   private depGraph: DependencyGraph
-  private registry: Map<string, Plugin> = new Map()
+  /** 插件注册表 - 对话框需要访问 */
+  readonly registry: Map<string, Plugin> = new Map()
   private activeIds: Set<string> = new Set()
   private resourceCleanups: Map<string, (() => void)[]> = new Map()
-  private options: EngineOptions
+  /** 引擎配置选项 - 对话框需要访问 userDir */
+  readonly options: EngineOptions
 
   constructor(options: EngineOptions) {
     this.options = options
@@ -134,7 +138,7 @@ export class PluginEngine {
   }
 
   /** 扫描目录，返回尚未加载的可发现插件 */
-  async findAvailablePlugins(): Promise<any[]> {
+  async findAvailablePlugins(): Promise<PluginPackage[]> {
     const dirs: string[] = [this.options.builtinDir]
     if (this.options.userDir) dirs.push(this.options.userDir)
     const results = await Promise.all(dirs.map((d) => scanPluginDir(d).catch(() => [])))
@@ -163,7 +167,7 @@ export class PluginEngine {
 
   // ── 内部 ──
 
-  private async loadPackage(pkg: import('./ScannerIPC').PluginPackage): Promise<boolean> {
+  private async loadPackage(pkg: PluginPackage): Promise<boolean> {
     try {
       const code = await readPluginEntry(pkg.entryPath)
       const plugin = this.sandbox.execute(code)
@@ -211,7 +215,7 @@ export class PluginEngine {
         error: console.error.bind(console, `[${manifest.id}]`),
       },
       events: {
-        on: (event: any, handler: any) => this.events.on(pluginId, event, handler),
+        on: <N extends EventName>(event: N, handler: (payload: EventPayload<N>) => void) => this.events.on(pluginId, event, handler),
       },
     }
   }
@@ -225,6 +229,11 @@ export class PluginEngine {
 
   private cleanupAll(pluginId: string): void {
     const fns = this.resourceCleanups.get(pluginId)
-    if (fns) { fns.forEach((fn) => { try { fn() } catch {} }); this.resourceCleanups.delete(pluginId) }
+    if (fns) {
+      fns.forEach((fn) => {
+        try { fn() } catch { /* ignore cleanup errors */ }
+      })
+      this.resourceCleanups.delete(pluginId)
+    }
   }
 }

@@ -55,7 +55,7 @@ function App() {
       },
     })
     engine.start()
-    ;(window as any).__pluginEngine = engine
+    ;(window as { __pluginEngine?: PluginEngine }).__pluginEngine = engine
   }, [])
 
   const handleSaveFile = useCallback(async () => {
@@ -126,7 +126,7 @@ function App() {
       }
     })
     return () => cleanup?.()
-  }, [toggleSidebar, handleNewFile, handleOpenFile, handleSaveFile, handleSaveAs, setActiveTab, toggleFocusMode, toggleTypewriterMode])
+  }, [toggleSidebar, handleNewFile, handleOpenFile, handleSaveFile, handleSaveAs, setActiveTab, toggleFocusMode, toggleTypewriterMode, setMode])
 
   useEffect(() => {
     bridge.getVersion().then(setVersion).catch(console.error)

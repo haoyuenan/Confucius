@@ -4,6 +4,7 @@
 import type { FileResult } from './file'
 import type { SearchResult } from './search'
 import type { FileTreeNode } from './file-tree'
+import type { PluginPackage } from '../engine/ScannerIPC'
 
 export interface ElectronAPI {
   getVersion: () => Promise<string>
@@ -43,7 +44,7 @@ export interface ElectronAPI {
   onExportDone: (callback: (info: { format: string; path: string }) => void) => () => void
 
   // Phase 2: 插件扫描
-  scannerScan: (dirPath: string) => Promise<any[]>
+  scannerScan: (dirPath: string) => Promise<PluginPackage[]>
   scannerReadEntry: (entryPath: string) => Promise<{ code: string }>
 }
 

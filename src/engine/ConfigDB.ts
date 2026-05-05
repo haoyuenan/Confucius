@@ -9,7 +9,7 @@ const STORAGE_KEY = 'confucius:plugin-config'
 
 export interface PluginConfigEntry {
   enabled: boolean
-  settings: Record<string, any>
+  settings: Record<string, unknown>
   installedAt?: number
 }
 
