@@ -19,6 +19,7 @@ function createMainWindow(): void {
     minWidth: 800,
     minHeight: 600,
     show: false, // 等 ready-to-show 再显示，避免白屏闪烁
+    icon: path.join(__dirname, '../public/icons/icon.ico'),
     webPreferences: {
       preload: path.join(DIST_ELECTRON, 'preload.js'),
       contextIsolation: true,
