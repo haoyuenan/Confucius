@@ -109,7 +109,7 @@ npm test
 # 生产构建
 npm run build
 
-# 打包安装包
+# 打包安装包，可能需要管理员权限
 npm run pack:win    # Windows .exe
 npm run pack:mac    # macOS .dmg
 npm run pack:linux  # Linux .AppImage
