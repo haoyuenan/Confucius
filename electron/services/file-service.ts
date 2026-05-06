@@ -89,11 +89,13 @@ export class FileService {
     return dirPath
   }
 
-  /** 迭代栈构建文件树，无递归溢出风险 */
+  /** 迭代栈构建文件树，无递归溢出风险；只显示 .md/.markdown 文件 */
   async buildFileTree(rootPath: string): Promise<FileTreeNode> {
     const safePath = this.sanitizePath(rootPath)
     const rootName = path.basename(safePath)
     const root: FileTreeNode = { name: rootName, path: rootPath, type: 'directory', children: [] }
+
+    const MD_EXT = new Set(['.md', '.markdown'])
 
     interface StackItem { parent: FileTreeNode; dirPath: string }
     const stack: StackItem[] = [{ parent: root, dirPath: safePath }]
@@ -106,15 +108,13 @@ export class FileService {
       for (const entry of entries) {
         if (entry.name.startsWith('.')) continue
         const fullPath = path.join(item.dirPath, entry.name)
-        const child: FileTreeNode = {
-          name: entry.name, path: fullPath,
-          type: entry.isDirectory() ? 'directory' : 'file',
-        }
         if (entry.isDirectory()) {
-          child.children = []
+          const child: FileTreeNode = { name: entry.name, path: fullPath, type: 'directory', children: [] }
           stack.push({ parent: child, dirPath: fullPath })
+          children.push(child)
+        } else if (MD_EXT.has(path.extname(entry.name).toLowerCase())) {
+          children.push({ name: entry.name, path: fullPath, type: 'file' })
         }
-        children.push(child)
       }
 
       children.sort((a, b) => {
@@ -123,6 +123,16 @@ export class FileService {
       })
       item.parent.children = children
     }
+
+    // 剪枝：移除不含任何 .md 文件的空目录
+    function prune(node: FileTreeNode): boolean {
+      if (node.type === 'file') return true
+      if (!node.children) return false
+      node.children = node.children.filter(prune)
+      return node.children.length > 0
+    }
+    prune(root)
+
     return root
   }
 }
