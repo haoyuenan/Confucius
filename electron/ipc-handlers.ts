@@ -201,6 +201,14 @@ export function registerIpcHandlers(): void {
     await exportService.exportPdf(win)
   })
 
+  // ---- 外部链接 ----
+  ipcMain.handle('shell:open-external', async (_event, url: string) => {
+    // 仅允许 http/https 协议，防止恶意协议调用
+    if (/^https?:\/\//i.test(url)) {
+      await shell.openExternal(url)
+    }
+  })
+
   // ---- 插件扫描 ----
   ipcMain.handle('scanner:scan', async (_event, dirPath: string) => {
     return await scannerService.scanDirectory(dirPath)
