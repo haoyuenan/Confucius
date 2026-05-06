@@ -8,8 +8,6 @@
 
 import { useEffect, useRef } from 'react'
 
-let syncing = false
-
 function calcPercent(el: HTMLElement): number {
   const sh = el.scrollHeight - el.clientHeight
   return sh > 0 ? el.scrollTop / sh : 0
@@ -33,6 +31,7 @@ export function useSyncScroll(
   enabled: boolean,
 ): void {
   const cleanupsRef = useRef<(() => void)[]>([])
+  const syncingRef = useRef(false)
 
   useEffect(() => {
     cleanupsRef.current.forEach((fn) => fn())
@@ -43,23 +42,22 @@ export function useSyncScroll(
     let scrollRaf = 0
 
     const onEditorScroll = (): void => {
-      if (syncing) return
-      syncing = true
+      if (syncingRef.current) return
+      syncingRef.current = true
       cancelAnimationFrame(scrollRaf)
       scrollRaf = requestAnimationFrame(() => {
         applyPercent(previewEl, calcPercent(editorEl))
-        // 延迟释放锁，确保预览滚动事件已被跳过
-        requestAnimationFrame(() => { syncing = false })
+        requestAnimationFrame(() => { syncingRef.current = false })
       })
     }
 
     const onPreviewScroll = (): void => {
-      if (syncing) return
-      syncing = true
+      if (syncingRef.current) return
+      syncingRef.current = true
       cancelAnimationFrame(scrollRaf)
       scrollRaf = requestAnimationFrame(() => {
         applyPercent(editorEl, calcPercent(previewEl))
-        requestAnimationFrame(() => { syncing = false })
+        requestAnimationFrame(() => { syncingRef.current = false })
       })
     }
 

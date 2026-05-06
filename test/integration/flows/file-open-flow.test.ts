@@ -5,7 +5,7 @@ import { useEditorStore } from '../../../src/stores/editor-store'
 beforeEach(() => {
   useTabStore.setState({ tabs: [], activeTabId: null, _nextId: 0 })
   // ResetEditorStore
-  useEditorStore.setState({ content: '', initialContent: '', contentKey: 0, isLoading: false, mode: 'split', focusMode: false, typewriterMode: false, isLargeFile: false })
+  useEditorStore.setState({ content: '', mode: 'split', focusMode: false, typewriterMode: false, isLargeFile: false })
 })
 
 describe('file-open-flow', () => {

@@ -22,8 +22,7 @@ export function setupMenu(win: BrowserWindow): void {
       { type: 'separator' },
       ...(isMac
         ? [{ label: '关闭窗口', accelerator: 'CmdOrCtrl+W', click: () => win.webContents.send('menu:action', 'file:close') }]
-        : []),
-      isMac ? { role: 'close', label: '关闭窗口' } : { role: 'quit', label: '退出' },
+        : [{ role: 'quit' as const, label: '退出' }]),
     ],
   }
 

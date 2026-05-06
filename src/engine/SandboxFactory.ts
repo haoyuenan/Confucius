@@ -42,7 +42,9 @@ export class SandboxFactory {
     }
 
     const sandboxGlobal = new Proxy(globalThis, handler)
-    const fn = new Function('module', 'exports', code)
+    // 强制严格模式，阻止 (function(){return this})() 绕过 Proxy 获取真实 globalThis
+    const strictCode = '"use strict";\n' + code
+    const fn = new Function('module', 'exports', strictCode)
     fn.call(sandboxGlobal as unknown, sandbox.module, sandbox.exports)
 
     const plugin: Plugin = (sandbox.module.exports as { default?: Plugin })?.default || sandbox.module.exports as Plugin
