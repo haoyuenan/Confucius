@@ -35,11 +35,9 @@ export function createEditorView(
         fontSize: '14px',
         lineHeight: '1.7',
       },
-      '.cm-content': { caretColor: '#0366d6' },
-      '.cm-cursor': { borderLeftColor: '#0366d6', borderLeftWidth: '2px' },
-      '.cm-selectionBackground': { background: '#0366d620 !important' },
-      '.cm-activeLine': { background: '#f6f8fa' },
-      '&.cm-focused .cm-cursor': { borderLeftColor: '#0366d6' },
+      '.cm-content': { caretColor: 'var(--accent-color, #0366d6)' },
+      '.cm-cursor': { borderLeftColor: 'var(--accent-color, #0366d6)', borderLeftWidth: '2px' },
+      '&.cm-focused .cm-cursor': { borderLeftColor: 'var(--accent-color, #0366d6)' },
     }),
   ]
 

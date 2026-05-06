@@ -23,6 +23,20 @@
   user-select: text;
 }
 
+/* ---- CM6 选中文字高亮 ---- */
+.cm-editor.cm-focused .cm-selectionBackground {
+  background: var(--editor-selection-focused, rgba(3, 102, 214, 0.45)) !important;
+}
+
+.cm-editor .cm-selectionBackground {
+  background: var(--editor-selection-blur, rgba(3, 102, 214, 0.2)) !important;
+}
+
+/* ---- CM6 当前行高亮（需比选中更淡） ---- */
+.cm-editor .cm-activeLine {
+  background: var(--editor-active-line, rgba(0, 0, 0, 0.03)) !important;
+}
+
 /* ---- 预览区 ---- */
 .preview-pane {
   height: 100%;
