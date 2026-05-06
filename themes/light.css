@@ -27,6 +27,10 @@
   --table-header-bg: #f6f8fa;
   --table-row-alt: #f6f8fa;
 
+  --editor-selection-focused: rgba(3, 102, 214, 0.45);
+  --editor-selection-blur: rgba(3, 102, 214, 0.2);
+  --editor-active-line: rgba(0, 0, 0, 0.03);
+
   --scrollbar-bg: transparent;
   --scrollbar-thumb: #c1c1c1;
 }
