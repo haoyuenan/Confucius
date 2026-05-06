@@ -152,7 +152,7 @@ function PreviewPane({ content }: PreviewPaneProps) {
     if (!isLarge) {
       renderMermaidDiagrams(previewRef.current)
     }
-  }, [html])
+  }, [html, activeFilePath])
 
   return <div ref={previewRef} className="preview-pane markdown-body" />
 }
