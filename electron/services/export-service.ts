@@ -10,9 +10,14 @@ export class ExportService {
     })
     if (result.canceled || !result.filePath) return
 
-    const bodyHtml = await win.webContents.executeJavaScript(
+    const rawHtml = await win.webContents.executeJavaScript(
       `window.__exportPreviewHTML__()`,
     )
+    // 二次校验：确保返回值为字符串，防止渲染进程异常返回非预期类型
+    if (typeof rawHtml !== 'string') {
+      throw new Error('exportHtml: 获取预览内容失败，返回值类型无效')
+    }
+    const bodyHtml = rawHtml
 
     const fullHtml = this.wrapHtmlDocument(bodyHtml)
     await writeFile(result.filePath, fullHtml, 'utf-8')

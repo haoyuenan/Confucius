@@ -1,14 +1,6 @@
 import fs from 'fs/promises'
 import path from 'path'
-
-export interface SearchResult {
-  filePath: string
-  fileName: string
-  lineNumber: number
-  lineContent: string
-  matchStart: number
-  matchEnd: number
-}
+import type { SearchResult } from '../../src/types/search'
 
 export class SearchService {
   async search(
@@ -26,7 +18,8 @@ export class SearchService {
       ? new RegExp(query, flags)
       : new RegExp(escapeRegex(query), flags)
 
-    const files = await this.findMdFiles(rootPath)
+    const safeRootPath = this.sanitizePath(rootPath)
+    const files = await this.findMdFiles(safeRootPath)
     const results: SearchResult[] = []
     let stopped = false
 
@@ -64,6 +57,7 @@ export class SearchService {
   }
 
   private async findMdFiles(rootPath: string): Promise<string[]> {
+    const safePath = this.sanitizePath(rootPath)
     const result: string[] = []
     async function walk(dir: string): Promise<void> {
       try {
@@ -79,8 +73,21 @@ export class SearchService {
         }
       } catch { /* 权限不足时跳过 */ }
     }
-    await walk(rootPath)
+    await walk(safePath)
     return result
+  }
+
+  private sanitizePath(inputPath: string): string {
+    if (!inputPath || typeof inputPath !== 'string') {
+      throw new Error('拒绝：路径为空或类型无效')
+    }
+    if (inputPath.includes('..')) {
+      throw new Error(`拒绝：路径包含非法序列 ".." — ${inputPath}`)
+    }
+    if (inputPath.includes('\0')) {
+      throw new Error('拒绝：路径包含空字节')
+    }
+    return path.resolve(inputPath)
   }
 }
 

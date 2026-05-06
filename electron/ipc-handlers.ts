@@ -11,10 +11,29 @@ const exportService = new ExportService()
 const scannerService = new ScannerService()
 let fileWatcher: FileWatcher | null = null
 
+/**
+ * IPC 处理器包装：自动捕获异常并返回 { error } 格式
+ * 避免渲染进程收到未处理的 Promise rejection
+ */
+function handle(
+  channel: string,
+  handler: (event: Electron.IpcMainInvokeEvent, ...args: any[]) => any,
+): void {
+  ipcMain.handle(channel, async (event, ...args) => {
+    try {
+      return await handler(event, ...args)
+    } catch (err: unknown) {
+      console.error(`[IPC] ${channel} 处理失败:`, err)
+      const errorMessage = err instanceof Error ? err.message : String(err)
+      return { error: errorMessage }
+    }
+  })
+}
+
 export function registerIpcHandlers(): void {
   // ---- 应用 ----
-  ipcMain.handle('app:get-version', () => app.getVersion())
-  ipcMain.handle('app:get-env', () => ({
+  handle('app:get-version', () => app.getVersion())
+  handle('app:get-env', () => ({
     electron: process.versions.electron,
     chrome: process.versions.chrome,
     node: process.versions.node,
@@ -23,7 +42,7 @@ export function registerIpcHandlers(): void {
   }))
 
   // ---- 文件对话框 ----
-  ipcMain.handle('dialog:open-file', async () => {
+  handle('dialog:open-file', async () => {
     const win = BrowserWindow.getFocusedWindow()
     if (!win) return null
     const result = await dialog.showOpenDialog(win, {
@@ -38,7 +57,7 @@ export function registerIpcHandlers(): void {
     return await fileService.readFileContent(result.filePaths[0])
   })
 
-  ipcMain.handle('dialog:save-file', async () => {
+  handle('dialog:save-file', async () => {
     const win = BrowserWindow.getFocusedWindow()
     if (!win) return null
     const result = await dialog.showSaveDialog(win, {
@@ -53,7 +72,7 @@ export function registerIpcHandlers(): void {
   })
 
   // ---- 插件选择对话框 ----
-  ipcMain.handle('dialog:open-plugin', async () => {
+  handle('dialog:open-plugin', async () => {
     const win = BrowserWindow.getFocusedWindow()
     if (!win) return null
     const result = await dialog.showOpenDialog(win, {
@@ -68,7 +87,7 @@ export function registerIpcHandlers(): void {
     return await fileService.readFileContent(result.filePaths[0])
   })
 
-  ipcMain.handle('dialog:open-folder', async () => {
+  handle('dialog:open-folder', async () => {
     const win = BrowserWindow.getFocusedWindow()
     if (!win) return null
     const result = await dialog.showOpenDialog(win, {
@@ -80,16 +99,16 @@ export function registerIpcHandlers(): void {
   })
 
   // ---- 文件读写 ----
-  ipcMain.handle('file:read', async (_event, filePath: string) => {
+  handle('file:read', async (_event, filePath: string) => {
     return await fileService.readFileContent(filePath)
   })
 
-  ipcMain.handle('file:write', async (_event, payload: { filePath: string; content: string }) => {
+  handle('file:write', async (_event, payload: { filePath: string; content: string }) => {
     const { filePath: targetPath, content } = payload
     await fileService.writeFile(targetPath, content)
   })
 
-  ipcMain.handle('file:confirm-save', async () => {
+  handle('file:confirm-save', async () => {
     const win = BrowserWindow.getFocusedWindow()
     if (!win) return 2
     const result = await dialog.showMessageBox(win, {
@@ -104,12 +123,12 @@ export function registerIpcHandlers(): void {
   })
 
   // ---- 文件树 ----
-  ipcMain.handle('file-tree:build', async (_event, rootPath: string) => {
+  handle('file-tree:build', async (_event, rootPath: string) => {
     return await fileService.buildFileTree(rootPath)
   })
 
   // ---- 文件监听 ----
-  ipcMain.handle('file-watcher:start', async (_event, rootPath: string) => {
+  handle('file-watcher:start', async (_event, rootPath: string) => {
     const safePath = fileService.sanitizePath(rootPath)
     fileWatcher?.unwatch()
     fileWatcher = new FileWatcher()
@@ -119,13 +138,13 @@ export function registerIpcHandlers(): void {
     })
   })
 
-  ipcMain.handle('file-watcher:stop', async () => {
+  handle('file-watcher:stop', async () => {
     fileWatcher?.unwatch()
     fileWatcher = null
   })
 
   // ---- 侧边栏右键菜单 ----
-  ipcMain.handle('sidebar:context-menu', async (event, params: { nodePath: string; nodeType: string }) => {
+  handle('sidebar:context-menu', async (event, params: { nodePath: string; nodeType: string }) => {
     const menu = Menu.buildFromTemplate([
       {
         label: '新建文件',
@@ -154,31 +173,31 @@ export function registerIpcHandlers(): void {
   })
 
   // ---- 侧边栏操作 ----
-  ipcMain.handle('sidebar:create-file', async (_event, parentPath: string) => {
+  handle('sidebar:create-file', async (_event, parentPath: string) => {
     await fileService.createFile(parentPath)
     return true
   })
 
-  ipcMain.handle('sidebar:create-dir', async (_event, parentPath: string) => {
+  handle('sidebar:create-dir', async (_event, parentPath: string) => {
     await fileService.createDir(parentPath)
     return true
   })
 
-  ipcMain.handle('sidebar:rename', async (_event, payload: { oldPath: string; newName: string }) => {
+  handle('sidebar:rename', async (_event, payload: { oldPath: string; newName: string }) => {
     await fileService.rename(payload.oldPath, payload.newName)
   })
 
-  ipcMain.handle('sidebar:delete', async (_event, targetPath: string) => {
+  handle('sidebar:delete', async (_event, targetPath: string) => {
     await fileService.delete(targetPath)
   })
 
-  ipcMain.handle('sidebar:reveal', async (_event, targetPath: string) => {
+  handle('sidebar:reveal', async (_event, targetPath: string) => {
     const safePath = fileService.sanitizePath(targetPath)
     shell.showItemInFolder(safePath)
   })
 
   // ---- 全局搜索 ----
-  ipcMain.handle('search:query', async (_event, params: {
+  handle('search:query', async (_event, params: {
     rootPath: string; query: string; caseSensitive?: boolean; regex?: boolean; maxResults?: number
   }) => {
     return await searchService.search(params.rootPath, params.query, {
@@ -189,20 +208,20 @@ export function registerIpcHandlers(): void {
   })
 
   // ---- 导出 ----
-  ipcMain.handle('export:html', async () => {
+  handle('export:html', async () => {
     const win = BrowserWindow.getFocusedWindow()
     if (!win) return
     await exportService.exportHtml(win)
   })
 
-  ipcMain.handle('export:pdf', async () => {
+  handle('export:pdf', async () => {
     const win = BrowserWindow.getFocusedWindow()
     if (!win) return
     await exportService.exportPdf(win)
   })
 
   // ---- 外部链接 ----
-  ipcMain.handle('shell:open-external', async (_event, url: string) => {
+  handle('shell:open-external', async (_event, url: string) => {
     // 仅允许 http/https 协议，防止恶意协议调用
     if (/^https?:\/\//i.test(url)) {
       await shell.openExternal(url)
@@ -210,11 +229,11 @@ export function registerIpcHandlers(): void {
   })
 
   // ---- 插件扫描 ----
-  ipcMain.handle('scanner:scan', async (_event, dirPath: string) => {
+  handle('scanner:scan', async (_event, dirPath: string) => {
     return await scannerService.scanDirectory(dirPath)
   })
 
-  ipcMain.handle('scanner:read-entry', async (_event, entryPath: string) => {
+  handle('scanner:read-entry', async (_event, entryPath: string) => {
     return await scannerService.readEntry(entryPath)
   })
 }
