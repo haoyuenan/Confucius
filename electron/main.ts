@@ -1,4 +1,4 @@
-import { app, BrowserWindow } from 'electron'
+import { app, BrowserWindow, protocol, net } from 'electron'
 import path from 'path'
 import { setupMenu } from './menu'
 import { registerIpcHandlers } from './ipc-handlers'
@@ -41,6 +41,13 @@ function createMainWindow(): void {
 }
 
 app.whenReady().then(() => {
+  // 注册 local-asset: 协议，用于安全加载本地图片
+  protocol.handle('local-asset', (req) => {
+    // local-asset:///D:/path/to/image.png → file:///D:/path/to/image.png
+    const filePath = decodeURIComponent(new URL(req.url).pathname)
+    return net.fetch('file://' + filePath)
+  })
+
   createMainWindow()
   setupMenu(mainWindow!)
   registerIpcHandlers()
