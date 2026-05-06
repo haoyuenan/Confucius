@@ -43,6 +43,9 @@ export interface ElectronAPI {
   exportPdf: () => Promise<void>
   onExportDone: (callback: (info: { format: string; path: string }) => void) => () => void
 
+  // 外部链接
+  openExternal: (url: string) => Promise<void>
+
   // Phase 2: 插件扫描
   scannerScan: (dirPath: string) => Promise<PluginPackage[]>
   scannerReadEntry: (entryPath: string) => Promise<{ code: string }>

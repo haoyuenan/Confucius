@@ -25,12 +25,30 @@ function PreviewPane({ content }: PreviewPaneProps) {
   const html = useMemo(() => renderMarkdown(content), [content])
   const outlineItems = useSidebarStore((s) => s.outlineItems)
 
-  // 点击预览区标题 → 编辑器跳转到对应位置
+  // 点击预览区标题 → 编辑器跳转到对应位置；点击链接 → 系统浏览器打开
   useEffect(() => {
     const el = previewRef.current
     if (!el) return
 
     const handleClick = (e: MouseEvent) => {
+      // 处理链接点击
+      const anchor = (e.target as HTMLElement).closest('a') as HTMLAnchorElement | null
+      if (anchor) {
+        e.preventDefault()
+        const href = anchor.getAttribute('href')
+        if (!href) return
+        if (/^https?:\/\//i.test(href)) {
+          window.electronAPI.openExternal(href)
+        } else if (href.startsWith('#')) {
+          // 锚点跳转：滚动到预览区内对应 id 元素
+          const targetId = decodeURIComponent(href.slice(1))
+          const target = el.querySelector(`[id="${CSS.escape(targetId)}"]`)
+          target?.scrollIntoView({ behavior: 'smooth' })
+        }
+        return
+      }
+
+      // 处理标题点击
       const heading = (e.target as HTMLElement).closest('h1, h2, h3, h4, h5, h6') as HTMLElement | null
       if (!heading) return
 

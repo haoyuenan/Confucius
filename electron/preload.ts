@@ -100,6 +100,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
     return () => ipcRenderer.removeListener('export:done', handler)
   },
 
+  // 外部链接
+  openExternal: (url: string): Promise<void> => ipcRenderer.invoke('shell:open-external', url),
+
   // Phase 2: 插件系统
   scannerScan: (dirPath: string): Promise<PluginPackage[]> => ipcRenderer.invoke('scanner:scan', dirPath),
   scannerReadEntry: (entryPath: string): Promise<{ code: string }> =>

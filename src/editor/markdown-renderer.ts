@@ -31,6 +31,29 @@ const md = new MarkdownIt({
 
 md.use(taskLists, { enabled: true, label: true, labelAfter: true })
 
+// 为标题生成 id 属性，支持文档内锚点跳转
+function slugify(text: string): string {
+  return text
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/[^\w\u4e00-\u9fff\u3400-\u4dbf\u{20000}-\u{2a6df}\-]/gu, '')
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const defaultHeadingOpen: any = md.renderer.rules.heading_open ||
+  function (tokens: any[], idx: number, options: any, _env: unknown, self: any) {
+    return self.renderToken(tokens, idx, options)
+  }
+
+md.renderer.rules.heading_open = function (tokens, idx, options, env, self) {
+  const inlineToken = tokens[idx + 1]
+  if (inlineToken?.type === 'inline' && inlineToken.content) {
+    tokens[idx].attrSet('id', slugify(inlineToken.content))
+  }
+  return defaultHeadingOpen(tokens, idx, options, env, self)
+}
+
 // markdown-it-texmath: 在 markdown-it 层渲染 KaTeX 公式，无需 DOM 后处理
 md.use(texmath, {
   engine: katex,
