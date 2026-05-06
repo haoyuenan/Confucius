@@ -42,10 +42,13 @@ function createMainWindow(): void {
 
 app.whenReady().then(() => {
   // 注册 local-asset: 协议，用于安全加载本地图片
-  protocol.handle('local-asset', (req) => {
-    // local-asset:///D:/path/to/image.png → file:///D:/path/to/image.png
-    const filePath = decodeURIComponent(new URL(req.url).pathname)
-    return net.fetch('file://' + filePath)
+  protocol.handle('local-asset', async (req) => {
+    try {
+      const filePath = decodeURIComponent(new URL(req.url).pathname)
+      return await net.fetch('file://' + filePath)
+    } catch {
+      return new Response('Not Found', { status: 404 })
+    }
   })
 
   createMainWindow()
