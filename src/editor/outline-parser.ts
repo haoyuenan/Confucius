@@ -11,20 +11,21 @@ export interface OutlineItem {
 export function extractOutline(doc: string): OutlineItem[] {
   const lines = doc.split('\n')
   const items: OutlineItem[] = []
+  let offset = 0
 
   for (let i = 0; i < lines.length; i++) {
     const match = lines[i].match(/^(#{1,6})\s+(.+)$/)
     if (match) {
       const level = match[1].length as 1 | 2 | 3 | 4 | 5 | 6
-      const lineStartOffset = lines.slice(0, i).join('\n').length
-      const lineEndOffset = lineStartOffset + lines[i].length
       items.push({
         level,
         text: match[2].trim(),
-        from: lineStartOffset,
-        to: lineEndOffset,
+        from: offset,
+        to: offset + lines[i].length,
       })
     }
+    // +1 for the '\n' separator (except after last line)
+    offset += lines[i].length + (i < lines.length - 1 ? 1 : 0)
   }
 
   return items

@@ -24,7 +24,9 @@ export const usePluginStore = create<PluginStoreState>((set) => ({
   },
 
   addStatusBarItem: (item) => {
-    set((s) => ({ statusBarItems: [...s.statusBarItems, item] }))
+    set((s) => ({
+      statusBarItems: [...s.statusBarItems.filter((i) => i.id !== item.id), item],
+    }))
     return () => {
       set((s) => ({ statusBarItems: s.statusBarItems.filter((i) => i.id !== item.id) }))
     }

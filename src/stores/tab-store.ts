@@ -129,6 +129,10 @@ export const useTabStore = create<TabState>((set, get) => ({
           : t
       ),
     }))
+    // 同步到 editorStore，供插件（状态栏字数统计等）读取
+    if (tabId === get().activeTabId) {
+      useEditorStore.getState().setContent(content)
+    }
   },
 
   markTabSaved: (tabId) => {

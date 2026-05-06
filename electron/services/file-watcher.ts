@@ -15,16 +15,18 @@ export class FileWatcher {
         this.debounceNotify(onChanged)
       })
     } catch {
-      // Linux 上 recursive: true 可能不支持，降级为轮询扫描
+      // Linux 上 recursive: true 可能不支持，降级为轮询检查目录 mtime
       console.warn('fs.watch recursive 不可用，降级为轮询模式')
-      let lastMtime = Date.now()
+      let lastMtime = 0
+      try { lastMtime = fs.statSync(rootPath).mtimeMs } catch { /* ignore */ }
       this.pollingTimer = setInterval(() => {
-        const now = Date.now()
-        if (now - lastMtime > 1000) {
-          // 简单检测：定时触发刷新
-          this.debounceNotify(onChanged)
-        }
-        lastMtime = now
+        try {
+          const currentMtime = fs.statSync(rootPath).mtimeMs
+          if (currentMtime !== lastMtime) {
+            lastMtime = currentMtime
+            this.debounceNotify(onChanged)
+          }
+        } catch { /* 目录不可访问时跳过 */ }
       }, 2000)
     }
   }
