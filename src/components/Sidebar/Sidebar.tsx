@@ -19,6 +19,7 @@ function Sidebar() {
         {TABS.map((tab) => (
           <button
             key={tab.id}
+            data-testid={`sidebar-tab-${tab.id}`}
             className={`sidebar-tab ${activeTab === tab.id ? 'active' : ''}`}
             onClick={() => setActiveTab(tab.id)}
           >

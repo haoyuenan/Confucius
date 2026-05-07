@@ -154,7 +154,7 @@ function PreviewPane({ content }: PreviewPaneProps) {
     }
   }, [html, activeFilePath])
 
-  return <div ref={previewRef} className="preview-pane markdown-body" />
+  return <div ref={previewRef} data-testid="preview-pane" className="preview-pane markdown-body" />
 }
 
 export default PreviewPane

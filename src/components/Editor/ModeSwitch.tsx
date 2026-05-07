@@ -14,7 +14,7 @@ function ModeSwitch() {
   const { icon, title } = config[mode] ?? config.split
 
   return (
-    <button className={styles.modeSwitch} onClick={toggleMode} title={title}>
+    <button data-testid="mode-switch" className={styles.modeSwitch} onClick={toggleMode} title={title}>
       {icon}
     </button>
   )

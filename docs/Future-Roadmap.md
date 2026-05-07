@@ -1,8 +1,8 @@
 # 未来发展规划
 
-**版本**：v1.2  
-**日期**：2026-05-05  
-**现状**：Phase 1-6 核心功能 + 插件引擎 v3 + 技术债务清理完成，117 测试通过
+**版本**：v1.3  
+**日期**：2026-05-07  
+**现状**：Phase 1-6 核心功能 + 插件引擎 v3 + 技术债务清理完成，131 测试通过（117 单元/集成 + 14 E2E）
 
 ---
 
@@ -19,6 +19,7 @@
 | HTML / PDF 导出 | ✅ 稳定 |
 | 亮色/暗色/护眼三主题 + 持久化 | ✅ 稳定 |
 | 117 单元+集成测试 | ✅ 稳定 |
+| 14 E2E 测试（Playwright + Electron） | ✅ 稳定 |
 | DOMPurify XSS + 路径遍历防护 + Mermaid strict | ✅ 稳定 |
 | 插件引擎完整版（解耦/发现/依赖/事件/持久化/沙箱/管理 UI） | ✅ 稳定 |
 | 状态栏（字数/光标/编码/模式）+ 外部插件注册 | ✅ 稳定 |
@@ -27,7 +28,7 @@
 
 ### 当前局限
 
-- 无 E2E 测试 / CI/CD
+- 无 CI/CD（GitHub Actions）
 - 无图片管理（仅支持 Markdown 图片链接）
 - 无云同步 / 协作 / Web 版本
 - 无拼写检查 / 代码块运行器
@@ -87,7 +88,6 @@
 | Electron 28 | Electron 33+ |
 | React 18 | React 19 |
 | 无 CI/CD | GitHub Actions |
-| 无 E2E | Playwright + Electron |
 
 ### 中期（6-12 个月）
 
@@ -104,11 +104,11 @@
 
 ---
 
-## 4. 技术债务（已全部解决）
+## 4. 技术债务
 
 | 项 | 优先级 | 状态 |
 |----|--------|------|
-| 创建 `services/` 层封装 IPC 调用（`electron-bridge.ts`） | P1 | ✅ 已完成 |
+| E2E 测试（Playwright + Electron，14 spec） | P0 | ✅ 已完成 |
 | CSS Modules 迁移（4 个组件已迁移） | P2 | ✅ 已完成 |
 | hljs 主题本地打包（移除 CDN 依赖） | P1 | ✅ 已完成 |
 | 创建 FileService 类（10 个方法） | P1 | ✅ 已完成 |
@@ -118,4 +118,3 @@
 | app-store 文件状态精简（移除 9 个冗余字段） | P2 | ✅ 已完成 |
 | IPC sanitizePath 简化（FileService 吸收） | P2 | ✅ 已完成 |
 | 大文件限制落实（PreviewPane 跳过 Mermaid） | P2 | ✅ 已完成 |
-| E2E 测试（Playwright + Electron，14+ spec） | P0 | 📋 待实施 |

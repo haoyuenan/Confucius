@@ -5,6 +5,7 @@ dist-release/
 .vite/
 .omc/
 .claude/
+test-results/
 *.log
 .DS_Store
 Thumbs.db

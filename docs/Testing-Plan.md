@@ -1,7 +1,7 @@
 # 测试方案
 
-**版本**：v1.2  
-**当前状态**：✅ 117 测试全部通过（20 文件）
+**版本**：v1.3  
+**当前状态**：✅ 117 单元/集成 + 14 E2E 测试全部通过
 
 ---
 
@@ -27,7 +27,7 @@
 | React 组件测试 | @testing-library/react + user-event |
 | IPC Mock | `test/setup.ts` 全量 mock `window.electronAPI` |
 | 覆盖率 | @vitest/coverage-v8（阈值 70%） |
-| E2E（规划） | Playwright + Electron |
+| E2E | Playwright + Electron（14 场景） |
 
 ---
 
@@ -64,11 +64,12 @@ test/
 │       ├── file-open-flow.test.ts
 │       ├── tab-switch-flow.test.ts
 │       └── theme-switch-flow.test.ts
-└── e2e/                           # 📋 规划中
-    ├── editor.spec.ts
-    ├── file-operations.spec.ts
-    ├── sidebar.spec.ts
-    └── export.spec.ts
+└── e2e/                           # ✅ 14 cases
+    ├── helpers.ts                  # Playwright fixture + 辅助函数
+    ├── editor.spec.ts              # ✅ 5 cases（输入/加粗/WYSIWYG/预览/专注模式）
+    ├── file-operations.spec.ts     # ✅ 4 cases（新建/修改指示器/关闭/菜单动作）
+    ├── sidebar.spec.ts             # ✅ 3 cases（标签切换/折叠/搜索）
+    └── export.spec.ts              # ✅ 2 cases（预览 HTML/导出函数）
 ```
 
 ---
@@ -82,25 +83,28 @@ test/
 | 服务 | theme-service/encoding-detector | 11 | ✅ |
 | 组件 | TabBar/FormatToolbar/PreviewPane/ThemeSelector/FileTree/Search | 22 | ✅ |
 | 流程 | 打开文件/切换标签/主题切换 | 10 | ✅ |
-| **总计** | | **117** | ✅ |
+| E2E | 编辑器/文件操作/侧边栏/导出 | 14 | ✅ |
+| **总计** | | **131** | ✅ |
 
 ---
 
 ## 4. npm 脚本
 
 ```bash
-npm run test           # 运行全部
+npm run test           # 运行单元+集成测试
 npm run test:watch     # 监视模式
 npm run test:coverage  # 覆盖率报告
+npm run test:e2e       # 运行 E2E 测试（需先 npm run build）
+npm run test:e2e:headed # 有头模式运行 E2E
 ```
 
 ---
 
-## 5. 待实施（E2E）
+## 5. E2E 测试（已完成）
 
-| 文件 | 场景数 |
-|------|--------|
-| `e2e/editor.spec.ts` | 5（输入/加粗/打开文件/WYSIWYG/专注模式） |
-| `e2e/file-operations.spec.ts` | 4（新建/保存/另存为/关闭） |
-| `e2e/sidebar.spec.ts` | 3（文件树/搜索/大纲跳转） |
-| `e2e/export.spec.ts` | 2（HTML/PDF） |
+| 文件 | 场景数 | 状态 |
+|------|--------|------|
+| `e2e/editor.spec.ts` | 5（输入/加粗/WYSIWYG/预览/专注模式） | ✅ |
+| `e2e/file-operations.spec.ts` | 4（新建/修改指示器/关闭/菜单动作） | ✅ |
+| `e2e/sidebar.spec.ts` | 3（标签切换/折叠/搜索） | ✅ |
+| `e2e/export.spec.ts` | 2（预览 HTML/导出函数） | ✅ |
