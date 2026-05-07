@@ -20,6 +20,7 @@
 | 亮色/暗色/护眼三主题 + 持久化 | ✅ 稳定 |
 | 117 单元+集成测试 | ✅ 稳定 |
 | 14 E2E 测试（Playwright + Electron） | ✅ 稳定 |
+| GitHub Actions CI/CD（lint/test/e2e/release） | ✅ 稳定 |
 | DOMPurify XSS + 路径遍历防护 + Mermaid strict | ✅ 稳定 |
 | 插件引擎完整版（解耦/发现/依赖/事件/持久化/沙箱/管理 UI） | ✅ 稳定 |
 | 状态栏（字数/光标/编码/模式）+ 外部插件注册 | ✅ 稳定 |
@@ -28,7 +29,6 @@
 
 ### 当前局限
 
-- 无 CI/CD（GitHub Actions）
 - 无图片管理（仅支持 Markdown 图片链接）
 - 无云同步 / 协作 / Web 版本
 - 无拼写检查 / 代码块运行器
@@ -87,7 +87,6 @@
 |------|------|
 | Electron 28 | Electron 33+ |
 | React 18 | React 19 |
-| 无 CI/CD | GitHub Actions |
 
 ### 中期（6-12 个月）
 
@@ -109,6 +108,7 @@
 | 项 | 优先级 | 状态 |
 |----|--------|------|
 | E2E 测试（Playwright + Electron，14 spec） | P0 | ✅ 已完成 |
+| CI/CD（GitHub Actions：ci/e2e/release） | P1 | ✅ 已完成 |
 | CSS Modules 迁移（4 个组件已迁移） | P2 | ✅ 已完成 |
 | hljs 主题本地打包（移除 CDN 依赖） | P1 | ✅ 已完成 |
 | 创建 FileService 类（10 个方法） | P1 | ✅ 已完成 |
