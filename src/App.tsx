@@ -6,7 +6,6 @@ import { useSidebarStore } from './stores/sidebar-store'
 import Sidebar from './components/Sidebar/Sidebar'
 import EditorLayout from './components/Editor/EditorLayout'
 import ThemeSelector from './components/Settings/ThemeSelector'
-import ModeSwitch from './components/Editor/ModeSwitch'
 import StatusBar from './components/Editor/StatusBar'
 import { themeService } from './services/theme-service'
 import { checkLargeFile } from './editor/large-file-handler'
@@ -175,7 +174,6 @@ function App() {
           <div className="sidebar-footer"><ThemeSelector /></div>
         </aside>
         <main className="app-main"><EditorLayout /></main>
-        <ModeSwitch />
       </div>
       <StatusBar />
       {showPluginDialog && <PluginManagerDialog onClose={() => setShowPluginDialog(false)} />}

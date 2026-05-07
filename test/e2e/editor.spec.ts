@@ -24,9 +24,12 @@ test.describe('Editor E2E', () => {
     expect(content).toContain('**hello**')
   })
 
-  test('should switch to WYSIWYG mode', async ({ appPage }) => {
-    const modeSwitch = appPage.locator('[data-testid="mode-switch"]')
-    await modeSwitch.click()
+  test('should switch to WYSIWYG mode', async ({ electronApp, appPage }) => {
+    // 通过 IPC 发送菜单动作切换模式
+    await electronApp.evaluate(({ BrowserWindow }) => {
+      BrowserWindow.getAllWindows()[0].webContents.send('menu:action', 'mode:toggle')
+    })
+    await appPage.waitForTimeout(500)
     // 验证 WYSIWYG 布局出现
     await expect(appPage.locator('.wysiwyg-layout')).toBeVisible()
   })
