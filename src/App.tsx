@@ -141,6 +141,21 @@ function App() {
     return () => cleanup?.()
   }, [])
 
+  // 监听外部文件打开（拖拽文件到应用图标）
+  useEffect(() => {
+    const cleanup = bridge.onFileOpen((data) => {
+      const large = checkLargeFile(data.content.length)
+      if (large.isLarge) {
+        setIsLargeFile(true)
+        setMode('split')
+      } else {
+        setIsLargeFile(false)
+      }
+      openFile(data.filePath, data.content)
+    })
+    return () => cleanup?.()
+  }, [openFile, setIsLargeFile, setMode])
+
   const fileName = activeTab?.fileName ?? 'Confucius'
   const isModified = activeTab?.isModified ?? false
   const hasFile = activeTab !== null

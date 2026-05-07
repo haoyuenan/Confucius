@@ -90,6 +90,11 @@ export function onExportDone(callback: (info: { format: string; path: string }) 
   return window.electronAPI.onExportDone(callback)
 }
 
+/** 监听外部文件打开（拖拽文件到应用图标） */
+export function onFileOpen(callback: (data: { filePath: string; content: string }) => void): () => void {
+  return window.electronAPI.onFileOpen(callback)
+}
+
 // ─── 菜单与事件 ───
 export function onMenuAction(callback: (action: string) => void): () => void {
   return window.electronAPI.onMenuAction(callback)

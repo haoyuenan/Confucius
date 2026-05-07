@@ -100,6 +100,14 @@ contextBridge.exposeInMainWorld('electronAPI', {
     return () => ipcRenderer.removeListener('export:done', handler)
   },
 
+  /** 监听外部文件打开（拖拽文件到应用图标） */
+  onFileOpen: (callback: (data: { filePath: string; content: string }) => void): (() => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, data: { filePath: string; content: string }) =>
+      callback(data)
+    ipcRenderer.on('app:open-file', handler)
+    return () => ipcRenderer.removeListener('app:open-file', handler)
+  },
+
   // 外部链接
   openExternal: (url: string): Promise<void> => ipcRenderer.invoke('shell:open-external', url),
 

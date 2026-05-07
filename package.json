@@ -2,6 +2,8 @@
   "name": "confucius",
   "version": "1.0.0",
   "description": "本地 Markdown 编辑器 — 类似 Typora",
+  "author": "renfy",
+  "license": "MIT",
   "main": "dist-electron/main.js",
   "scripts": {
     "dev": "vite",
