@@ -43,6 +43,12 @@
   - 插件可注册状态栏条目、侧边栏面板、全局命令
   - 依赖管理（拓扑排序）、事件总线、配置持久化
   - 插件管理 UI（加载/卸载/启用/禁用）
+  - TypeScript 类型定义支持
+- **内置插件**：
+  - **文档模板**：一键插入预定义模板（README、API 文档、博客、周报、会议纪要），支持变量替换
+  - **代码运行器**：在 Markdown 中运行 JavaScript/Python 代码块，即时查看输出
+  - **文档统计**：实时显示字数、行数、字符数
+  - **写作辅助**：智能建议和辅助功能
 
 ### 安全
 - **XSS 防护**：DOMPurify 白名单过滤
@@ -230,9 +236,25 @@ confucius/
 │       ├── file-tree.ts            # 文件树类型 + flattenTree
 │       └── search.ts               # 搜索类型
 │
-├── plugins/                        # 第三方插件
-│   └ builtins/                     # 内置插件目录
-│       └── status-bar/manifest.json
+├── plugins/                        # 插件目录
+│   ├── types/plugin.d.ts           # TypeScript 类型定义
+│   ├── builtins/                   # 内置插件（打包到安装包）
+│   │   ├── status-bar/             # 状态栏配置
+│   │   ├── doc-templates/          # 文档模板插件
+│   │   │   ├── manifest.json
+│   │   │   ├── index.js
+│   │   │   ├── templates.json
+│   │   │   ├── style.css
+│   │   │   └── README.md
+│   │   └── code-runner/            # 代码运行器插件
+│   │       ├── manifest.json
+│   │       ├── index.js
+│   │       ├── runner.js
+│   │       ├── style.css
+│   │       └── README.md
+│   ├── status-bar-plus/            # 状态栏扩展插件（示例）
+│   ├── doc-stats/                  # 文档统计插件（示例）
+│   └── writing-aid/                # 写作辅助插件（示例）
 │
 ├── themes/                         # 主题 CSS 变量
 │   ├── light.css
@@ -282,6 +304,9 @@ confucius/
 | E2E 测试 | ✅ 完成 | 14 tests (Playwright + Electron) |
 | CI/CD | ✅ 完成 | GitHub Actions (ci.yml / e2e.yml / release.yml) |
 | 文件拖拽打开 | ✅ 完成 | 拖拽 .md 文件到应用图标直接打开 |
+| — | | |
+| 插件生态增强 | ✅ 完成 | TypeScript 类型定义、文档模板插件、代码运行器插件 |
+| 插件开发文档 | ✅ 完成 | Plugin-Dev-Guide.md 扩展（调试指南、发布流程、高级示例、API 详解） |
 
 ## License
 

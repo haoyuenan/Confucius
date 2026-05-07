@@ -115,4 +115,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
   scannerScan: (dirPath: string): Promise<PluginPackage[]> => ipcRenderer.invoke('scanner:scan', dirPath),
   scannerReadEntry: (entryPath: string): Promise<{ code: string }> =>
     ipcRenderer.invoke('scanner:read-entry', entryPath),
+
+  // Phase C: 代码运行
+  runCode: (language: string, code: string, options?: {
+    pythonPath?: string
+    timeout?: number
+  }): Promise<{ stdout: string; stderr: string; exitCode: number; error?: string }> =>
+    ipcRenderer.invoke('plugin:run-code', { language, code, options }),
 })
