@@ -25,6 +25,7 @@
 - **全局搜索**：跨文件全文搜索，防抖 300ms，并行读取
 - **文件操作**：新建、打开、保存、另存为
 - **右键菜单**：新建文件/目录、重命名、删除
+- **拖拽打开**：拖拽 .md/.markdown 文件到应用图标直接打开
 
 ### 视图 & 外观
 - **三主题切换**：亮色 / 暗色 / 护眼，持久化 localStorage
@@ -50,20 +51,9 @@
 
 ## 截图
 
-```text
-┌─────────────────────────────────────────────────────────────┐
-│  [标题栏]  文件名.md  ●                                v1.0 │
-├────────────┬────────────────────────────────────────────────┤
-│ 侧边栏     │  编辑器区 (CM6)         预览区 (markdown-it)   │
-│ ┌────────┐ │  # 标题                  标题                  │
-│ │ 文件   │ │  正文内容...             正文内容...            │
-│ │ 大纲   │ │  **粗体**               粗体                   │
-│ │ 搜索   │ │  $公式$                  公式 (KaTeX)          │
-│ └────────┘ │  ```mermaid              图表 (Mermaid)        │
-├────────────┴────────────────────────────────────────────────┤
-│  双栏编辑  |  UTF-8  |  行 15, 列 42  |  字数 1,234  |  行 56  │
-└─────────────────────────────────────────────────────────────┘
-```
+![主窗口截图](./public/screenshots/main_window.png)
+
+**双栏编辑模式**：左侧 CodeMirror 6 编辑器，右侧 markdown-it 实时预览，底部状态栏显示编辑信息。
 
 ## 快捷键
 
@@ -103,13 +93,17 @@ npm run dev
 # 类型检查
 npm run typecheck
 
-# 运行全部测试（117 tests / 20 files）
+# 运行单元/集成测试（115 tests）
 npm test
+
+# 运行 E2E 测试（14 tests，需先构建）
+npm run build
+npm run test:e2e
 
 # 生产构建
 npm run build
 
-# 打包安装包，可能需要管理员权限
+# 打包安装包
 npm run pack:win    # Windows .exe
 npm run pack:mac    # macOS .dmg
 npm run pack:linux  # Linux .AppImage
@@ -131,14 +125,14 @@ npm run pack:linux  # Linux .AppImage
 | 沙箱安全 | DOMPurify |
 | DOM 增量 | morphdom |
 | 编码检测 | jschardet + iconv-lite |
-| 测试框架 | Vitest + @testing-library/react |
+| 测试框架 | Vitest + Playwright |
 
 ## 项目结构
 
 ```
 confucius/
 ├── electron/                       # 主进程 (Node.js)
-│   ├── main.ts                     # 窗口创建、生命周期
+│   ├── main.ts                     # 窗口创建、生命周期、文件拖拽打开
 │   ├── menu.ts                     # 原生菜单
 │   ├── preload.ts                  # contextBridge 安全 API
 │   ├── ipc-handlers.ts             # IPC 通道注册
@@ -159,9 +153,9 @@ confucius/
 │   │   │   ├── EditorPane.tsx      # CM6 封装
 │   │   │   ├── EditorLayout.tsx    # 三模式布局（split/wysiwyg/preview）
 │   │   │   ├── ResizablePane.tsx   # 可拖拽面板
-│   │   │   ├── FormatToolbar.tsx   # 格式化工具栏（CSS Modules）
-│   │   │   ├── ModeSwitch.tsx      # 模式切换按钮（CSS Modules）
-│   │   │   ├── TabBar.tsx          # 标签栏（CSS Modules）
+│   │   │   ├── FormatToolbar.tsx   # 格式化工具栏
+│   │   │   ├── ModeSwitch.tsx      # 模式切换按钮
+│   │   │   ├── TabBar.tsx          # 标签栏
 │   │   │   └── StatusBar.tsx       # 底部状态栏
 │   │   ├── Preview/
 │   │   │   └── PreviewPane.tsx     # Markdown 预览（morphdom 增量）
@@ -171,7 +165,7 @@ confucius/
 │   │   │   ├── OutlinePanel.tsx    # 大纲（点击跳转编辑+预览）
 │   │   │   └── SearchPanel.tsx     # 全局搜索
 │   │   └── Settings/
-│   │       ├── ThemeSelector.tsx   # 主题选择器（CSS Modules）
+│   │       ├── ThemeSelector.tsx   # 主题选择器
 │   │       ├── PluginManagerDialog.tsx  # 插件管理 UI
 │   │       └── AboutDialog.tsx     # 关于对话框
 │   │
@@ -184,7 +178,7 @@ confucius/
 │   │   ├── active-view.ts          # CM6 视图引用
 │   │   ├── focus-mode.ts           # 专注模式
 │   │   ├── typewriter-mode.ts      # 打字机模式
-│   │   ├── larg-file-handler.ts    # 大文件检测
+│   │   ├── large-file-handler.ts   # 大文件检测
 │   │   ├── sync-scroll.ts          # 编辑/预览滚动同步
 │   │   └── wysiwyg-plugin.ts       # WYSIWYG CM6 扩展
 │   │
@@ -207,8 +201,7 @@ confucius/
 │   │
 │   ├── services/
 │   │   ├── theme-service.ts        # 主题管理
-│   │   ├── electron-bridge.ts      # IPC 调用封装
-│   │   └── plugin-manager.ts       # （已弃用，由 PluginEngine 替代）
+│   │   └── electron-bridge.ts      # IPC 调用封装
 │   │
 │   ├── stores/
 │   │   ├── app-store.ts            # 应用配置（版本/侧边栏）
@@ -229,7 +222,7 @@ confucius/
 │   ├── utils/
 │   │   ├── path.ts                 # 路径工具
 │   │   ├── sanitize.ts             # DOMPurify 封装
-│   │   └── dom-diff.ts            # morphdom 增量更新
+│   │   └── dom-diff.ts             # morphdom 增量更新
 │   │
 │   └── types/
 │       ├── electron.d.ts           # ElectronAPI 类型
@@ -238,9 +231,7 @@ confucius/
 │       └── search.ts               # 搜索类型
 │
 ├── plugins/                        # 第三方插件
-│   ├── doc-stats/                  # 文档统计插件（示例）
-│   ├── status-bar-plus/            # 状态栏增强插件（示例）
-│   └── builtins/                   # 内置插件目录
+│   └ builtins/                     # 内置插件目录
 │       └── status-bar/manifest.json
 │
 ├── themes/                         # 主题 CSS 变量
@@ -248,65 +239,29 @@ confucius/
 │   ├── dark.css
 │   └── sepia.css
 │
-├── test/                           # 测试（117 tests / 20 files）
+├── test/                           # 测试（131 tests）
 │   ├── setup.ts                    # 全局 setup + mock ElectronAPI
-│   ├── unit/
-│   │   ├── stores/                 # Store 测试（39 cases）
-│   │   ├── editor/                 # 编辑器测试（23 cases）
-│   │   ├── utils/                  # 工具函数测试（16 cases）
-│   │   └── services/               # 服务测试（11 cases）
-│   ├── integration/
-│   │   ├── components/             # 组件测试（22 cases）
-│   │   └── flows/                  # 流程测试（10 cases）
-│   └── e2e/                       # （待实施）
+│   ├── unit/                       # 单元测试
+│   ├── integration/                # 集成测试
+│   └── e2e/                        # E2E 测试（14 tests）
+│
+├── .github/workflows/              # CI/CD
+│   ├── ci.yml                      # lint + typecheck + 单元测试
+│   ├── e2e.yml                     # E2E 测试
+│   └── release.yml                 # 三平台打包
 │
 ├── docs/                           # 设计文档
 │   ├── Testing-Plan.md
 │   ├── Future-Roadmap.md
-│   └── plugins/
-│       ├── Plugin-System.md
-│       ├── Plugin-Engine-v3-Roadmap.md
-│       ├── Development-Plan.md
-│       └── design/
-│           └── Phase01-06 详细设计文档
+│   ├── Plugin-System.md
+│   └── Plugin-Dev-Guide.md
 │
 ├── package.json
 ├── vite.config.mts
 ├── tsconfig.json
+├── vitest.config.ts
+├── playwright.config.ts
 └── electron-builder.yml
-```
-
-## 架构
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                     主进程 (electron/)                        │
-│  ┌──────────┬──────────┬───────────────┬─────────────────┐  │
-│  │ main.ts  │ menu.ts  │ ipc-handlers  │  services/      │  │
-│  │ (窗口)   │ (菜单)   │ (IPC 路由)    │ FileService     │  │
-│  │          │          │               │ SearchService   │  │
-│  │          │          │               │ ExportService   │  │
-│  │          │          │               │ ScannerService  │  │
-│  └────┬─────┴──────────┴───────┬───────┴─────────────────┘  │
-│       │ preload.ts             │                              │
-│       │ (contextBridge)        │  fs / dialog / shell         │
-└───────┼────────────────────────┼──────────────────────────────┘
-        │ IPC invoke/handle      │
-┌───────▼────────────────────────▼──────────────────────────────┐
-│                    渲染进程 (src/)                             │
-│  ┌──────────────────────────────────────────────────────────┐ │
-│  │  electron-bridge.ts     ← 类型安全封装所有 IPC 调用       │ │
-│  └──────────────────────────────────────────────────────────┘ │
-│  ┌──────────────┬────────────────┬──────────────┬──────────┐ │
-│  │  侧边栏      │  CM6 编辑器    │ 预览面板      │ 状态栏   │ │
-│  │  (文件/大纲   │  markdown-it  │ markdown-it  │ 字数/行  │ │
-│  │   /搜索)     │  + 快捷键      │ + KaTeX      │ 光标/编码│ │
-│  │              │               │ + Mermaid    │ 插件条目  │ │
-│  ├──────────────┼────────┬───────┼──────────────┼──────────┤ │
-│  │ PluginEngine │ Stores │ Theme │  EditorStore │ AppStore │ │
-│  │ (插件引擎)   │ (状态) │ (主题)│  TabStore    │ Sidebar  │ │
-│  └──────────────┴────────┴───────┴──────────────┴──────────┘ │
-└──────────────────────────────────────────────────────────────┘
 ```
 
 ## 开发状态
@@ -320,12 +275,13 @@ confucius/
 | Phase 5 | ✅ 完成 | WYSIWYG 即时渲染、格式化工具栏、专注/打字机模式 |
 | Phase 6 | ✅ 完成 | DOMPurify XSS 防护、morphdom 增量渲染、大文件处理 |
 | — | | |
-| 插件系统 v2 | ✅ 完成 | PluginEngine、HostAPIBridge 解耦、依赖管理、事件总线 |
-| 插件系统 v2 | ✅ 完成 | 目录自动发现、沙箱执行、配置持久化、插件管理 UI |
+| 插件系统 v3 | ✅ 完成 | PluginEngine、HostAPIBridge 解耦、依赖管理、事件总线、沙箱执行、配置持久化、插件管理 UI |
 | 纯预览模式 | ✅ 完成 | 全屏阅读/切换/滚动同步 |
 | 技术债务 | ✅ 完成 | CSS Modules 迁移、dead code 清理、状态精简、IPC 简化 |
-| 测试 | ✅ 完成 | 117 tests / 20 files |
-| E2E 测试 | 📋 待实施 | Playwright + Electron |
+| 单元/集成测试 | ✅ 完成 | 115 tests / 20 files |
+| E2E 测试 | ✅ 完成 | 14 tests (Playwright + Electron) |
+| CI/CD | ✅ 完成 | GitHub Actions (ci.yml / e2e.yml / release.yml) |
+| 文件拖拽打开 | ✅ 完成 | 拖拽 .md 文件到应用图标直接打开 |
 
 ## License
 
