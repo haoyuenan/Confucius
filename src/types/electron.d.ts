@@ -52,6 +52,12 @@ export interface ElectronAPI {
   // Phase 2: 插件扫描
   scannerScan: (dirPath: string) => Promise<PluginPackage[]>
   scannerReadEntry: (entryPath: string) => Promise<{ code: string }>
+
+  // Phase C: 代码运行
+  runCode: (language: string, code: string, options?: {
+    pythonPath?: string
+    timeout?: number
+  }) => Promise<{ stdout: string; stderr: string; exitCode: number; error?: string }>
 }
 
 /** 导出预览 HTML 的函数签名 */

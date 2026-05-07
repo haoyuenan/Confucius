@@ -1,0 +1,10 @@
+{
+  "id": "code-runner",
+  "name": "代码运行器",
+  "version": "1.0.0",
+  "description": "在 Markdown 中运行代码块，支持 JavaScript 和 Python",
+  "author": "renfy",
+  "apiVersion": "1.0",
+  "entry": "index.js",
+  "permissions": ["run-code"]
+}

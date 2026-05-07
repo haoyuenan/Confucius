@@ -38,28 +38,52 @@ export class PluginEngine {
   }
 
   async start(): Promise<void> {
-    // 注册内置插件
+    console.log('[引擎] 开始启动...')
+    // 注册代码级别的内置插件（如 StatusBarPlugin）
     if (this.options.builtinPlugins) {
+      console.log(`[引擎] 注册 ${Object.keys(this.options.builtinPlugins).length} 个代码级内置插件`)
       for (const plugin of Object.values(this.options.builtinPlugins)) {
         this.register(plugin)
       }
     }
-    // 扫描用户插件目录，只加载上次启用的
-    if (this.options.userDir) {
-      const userPlugins = await scanPluginDir(this.options.userDir)
-      const enabledIds = new Set(this.configDB.getEnabledIds())
-      for (const pkg of userPlugins) {
-        if (this.registry.has(pkg.id)) continue
-        // 记录发现到配置（但按启用状态决定是否激活）
-        this.configDB.markInstalled(pkg.id)
-        if (enabledIds.has(pkg.id) || !this.configDB.get(pkg.id).installedAt) {
+    // 扫描内置插件目录（打包在安装包中的插件）
+    if (this.options.builtinDir) {
+      console.log(`[引擎] 扫描内置插件目录: ${this.options.builtinDir}`)
+      try {
+        const builtinPlugins = await scanPluginDir(this.options.builtinDir)
+        console.log(`[引擎] 发现 ${builtinPlugins.length} 个内置插件: ${builtinPlugins.map(p => p.id).join(', ')}`)
+        for (const pkg of builtinPlugins) {
+          if (this.registry.has(pkg.id)) continue
+          this.configDB.markInstalled(pkg.id)
+          // 内置插件默认激活
           await this.loadPackage(pkg)
         }
+      } catch (err) {
+        console.error('[引擎] 扫描内置插件目录失败:', err)
+      }
+    }
+    // 扫描用户插件目录，只加载上次启用的
+    if (this.options.userDir) {
+      console.log(`[引擎] 扫描用户插件目录: ${this.options.userDir}`)
+      try {
+        const userPlugins = await scanPluginDir(this.options.userDir)
+        console.log(`[引擎] 发现 ${userPlugins.length} 个用户插件`)
+        const enabledIds = new Set(this.configDB.getEnabledIds())
+        for (const pkg of userPlugins) {
+          if (this.registry.has(pkg.id)) continue
+          // 记录发现到配置（但按启用状态决定是否激活）
+          this.configDB.markInstalled(pkg.id)
+          if (enabledIds.has(pkg.id) || !this.configDB.get(pkg.id).installedAt) {
+            await this.loadPackage(pkg)
+          }
+        }
+      } catch (err) {
+        console.error('[引擎] 扫描用户插件目录失败:', err)
       }
     }
     this.activateAll()
     this.events.emit('app:ready', {})
-    console.log(`[引擎] ✅ 启动完成，已激活 ${this.activeIds.size} 个插件`)
+    console.log(`[引擎] ✅ 启动完成，注册 ${this.registry.size} 个插件，已激活 ${this.activeIds.size} 个`)
   }
 
   register(plugin: Plugin): boolean {
@@ -172,9 +196,10 @@ export class PluginEngine {
       const code = await readPluginEntry(pkg.entryPath)
       const plugin = this.sandbox.execute(code)
       this.register(plugin)
+      console.log(`[引擎] ✅ 已加载插件包: ${pkg.name} (${pkg.id})`)
       return true
     } catch (err) {
-      console.error(`加载插件 ${pkg.id} 失败:`, err)
+      console.error(`[引擎] ❌ 加载插件包 ${pkg.id} 失败:`, err)
       return false
     }
   }

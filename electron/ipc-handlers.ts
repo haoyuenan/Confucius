@@ -4,12 +4,29 @@ import { FileWatcher } from './services/file-watcher'
 import { ExportService } from './services/export-service'
 import { SearchService } from './services/search-service'
 import { ScannerService } from './services/scanner-service'
+import { spawn } from 'child_process'
+import path from 'path'
 
 const fileService = new FileService()
 const searchService = new SearchService()
 const exportService = new ExportService()
 const scannerService = new ScannerService()
 let fileWatcher: FileWatcher | null = null
+
+/**
+ * 解析插件目录路径
+ * 开发模式：使用 process.cwd()（项目根目录）
+ * 打包后：使用 process.resourcesPath（app.asar 外的 resources 目录）
+ */
+function resolvePluginPath(dirPath: string): string {
+  // 如果已经是绝对路径，直接返回
+  if (path.isAbsolute(dirPath)) {
+    return dirPath
+  }
+  // 开发模式检测：app.isPackaged 为 false
+  const basePath = app.isPackaged ? process.resourcesPath : process.cwd()
+  return path.join(basePath, dirPath)
+}
 
 /**
  * IPC 处理器包装：自动捕获异常并返回 { error } 格式
@@ -230,10 +247,91 @@ export function registerIpcHandlers(): void {
 
   // ---- 插件扫描 ----
   handle('scanner:scan', async (_event, dirPath: string) => {
-    return await scannerService.scanDirectory(dirPath)
+    const resolvedPath = resolvePluginPath(dirPath)
+    console.log(`[scanner] 扫描目录: ${dirPath} → ${resolvedPath}`)
+    return await scannerService.scanDirectory(resolvedPath)
   })
 
   handle('scanner:read-entry', async (_event, entryPath: string) => {
     return await scannerService.readEntry(entryPath)
+  })
+
+  // ---- 代码运行 ----
+  handle('plugin:run-code', async (_event, { language, code, options }: {
+    language: string
+    code: string
+    options?: {
+      pythonPath?: string
+      timeout?: number
+    }
+  }) => {
+    if (language === 'python') {
+      return await runPythonCode(code, options?.pythonPath, options?.timeout)
+    }
+    return {
+      error: `不支持的语言: ${language}。当前仅支持 Python。`
+    }
+  })
+}
+
+/**
+ * 运行 Python 代码
+ * @param code Python 代码
+ * @param pythonPath Python 解释器路径
+ * @param timeout 超时时间（毫秒）
+ * @returns 执行结果
+ */
+async function runPythonCode(
+  code: string,
+  pythonPath: string = 'python',
+  timeout: number = 30000
+): Promise<{ stdout: string; stderr: string; exitCode: number; error?: string }> {
+  return new Promise((resolve) => {
+    const pythonProcess = spawn(pythonPath, ['-c', code])
+
+    let stdout = ''
+    let stderr = ''
+
+    // 收集标准输出
+    pythonProcess.stdout.on('data', (data) => {
+      stdout += data.toString()
+    })
+
+    // 收集标准错误
+    pythonProcess.stderr.on('data', (data) => {
+      stderr += data.toString()
+    })
+
+    // 设置超时
+    const timeoutId = setTimeout(() => {
+      pythonProcess.kill('SIGTERM')
+      resolve({
+        stdout,
+        stderr,
+        exitCode: -1,
+        error: `执行超时（${timeout}ms），进程已被终止。`
+      })
+    }, timeout)
+
+    // 进程结束
+    pythonProcess.on('close', (exitCode) => {
+      clearTimeout(timeoutId)
+      resolve({
+        stdout,
+        stderr,
+        exitCode: exitCode ?? 0
+      })
+    })
+
+    // 进程错误
+    pythonProcess.on('error', (err) => {
+      clearTimeout(timeoutId)
+      resolve({
+        stdout,
+        stderr,
+        exitCode: -1,
+        error: `启动 Python 进程失败: ${err.message}`
+      })
+    })
   })
 }

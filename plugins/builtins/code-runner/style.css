@@ -1,0 +1,199 @@
+/**
+ * 代码运行器插件 - 样式表
+ * 此文件包含插件的所有 CSS 样式定义
+ *
+ * 注意：样式已通过 ctx.addStyle() 动态注入，此文件仅作参考
+ */
+
+/* ========== 运行按钮 ========== */
+.code-runner-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  padding: 4px 10px;
+  background: var(--primary-color, #1976d2);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+  opacity: 0.7;
+  transition: all 0.2s ease;
+  z-index: 10;
+}
+
+.code-runner-btn:hover {
+  opacity: 1;
+  background: var(--primary-color-dark, #1565c0);
+}
+
+.code-runner-btn.running {
+  background: #d32f2f;
+  opacity: 1;
+}
+
+.code-runner-btn.running:hover {
+  background: #b71c1c;
+}
+
+/* 鼠标悬停代码块时显示按钮 */
+pre:hover .code-runner-btn {
+  opacity: 1;
+}
+
+/* ========== 输出区域 ========== */
+.code-runner-output {
+  margin: 0;
+  padding: 12px 16px;
+  font-family: 'SF Mono', 'Fira Code', Consolas, Monaco, monospace;
+  font-size: 13px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+  border-radius: 0 0 6px 6px;
+  max-height: 300px;
+  overflow: auto;
+}
+
+.code-runner-output.success {
+  background: var(--bg-code, #f5f5f5);
+  color: var(--text-primary, #333);
+  border: 1px solid var(--border-color, #ddd);
+  border-top: none;
+}
+
+.code-runner-output.error {
+  background: #ffebee;
+  color: #c62828;
+  border: 1px solid #ffcdd2;
+  border-top: none;
+}
+
+/* ========== 配置面板 ========== */
+.code-runner-panel {
+  padding: 16px;
+}
+
+.code-runner-panel-header {
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border-color, #ddd);
+  margin-bottom: 16px;
+}
+
+.code-runner-panel-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary, #333);
+}
+
+.code-runner-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.code-runner-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.code-runner-form-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary, #333);
+}
+
+.code-runner-form-input {
+  padding: 8px 12px;
+  border: 1px solid var(--border-color, #ddd);
+  border-radius: 4px;
+  font-size: 13px;
+  background: var(--bg-input, #fff);
+  color: var(--text-primary, #333);
+  transition: border-color 0.2s ease;
+}
+
+.code-runner-form-input:focus {
+  outline: none;
+  border-color: var(--primary-color, #1976d2);
+}
+
+.code-runner-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-secondary, #666);
+}
+
+.code-runner-checkbox input[type="checkbox"] {
+  margin: 0;
+}
+
+.code-runner-info {
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-color, #ddd);
+}
+
+.code-runner-info h4 {
+  margin: 0 0 12px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary, #333);
+}
+
+.code-runner-info ul {
+  margin: 0 0 12px 0;
+  padding-left: 20px;
+  font-size: 13px;
+  color: var(--text-secondary, #666);
+  line-height: 1.6;
+}
+
+.code-runner-info li {
+  margin-bottom: 4px;
+}
+
+.code-runner-note {
+  margin: 0;
+  padding: 10px 12px;
+  background: var(--bg-secondary, #f5f5f5);
+  border-radius: 4px;
+  font-size: 12px;
+  color: var(--text-secondary, #666);
+  line-height: 1.5;
+}
+
+/* ========== 暗色主题适配 ========== */
+[data-theme="dark"] .code-runner-output.success {
+  background: var(--bg-code, #2d2d2d);
+  color: var(--text-primary, #e0e0e0);
+  border-color: var(--border-color, #444);
+}
+
+[data-theme="dark"] .code-runner-output.error {
+  background: #3e2723;
+  color: #ff8a80;
+  border-color: #5d4037;
+}
+
+[data-theme="dark"] .code-runner-note {
+  background: var(--bg-secondary, #333);
+}
+
+/* ========== Sepia 主题适配 ========== */
+[data-theme="sepia"] .code-runner-output.success {
+  background: #f4ecd8;
+  color: #5f4b32;
+  border-color: #d9c8a9;
+}
+
+[data-theme="sepia"] .code-runner-output.error {
+  background: #f5e6d3;
+  color: #8b4513;
+  border-color: #d4a373;
+}
