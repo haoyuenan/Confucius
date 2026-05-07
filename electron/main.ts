@@ -38,7 +38,7 @@ async function openFileToRenderer(filePath: string): Promise<void> {
       content: result.content,
     })
   } catch (err) {
-    console.error('打开文件失败:', err)
+    console.error('open file failed:', err)
   }
 }
 

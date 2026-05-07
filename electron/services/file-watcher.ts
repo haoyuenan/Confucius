@@ -16,7 +16,7 @@ export class FileWatcher {
       })
     } catch {
       // Linux 上 recursive: true 可能不支持，降级为轮询检查目录 mtime
-      console.warn('fs.watch recursive 不可用，降级为轮询模式')
+      console.warn('fs.watch recursive unavailable, fallback to polling mode')
       let lastMtime = 0
       try { lastMtime = fs.statSync(rootPath).mtimeMs } catch { /* ignore */ }
       this.pollingTimer = setInterval(() => {

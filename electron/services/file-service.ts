@@ -34,7 +34,7 @@ export class FileService {
     const { content, encoding } = decodeBuffer(buffer)
     const normalized = content.replace(/\r\n/g, '\n').replace(/\r/g, '\n')
     if (encoding !== 'UTF-8') {
-      console.log(`文件编码检测: ${filePath} → ${encoding}`)
+      console.log(`file encoding detected: ${filePath} -> ${encoding}`)
     }
     return { content: normalized, filePath: resolvedPath }
   }
