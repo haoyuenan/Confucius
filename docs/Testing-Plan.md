@@ -10,7 +10,7 @@
 ```
 测试金字塔
          ┌──────────┐
-         │  E2E     │  ← Playwright + Electron（待实施）
+         │  E2E     │  ← Playwright + Electron
          │   (10%)  │
         ┌┼──────────┼┐
         │ 集成测试   │  ← React Testing Library + Vitest
@@ -108,3 +108,13 @@ npm run test:e2e:headed # 有头模式运行 E2E
 | `e2e/file-operations.spec.ts` | 4（新建/修改指示器/关闭/菜单动作） | ✅ |
 | `e2e/sidebar.spec.ts` | 3（标签切换/折叠/搜索） | ✅ |
 | `e2e/export.spec.ts` | 2（预览 HTML/导出函数） | ✅ |
+
+---
+
+## 6. CI/CD（GitHub Actions）
+
+| 工作流 | 触发条件 | 运行内容 |
+|--------|----------|----------|
+| `ci.yml` | push/PR → main | lint + typecheck + 单元测试 |
+| `e2e.yml` | push/PR → main | 构建 + E2E 测试（Windows） |
+| `release.yml` | tag `v*` | 三平台打包（win/mac/linux） |
