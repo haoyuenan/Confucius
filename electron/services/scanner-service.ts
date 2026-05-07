@@ -36,7 +36,7 @@ export class ScannerService {
     } catch (err: unknown) {
       const code = (err as NodeJS.ErrnoException)?.code
       if (code !== 'ENOENT') {
-        console.warn(`扫描插件目录失败 ${dirPath}:`, err)
+        console.warn(`scan plugin dir failed ${dirPath}:`, err)
       }
     }
 
@@ -59,14 +59,14 @@ export class ScannerService {
       const json = JSON.parse(raw)
 
       if (!json.id || !json.name || !json.version) {
-        console.warn(`manifest.json 缺少必填字段: ${manifestPath}`)
+        console.warn(`manifest.json missing required fields: ${manifestPath}`)
         return null
       }
 
       try {
         await fs.stat(entryPath)
       } catch {
-        console.warn(`插件 ${json.id} 缺少入口文件: ${entryPath}`)
+        console.warn(`plugin ${json.id} missing entry file: ${entryPath}`)
         return null
       }
 
@@ -81,7 +81,7 @@ export class ScannerService {
         permissions: json.permissions || [],
       }
     } catch (err) {
-      console.warn(`读取插件清单失败 ${pluginDir}:`, err)
+      console.warn(`read plugin manifest failed ${pluginDir}:`, err)
       return null
     }
   }

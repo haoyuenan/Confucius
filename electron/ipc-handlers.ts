@@ -40,7 +40,7 @@ function handle(
     try {
       return await handler(event, ...args)
     } catch (err: unknown) {
-      console.error(`[IPC] ${channel} 处理失败:`, err)
+      console.error(`[IPC] ${channel} handler failed:`, err)
       const errorMessage = err instanceof Error ? err.message : String(err)
       return { error: errorMessage }
     }
@@ -248,7 +248,7 @@ export function registerIpcHandlers(): void {
   // ---- 插件扫描 ----
   handle('scanner:scan', async (_event, dirPath: string) => {
     const resolvedPath = resolvePluginPath(dirPath)
-    console.log(`[scanner] 扫描目录: ${dirPath} → ${resolvedPath}`)
+    console.log(`[scanner] scanning: ${dirPath} -> ${resolvedPath}`)
     return await scannerService.scanDirectory(resolvedPath)
   })
 
