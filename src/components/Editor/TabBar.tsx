@@ -14,20 +14,22 @@ function TabBar() {
         {tabs.map((tab) => (
           <div
             key={tab.id}
+            data-testid="tab-item"
             className={`${styles.tabItem}${tab.id === activeTabId ? ` ${styles.active}` : ''}`}
             onClick={() => activateTab(tab.id)}
           >
             <span className={styles.tabIcon}>📄</span>
-            <span className={styles.tabName}>{tab.fileName}</span>
+            <span data-testid="tab-name" className={styles.tabName}>{tab.fileName}</span>
             {tab.isModified && <span className={styles.tabModified}>●</span>}
             <button
+              data-testid="tab-close"
               className={styles.tabClose}
               onClick={(e) => { e.stopPropagation(); closeTab(tab.id) }}
             >✕</button>
           </div>
         ))}
       </div>
-      <button className={styles.tabNewBtn} onClick={newUntitledTab} title="新建标签">+</button>
+      <button data-testid="tab-new" className={styles.tabNewBtn} onClick={newUntitledTab} title="新建标签">+</button>
     </div>
   )
 }

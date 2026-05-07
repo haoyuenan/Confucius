@@ -59,7 +59,7 @@ function EditorPane({ initialContent = '', onContentChange, enableWysiwyg = fals
     return () => window.removeEventListener('editor:jump', handler)
   }, [])
 
-  return <div ref={containerRef} className="editor-pane" />
+  return <div ref={containerRef} data-testid="editor-pane" className="editor-pane" />
 }
 
 export default EditorPane

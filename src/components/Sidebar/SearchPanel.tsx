@@ -91,6 +91,7 @@ function SearchPanel() {
     <div className="search-panel">
       <div className="search-input-wrapper">
         <input
+          data-testid="search-input"
           className="search-input"
           type="text"
           placeholder="搜索文件内容..."

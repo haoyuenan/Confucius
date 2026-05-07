@@ -77,6 +77,7 @@ function FormatToolbar() {
           {group.buttons.map((btn) => (
             <button
               key={btn.title}
+              data-testid={`format-btn-${btn.icon}`}
               className={`${styles.toolbarBtn}${btn.btnStyle ? ` ${btn.btnStyle}` : ''}`}
               data-tooltip={btn.title}
               onClick={btn.action}
