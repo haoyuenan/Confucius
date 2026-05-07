@@ -43,6 +43,9 @@ export interface ElectronAPI {
   exportPdf: () => Promise<void>
   onExportDone: (callback: (info: { format: string; path: string }) => void) => () => void
 
+  // 外部文件打开（拖拽文件到应用图标）
+  onFileOpen: (callback: (data: { filePath: string; content: string }) => void) => () => void
+
   // 外部链接
   openExternal: (url: string) => Promise<void>
 
