@@ -53,7 +53,9 @@ function App() {
         'builtin:status-bar': new StatusBarPlugin(),
       },
     })
-    engine.start()
+    engine.start().catch((err) => {
+      console.error('[App] Plugin engine start failed:', err)
+    })
     ;(window as { __pluginEngine?: PluginEngine }).__pluginEngine = engine
   }, [])
 

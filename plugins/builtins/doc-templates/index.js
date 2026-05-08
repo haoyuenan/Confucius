@@ -45,7 +45,7 @@ var builtInTemplates = [
 ]
 
 // 插件对象
-module.exports = {
+var docTemplatesPlugin = {
   manifest: {
     id: 'doc-templates',
     name: '文档模板',
@@ -58,7 +58,7 @@ module.exports = {
   onActivate: function (ctx) {
     ctx.console.log('📋 文档模板插件已激活')
 
-    var plugin = this
+    var plugin = docTemplatesPlugin
     plugin.ctx = ctx
     plugin.cleanups = []
     plugin.selectedTemplate = null
@@ -96,13 +96,13 @@ module.exports = {
   },
 
   onDeactivate: function () {
-    if (this.cleanups) {
-      this.cleanups.forEach(function (fn) {
+    if (docTemplatesPlugin.cleanups) {
+      docTemplatesPlugin.cleanups.forEach(function (fn) {
         if (typeof fn === 'function') fn()
       })
-      this.cleanups = []
+      docTemplatesPlugin.cleanups = []
     }
-    this.ctx.console.log('📋 文档模板插件已停用')
+    docTemplatesPlugin.ctx.console.log('📋 文档模板插件已停用')
   },
 
   // 获取配置存储键
@@ -113,7 +113,7 @@ module.exports = {
   // 加载用户配置
   loadConfig: function () {
     try {
-      var saved = localStorage.getItem(this.getConfigKey())
+      var saved = localStorage.getItem(docTemplatesPlugin.getConfigKey())
       if (saved) {
         var config = JSON.parse(saved)
         return {
@@ -133,28 +133,28 @@ module.exports = {
   // 保存用户配置
   saveConfig: function () {
     try {
-      localStorage.setItem(this.getConfigKey(), JSON.stringify(this.config))
+      localStorage.setItem(docTemplatesPlugin.getConfigKey(), JSON.stringify(docTemplatesPlugin.config))
     } catch (e) {
-      this.ctx.console.error('保存配置失败:', e)
+      docTemplatesPlugin.ctx.console.error('保存配置失败:', e)
     }
   },
 
   // 更新模板变量
   updateVariables: function () {
     var now = new Date()
-    var filePath = this.ctx.getActiveFilePath() || ''
+    var filePath = docTemplatesPlugin.ctx.getActiveFilePath() || ''
     var fileName = filePath ? filePath.split(/[\\/]/).pop() : 'untitled'
     var title = fileName.replace(/\.[^.]+$/, '')
     var project = filePath ? filePath.split(/[\\/]/).filter(Boolean).slice(-2, -1)[0] || 'project' : 'project'
 
-    this.currentVars = {
-      date: this.formatDate(now),
-      time: this.formatTime(now),
+    docTemplatesPlugin.currentVars = {
+      date: docTemplatesPlugin.formatDate(now),
+      time: docTemplatesPlugin.formatTime(now),
       year: String(now.getFullYear()),
       month: String(now.getMonth() + 1).padStart(2, '0'),
       day: String(now.getDate()).padStart(2, '0'),
       title: title,
-      author: this.config.author || 'author',
+      author: docTemplatesPlugin.config.author || 'author',
       project: project,
       description: '项目描述',
       package: title.toLowerCase().replace(/\s+/g, '-'),
@@ -182,7 +182,7 @@ module.exports = {
   // 替换模板变量
   replaceVars: function (template) {
     var result = template
-    var vars = this.currentVars
+    var vars = docTemplatesPlugin.currentVars
     for (var key in vars) {
       if (vars.hasOwnProperty(key)) {
         result = result.replace(new RegExp('\\{\\{' + key + '\\}\\}', 'g'), vars[key])
@@ -193,7 +193,7 @@ module.exports = {
 
   // 渲染侧边栏面板
   renderPanel: function () {
-    var plugin = this
+    var plugin = docTemplatesPlugin
     var ctx = plugin.ctx
 
     // 创建容器
@@ -314,7 +314,7 @@ module.exports = {
 
   // 选择模板
   selectTemplate: function (templateId, listContainer, previewContent) {
-    var plugin = this
+    var plugin = docTemplatesPlugin
 
     // 更新选中状态
     var items = listContainer.querySelectorAll('.doc-template-item')
@@ -344,9 +344,9 @@ module.exports = {
 
   // 更新预览
   updatePreview: function (previewContent) {
-    if (!this.selectedTemplate) return
+    if (!docTemplatesPlugin.selectedTemplate) return
 
-    var content = this.replaceVars(this.selectedTemplate.content)
+    var content = docTemplatesPlugin.replaceVars(docTemplatesPlugin.selectedTemplate.content)
     // 转义 HTML
     var escaped = content
       .replace(/&/g, '&amp;')
@@ -358,7 +358,7 @@ module.exports = {
 
   // 插入模板
   insertTemplate: function (template) {
-    var plugin = this
+    var plugin = docTemplatesPlugin
     var content = plugin.replaceVars(template.content)
 
     // 获取当前编辑器内容
@@ -392,7 +392,7 @@ module.exports = {
 
   // 显示添加自定义模板对话框
   showAddTemplateDialog: function () {
-    var plugin = this
+    var plugin = docTemplatesPlugin
 
     var name = window.prompt('模板名称:')
     if (!name) return
@@ -605,3 +605,5 @@ module.exports = {
   currentVars: {},
   insertButton: null,
 }
+
+module.exports = docTemplatesPlugin

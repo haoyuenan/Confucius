@@ -170,7 +170,7 @@ function isLanguageSupported(language) {
 
 // ==================== 插件主模块 ====================
 
-module.exports = {
+var codeRunnerPlugin = {
   manifest: {
     id: 'code-runner',
     name: '代码运行器',
@@ -184,7 +184,7 @@ module.exports = {
   onActivate: function (ctx) {
     ctx.console.log('▶️ 代码运行器插件已激活')
 
-    var plugin = this
+    var plugin = codeRunnerPlugin
     plugin.ctx = ctx
     plugin.cleanups = []
     plugin.running = new Map() // 跟踪正在运行的代码块
@@ -213,7 +213,7 @@ module.exports = {
   },
 
   onDeactivate: function () {
-    var plugin = this
+    var plugin = codeRunnerPlugin
 
     // 停止所有正在运行的代码
     plugin.running.forEach(function (info, id) {
@@ -241,7 +241,7 @@ module.exports = {
     var outputs = document.querySelectorAll('.code-runner-output')
     outputs.forEach(function (out) { out.remove() })
 
-    this.ctx.console.log('⏹️ 代码运行器插件已停用')
+    codeRunnerPlugin.ctx.console.log('⏹️ 代码运行器插件已停用')
   },
 
   // 获取配置存储键
@@ -252,7 +252,7 @@ module.exports = {
   // 加载配置
   loadConfig: function () {
     try {
-      var saved = localStorage.getItem(this.getConfigKey())
+      var saved = localStorage.getItem(codeRunnerPlugin.getConfigKey())
       if (saved) {
         var config = JSON.parse(saved)
         return {
@@ -276,15 +276,15 @@ module.exports = {
   // 保存配置
   saveConfig: function () {
     try {
-      localStorage.setItem(this.getConfigKey(), JSON.stringify(this.config))
+      localStorage.setItem(codeRunnerPlugin.getConfigKey(), JSON.stringify(codeRunnerPlugin.config))
     } catch (e) {
-      this.ctx.console.error('保存配置失败:', e)
+      codeRunnerPlugin.ctx.console.error('保存配置失败:', e)
     }
   },
 
   // 设置预览区观察者
   setupPreviewObserver: function () {
-    var plugin = this
+    var plugin = codeRunnerPlugin
 
     // 延迟初始化，等待预览区渲染
     setTimeout(function () {
@@ -324,7 +324,7 @@ module.exports = {
 
   // 为代码块添加运行按钮
   addRunButtons: function () {
-    var plugin = this
+    var plugin = codeRunnerPlugin
 
     // 查找所有代码块
     var codeBlocks = document.querySelectorAll('pre code[class*="language-"]')
@@ -403,7 +403,7 @@ module.exports = {
 
   // 执行代码
   executeCode: async function (preElement, codeBlock, language, runBtn) {
-    var plugin = this
+    var plugin = codeRunnerPlugin
     var blockId = runBtn.dataset.blockId
 
     // 获取代码内容
@@ -462,11 +462,11 @@ module.exports = {
 
   // 停止代码执行
   stopExecution: function (blockId) {
-    var info = this.running.get(blockId)
+    var info = codeRunnerPlugin.running.get(blockId)
     if (info && info.timeoutId) {
       clearTimeout(info.timeoutId)
     }
-    this.running.delete(blockId)
+    codeRunnerPlugin.running.delete(blockId)
   },
 
   // 格式化执行结果
@@ -489,10 +489,10 @@ module.exports = {
 
     // 添加执行信息
     var info = []
-    if (this.config.showExitCode) {
+    if (codeRunnerPlugin.config.showExitCode) {
       info.push('退出码: ' + result.exitCode)
     }
-    if (this.config.showDuration) {
+    if (codeRunnerPlugin.config.showDuration) {
       info.push('耗时: ' + result.duration + 'ms')
     }
 
@@ -507,7 +507,7 @@ module.exports = {
 
   // 显示输出
   showOutput: function (preElement, blockId, content, isError) {
-    var plugin = this
+    var plugin = codeRunnerPlugin
 
     // 查找或创建输出区域
     var outputId = 'output-' + blockId
@@ -539,7 +539,7 @@ module.exports = {
 
   // 渲染配置面板
   renderPanel: function () {
-    var plugin = this
+    var plugin = codeRunnerPlugin
     var ctx = plugin.ctx
 
     var container = document.createElement('div')
@@ -875,3 +875,5 @@ module.exports = {
   observer: null,
   debounceTimer: null
 }
+
+module.exports = codeRunnerPlugin
