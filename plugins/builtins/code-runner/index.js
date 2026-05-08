@@ -23,7 +23,6 @@
 /**
  * 运行选项
  * @typedef {Object} RunOptions
- * @property {string} [pythonPath] Python 解释器路径
  * @property {number} [timeout] 超时时间（毫秒）
  */
 
@@ -42,7 +41,7 @@ async function runCode(language, code, options) {
     if (language === 'javascript' || language === 'js') {
       return await runJavaScript(code, opts.timeout || 30000, startTime)
     } else if (language === 'python' || language === 'py') {
-      return await runPython(code, opts.pythonPath || 'python', opts.timeout || 30000, startTime)
+      return await runPython(code, opts.timeout || 30000, startTime)
     } else {
       return {
         stdout: '',
@@ -132,16 +131,14 @@ async function runJavaScript(code, timeout, startTime) {
 /**
  * 通过 IPC 运行 Python 代码
  * @param {string} code Python 代码
- * @param {string} pythonPath Python 解释器路径
  * @param {number} timeout 超时时间（毫秒）
  * @param {number} startTime 开始时间戳
  * @returns {Promise<RunResult>}
  */
-async function runPython(code, pythonPath, timeout, startTime) {
+async function runPython(code, timeout, startTime) {
   // 通过 Electron API 调用主进程
   if (typeof window !== 'undefined' && window.electronAPI && window.electronAPI.runCode) {
     const result = await window.electronAPI.runCode('python', code, {
-      pythonPath,
       timeout
     })
     return {
@@ -256,7 +253,6 @@ var codeRunnerPlugin = {
       if (saved) {
         var config = JSON.parse(saved)
         return {
-          pythonPath: config.pythonPath || 'python',
           timeout: config.timeout || 30000,
           showExitCode: config.showExitCode !== false,
           showDuration: config.showDuration !== false,
@@ -265,7 +261,6 @@ var codeRunnerPlugin = {
       }
     } catch (e) {}
     return {
-      pythonPath: 'python',
       timeout: 30000,
       showExitCode: true,
       showDuration: true,
@@ -435,7 +430,6 @@ var codeRunnerPlugin = {
 
       // 执行代码
       var result = await runCode(language, code, {
-        pythonPath: plugin.config.pythonPath,
         timeout: plugin.config.timeout
       })
 
@@ -554,29 +548,6 @@ var codeRunnerPlugin = {
     // 配置表单
     var form = document.createElement('div')
     form.className = 'code-runner-form'
-
-    // Python 路径配置
-    var pythonPathGroup = document.createElement('div')
-    pythonPathGroup.className = 'code-runner-form-group'
-
-    var pythonPathLabel = document.createElement('label')
-    pythonPathLabel.textContent = 'Python 解释器路径:'
-    pythonPathLabel.className = 'code-runner-form-label'
-
-    var pythonPathInput = document.createElement('input')
-    pythonPathInput.type = 'text'
-    pythonPathInput.className = 'code-runner-form-input'
-    pythonPathInput.value = plugin.config.pythonPath
-    pythonPathInput.placeholder = '例如: python 或 python3 或完整路径'
-    pythonPathInput.addEventListener('change', function () {
-      plugin.config.pythonPath = this.value || 'python'
-      plugin.saveConfig()
-      ctx.console.log('✅ Python 路径已更新: ' + plugin.config.pythonPath)
-    })
-
-    pythonPathGroup.appendChild(pythonPathLabel)
-    pythonPathGroup.appendChild(pythonPathInput)
-    form.appendChild(pythonPathGroup)
 
     // 超时时间配置
     var timeoutGroup = document.createElement('div')

@@ -210,6 +210,7 @@ export class PluginEngine {
       getContent: () => this.bridge.getEditorContent(),
       getCursorPosition: () => this.bridge.getCursorPosition(),
       getActiveFilePath: () => this.bridge.getActiveTabFilePath(),
+      insertText: (text: string) => this.bridge.insertText(text),
       addStatusBarItem: (item) => {
         const remove = this.bridge.addStatusBarItem(item)
         this.trackResource(pluginId, remove)
@@ -229,6 +230,11 @@ export class PluginEngine {
         this.trackResource(pluginId, remove)
         return remove
       },
+      registerCommand: (cmd) => {
+        const remove = this.bridge.registerCommand(cmd)
+        this.trackResource(pluginId, remove)
+        return remove
+      },
       onContentChange: (cb) => {
         const remove = this.bridge.onContentChange(cb)
         this.trackResource(pluginId, remove)
@@ -241,6 +247,7 @@ export class PluginEngine {
       },
       events: {
         on: <N extends EventName>(event: N, handler: (payload: EventPayload<N>) => void) => this.events.on(pluginId, event, handler),
+        emit: <N extends EventName>(event: N, payload: EventPayload<N>) => this.events.emit(event, payload),
       },
     }
   }

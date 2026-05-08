@@ -43,11 +43,13 @@ function App() {
     }
   }, [newUntitledTab])
 
-  // 初始化插件引擎
+  // 初始化插件引擎（防止 StrictMode / HMR 重复初始化）
   useEffect(() => {
+    const w = window as { __pluginEngine?: PluginEngine }
+    if (w.__pluginEngine) return
+
     const engine = new PluginEngine({
       bridge: new HostAPIBridgeImpl(),
-      // 内置插件目录（开发时映射到项目根目录）
       builtinDir: 'plugins/builtins',
       builtinPlugins: {
         'builtin:status-bar': new StatusBarPlugin(),
@@ -56,7 +58,7 @@ function App() {
     engine.start().catch((err) => {
       console.error('[App] Plugin engine start failed:', err)
     })
-    ;(window as { __pluginEngine?: PluginEngine }).__pluginEngine = engine
+    w.__pluginEngine = engine
   }, [])
 
   const handleSaveFile = useCallback(async () => {

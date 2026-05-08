@@ -8,7 +8,7 @@ interface PluginStoreState {
 
   addSidebarTab: (tab: SidebarTabDef) => () => void
   addStatusBarItem: (item: StatusBarItemDef) => () => void
-  registerCommand: (cmd: CommandDef) => void
+  registerCommand: (cmd: CommandDef) => () => void
 }
 
 export const usePluginStore = create<PluginStoreState>((set) => ({
@@ -17,7 +17,9 @@ export const usePluginStore = create<PluginStoreState>((set) => ({
   commands: [],
 
   addSidebarTab: (tab) => {
-    set((s) => ({ sidebarTabs: [...s.sidebarTabs, tab] }))
+    set((s) => ({
+      sidebarTabs: [...s.sidebarTabs.filter((t) => t.id !== tab.id), tab],
+    }))
     return () => {
       set((s) => ({ sidebarTabs: s.sidebarTabs.filter((t) => t.id !== tab.id) }))
     }
@@ -37,5 +39,8 @@ export const usePluginStore = create<PluginStoreState>((set) => ({
       if (s.commands.find((c) => c.id === cmd.id)) return s
       return { commands: [...s.commands, cmd] }
     })
+    return () => {
+      set((s) => ({ commands: s.commands.filter((c) => c.id !== cmd.id) }))
+    }
   },
 }))

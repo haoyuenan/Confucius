@@ -3,7 +3,7 @@ import { useTabStore } from '../stores/tab-store'
 import { usePluginStore } from '../stores/plugin-store'
 import { useEditorStore } from '../stores/editor-store'
 import type { HostAPIBridge } from './types/host-api'
-import type { StatusBarItemDef, SidebarTabDef } from './types/plugin'
+import type { StatusBarItemDef, SidebarTabDef, CommandDef } from './types/plugin'
 
 /**
  * HostAPIBridge 的宿主侧实现
@@ -29,12 +29,26 @@ export class HostAPIBridgeImpl implements HostAPIBridge {
     return useTabStore.getState().activeTab()?.filePath ?? null
   }
 
+  insertText(text: string): void {
+    const view = getActiveView()
+    if (!view) return
+    const { from, to } = view.state.selection.main
+    view.dispatch({
+      changes: { from, to, insert: text },
+      selection: { anchor: from + text.length },
+    })
+  }
+
   addStatusBarItem(item: StatusBarItemDef): () => void {
     return usePluginStore.getState().addStatusBarItem(item)
   }
 
   addSidebarTab(tab: SidebarTabDef): () => void {
     return usePluginStore.getState().addSidebarTab(tab)
+  }
+
+  registerCommand(cmd: CommandDef): () => void {
+    return usePluginStore.getState().registerCommand(cmd)
   }
 
   onContentChange(cb: (content: string) => void): () => void {

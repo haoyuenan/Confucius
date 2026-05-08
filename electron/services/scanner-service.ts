@@ -19,9 +19,14 @@ export interface PluginPackage {
  * 避免渲染进程直接访问文件系统。
  */
 export class ScannerService {
+  /** 记录已扫描的合法插件目录 */
+  private knownPluginDirs: Set<string> = new Set()
+
   /** 扫描插件目录，返回所有合法插件包 */
   async scanDirectory(dirPath: string): Promise<PluginPackage[]> {
     const result: PluginPackage[] = []
+    // 记录此目录为合法插件根
+    this.knownPluginDirs.add(path.resolve(dirPath))
 
     try {
       const entries = await fs.readdir(dirPath, { withFileTypes: true })
@@ -43,9 +48,21 @@ export class ScannerService {
     return result
   }
 
-  /** 读取插件入口文件 */
+  /** 读取插件入口文件（限制只能读取已扫描插件目录下的文件） */
   async readEntry(entryPath: string): Promise<{ code: string }> {
-    const code = await fs.readFile(entryPath, 'utf-8')
+    const resolved = path.resolve(entryPath)
+    // 安全校验：文件路径必须位于已知的插件目录之下
+    let allowed = false
+    for (const dir of this.knownPluginDirs) {
+      if (resolved.startsWith(dir + path.sep) || resolved.startsWith(dir + '/')) {
+        allowed = true
+        break
+      }
+    }
+    if (!allowed) {
+      throw new Error(`拒绝：entryPath 不在合法插件目录内: ${entryPath}`)
+    }
+    const code = await fs.readFile(resolved, 'utf-8')
     return { code }
   }
 

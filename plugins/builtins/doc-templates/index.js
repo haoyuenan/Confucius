@@ -361,32 +361,8 @@ var docTemplatesPlugin = {
     var plugin = docTemplatesPlugin
     var content = plugin.replaceVars(template.content)
 
-    // 获取当前编辑器内容
-    var currentContent = plugin.ctx.getContent()
-    var pos = plugin.ctx.getCursorPosition()
-
-    // 在光标位置插入（实际实现取决于编辑器 API）
-    // 这里通过事件通知主应用
-    plugin.ctx.events.emit('template:insert', {
-      content: content,
-      template: template,
-    })
-
-    // 如果有 insertText 方法，直接使用
-    if (plugin.ctx.insertText) {
-      plugin.ctx.insertText(content)
-    } else {
-      // 否则尝试通过控制台提示用户手动粘贴
-      plugin.ctx.console.log('模板内容已准备好，请手动粘贴（已复制到剪贴板）')
-
-      // 尝试写入剪贴板
-      try {
-        if (navigator && navigator.clipboard) {
-          navigator.clipboard.writeText(content)
-        }
-      } catch (e) {}
-    }
-
+    // 通过 insertText API 直接插入到编辑器光标位置
+    plugin.ctx.insertText(content)
     plugin.ctx.console.log('✅ 已插入模板: ' + template.name)
   },
 
