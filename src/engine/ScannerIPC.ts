@@ -17,7 +17,9 @@ export interface PluginPackage {
 
 export async function scanPluginDir(dirPath: string): Promise<PluginPackage[]> {
   const raw = await window.electronAPI.scannerScan(dirPath)
-  return raw.map((p) => ({ ...p, source: dirPath.includes('builtins') ? 'builtin' : 'user' as const }))
+  // 精确判断：路径以 /builtins 或 \builtins 结尾，或包含 /builtins/ 或 \builtins\
+  const isBuiltin = /[\\/]builtins(?:[\\/]|$)/.test(dirPath)
+  return raw.map((p) => ({ ...p, source: isBuiltin ? 'builtin' : 'user' as const }))
 }
 
 export async function readPluginEntry(entryPath: string): Promise<string> {

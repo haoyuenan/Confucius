@@ -265,12 +265,20 @@ export function registerIpcHandlers(): void {
       timeout?: number
     }
   }) => {
-    if (language === 'python') {
-      return await runPythonCode(code, options?.pythonPath, options?.timeout)
+    // 安全验证：只允许 python
+    if (language !== 'python') {
+      return {
+        error: `Unsupported language: ${language}. Only Python is supported.`
+      }
     }
-    return {
-      error: `不支持的语言: ${language}。当前仅支持 Python。`
+    // 验证 pythonPath：只允许字母、数字、路径分隔符、点和连字符
+    const pythonPath = options?.pythonPath || 'python'
+    if (!/^[\w\s\/\\\.\-]+$/.test(pythonPath)) {
+      return {
+        error: `Invalid pythonPath: contains unsafe characters`
+      }
     }
+    return await runPythonCode(code, pythonPath, options?.timeout)
   })
 }
 
