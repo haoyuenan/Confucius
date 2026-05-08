@@ -23,6 +23,10 @@ function resolvePluginPath(dirPath: string): string {
   if (path.isAbsolute(dirPath)) {
     return dirPath
   }
+  // 防止路径穿越：拒绝包含 .. 的相对路径
+  if (dirPath.includes('..')) {
+    throw new Error(`拒绝：插件路径包含非法遍历: ${dirPath}`)
+  }
   // 开发模式检测：app.isPackaged 为 false
   const basePath = app.isPackaged ? process.resourcesPath : process.cwd()
   return path.join(basePath, dirPath)
@@ -261,7 +265,6 @@ export function registerIpcHandlers(): void {
     language: string
     code: string
     options?: {
-      pythonPath?: string
       timeout?: number
     }
   }) => {
@@ -271,43 +274,85 @@ export function registerIpcHandlers(): void {
         error: `Unsupported language: ${language}. Only Python is supported.`
       }
     }
-    // 验证 pythonPath：只允许字母、数字、路径分隔符、点和连字符
-    const pythonPath = options?.pythonPath || 'python'
-    if (!/^[\w\s\/\\\.\-]+$/.test(pythonPath)) {
-      return {
-        error: `Invalid pythonPath: contains unsafe characters`
-      }
+
+    // 安全确认：执行前弹窗提示用户
+    const focusedWindow = BrowserWindow.getFocusedWindow() ?? BrowserWindow.getAllWindows()[0]
+    const preview = code.length > 200 ? code.slice(0, 200) + '...' : code
+    const result = dialog.showMessageBoxSync(focusedWindow, {
+      type: 'warning',
+      buttons: ['取消', '执行'],
+      defaultId: 0,
+      cancelId: 0,
+      title: '代码执行确认',
+      message: '即将执行 Python 代码，请确认是否继续？',
+      detail: `代码预览:\n${preview}`,
+    })
+    if (result !== 1) {
+      return { stdout: '', stderr: '', exitCode: -1, error: '用户取消执行' }
     }
-    return await runPythonCode(code, pythonPath, options?.timeout)
+
+    return await runPythonCode(code, options?.timeout)
   })
+}
+
+/**
+ * Python 解释器白名单
+ * 仅允许这些命令，防止命令注入
+ */
+const PYTHON_WHITELIST = ['python', 'python3', 'py']
+
+/**
+ * 查找可用的 Python 解释器
+ */
+function findPythonPath(): string {
+  // 在打包环境中，可能需要检查常见路径
+  // 这里返回第一个白名单中的命令
+  return PYTHON_WHITELIST[0]
 }
 
 /**
  * 运行 Python 代码
  * @param code Python 代码
- * @param pythonPath Python 解释器路径
  * @param timeout 超时时间（毫秒）
  * @returns 执行结果
  */
 async function runPythonCode(
   code: string,
-  pythonPath: string = 'python',
   timeout: number = 30000
 ): Promise<{ stdout: string; stderr: string; exitCode: number; error?: string }> {
+  // 限制代码长度，防止恶意超大输入
+  if (code.length > 100_000) {
+    return { stdout: '', stderr: '', exitCode: -1, error: '代码长度超出限制（最大 100KB）' }
+  }
+  const MAX_OUTPUT = 1024 * 1024 // 1MB
+  const pythonPath = findPythonPath()
   return new Promise((resolve) => {
     const pythonProcess = spawn(pythonPath, ['-c', code])
 
     let stdout = ''
     let stderr = ''
+    let outputExceeded = false
 
-    // 收集标准输出
+    // 收集标准输出（带大小限制）
     pythonProcess.stdout.on('data', (data) => {
+      if (outputExceeded) return
       stdout += data.toString()
+      if (stdout.length > MAX_OUTPUT) {
+        outputExceeded = true
+        stdout = stdout.slice(0, MAX_OUTPUT) + '\n... [输出截断：超过 1MB]'
+        pythonProcess.kill('SIGTERM')
+      }
     })
 
-    // 收集标准错误
+    // 收集标准错误（带大小限制）
     pythonProcess.stderr.on('data', (data) => {
+      if (outputExceeded) return
       stderr += data.toString()
+      if (stderr.length > MAX_OUTPUT) {
+        outputExceeded = true
+        stderr = stderr.slice(0, MAX_OUTPUT) + '\n... [输出截断：超过 1MB]'
+        pythonProcess.kill('SIGTERM')
+      }
     })
 
     // 设置超时

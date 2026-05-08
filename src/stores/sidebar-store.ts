@@ -2,7 +2,7 @@ import { create } from 'zustand'
 import type { FileTreeNode } from '../types/file-tree'
 import type { SearchResult } from '../types/search'
 
-export type SidebarTab = 'file-tree' | 'outline' | 'search'
+export type SidebarTab = string
 
 const SIDEBAR_WIDTH_KEY = 'confucius-sidebar-width'
 

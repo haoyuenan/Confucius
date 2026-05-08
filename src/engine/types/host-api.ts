@@ -1,4 +1,4 @@
-import type { StatusBarItemDef, SidebarTabDef } from './plugin'
+import type { StatusBarItemDef, SidebarTabDef, CommandDef } from './plugin'
 
 /**
  * HostAPIBridge — 宿主应用需要实现的接口
@@ -11,9 +11,13 @@ export interface HostAPIBridge {
   getCursorPosition(): { line: number; col: number }
   getActiveTabFilePath(): string | null
 
+  // ── 编辑器操作 ──
+  insertText(text: string): void
+
   // ── UI 扩展 ──
   addStatusBarItem(item: StatusBarItemDef): () => void
   addSidebarTab(tab: SidebarTabDef): () => void
+  registerCommand(cmd: CommandDef): () => void
 
   // ── 事件订阅 ──
   onContentChange(cb: (content: string) => void): () => void

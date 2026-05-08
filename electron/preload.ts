@@ -118,7 +118,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   // Phase C: 代码运行
   runCode: (language: string, code: string, options?: {
-    pythonPath?: string
     timeout?: number
   }): Promise<{ stdout: string; stderr: string; exitCode: number; error?: string }> =>
     ipcRenderer.invoke('plugin:run-code', { language, code, options }),

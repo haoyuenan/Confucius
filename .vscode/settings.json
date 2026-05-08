@@ -1,0 +1,12 @@
+{
+  "terminal.integrated.env.windows": {
+    "PYTHONIOENCODING": "utf-8",
+    "NODE_OPTIONS": "--no-warnings"
+  },
+  "terminal.integrated.profiles.windows": {
+    "PowerShell UTF-8": {
+      "source": "PowerShell",
+      "args": ["-NoExit", "-Command", "chcp 65001 >$null; [Console]::OutputEncoding = [System.Text.Encoding]::UTF8; $OutputEncoding = [System.Text.UTF8Encoding]::new()"]
+    }
+  }
+}

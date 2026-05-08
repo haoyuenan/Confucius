@@ -18,7 +18,10 @@ export interface SidebarTabDef {
   id: string
   label: string
   icon: string
-  component: ReactNode
+  /** React 组件（内置插件用） */
+  component?: ReactNode
+  /** DOM 渲染函数（外部 JS 插件用） */
+  render?: () => HTMLElement
 }
 
 /** 状态栏条目定义 — 支持两种模式 */
