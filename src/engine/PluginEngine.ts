@@ -206,40 +206,42 @@ export class PluginEngine {
 
   private createContext(manifest: PluginManifest): PluginContext {
     const pluginId = manifest.id
+    const perms = new Set(manifest.permissions ?? [])
+
+    function deny(name: string) {
+      return () => { throw new Error(`[引擎] 插件 ${manifest.id} 权限不足：${name} 需要声明对应 permission`) }
+    }
+
+    function hasPerm(p: string) { return perms.has(p) }
+
     return {
-      getContent: () => this.bridge.getEditorContent(),
-      getCursorPosition: () => this.bridge.getCursorPosition(),
-      getActiveFilePath: () => this.bridge.getActiveTabFilePath(),
-      insertText: (text: string) => this.bridge.insertText(text),
-      addStatusBarItem: (item) => {
-        const remove = this.bridge.addStatusBarItem(item)
-        this.trackResource(pluginId, remove)
-        return remove
-      },
-      addSidebarTab: (tab) => {
-        const remove = this.bridge.addSidebarTab(tab)
-        this.trackResource(pluginId, remove)
-        return remove
-      },
-      addStyle: (css) => {
-        const style = document.createElement('style')
-        style.id = `plugin-style-${pluginId}`
-        style.textContent = css
-        document.head.appendChild(style)
-        const remove = () => style.remove()
-        this.trackResource(pluginId, remove)
-        return remove
-      },
-      registerCommand: (cmd) => {
-        const remove = this.bridge.registerCommand(cmd)
-        this.trackResource(pluginId, remove)
-        return remove
-      },
-      onContentChange: (cb) => {
-        const remove = this.bridge.onContentChange(cb)
-        this.trackResource(pluginId, remove)
-        return remove
-      },
+      getContent: hasPerm('editor') ? () => this.bridge.getEditorContent() : deny('getContent'),
+      getCursorPosition: hasPerm('editor') ? () => this.bridge.getCursorPosition() : deny('getCursorPosition'),
+      getActiveFilePath: hasPerm('file') ? () => this.bridge.getActiveTabFilePath() : deny('getActiveFilePath'),
+      insertText: hasPerm('editor') ? (text: string) => this.bridge.insertText(text) : deny('insertText'),
+      addStatusBarItem: hasPerm('ui')
+        ? (item) => { const r = this.bridge.addStatusBarItem(item); this.trackResource(pluginId, r); return r }
+        : deny('addStatusBarItem'),
+      addSidebarTab: hasPerm('ui')
+        ? (tab) => { const r = this.bridge.addSidebarTab(tab); this.trackResource(pluginId, r); return r }
+        : deny('addSidebarTab'),
+      addStyle: hasPerm('ui')
+        ? (css) => {
+            const style = document.createElement('style')
+            style.id = `plugin-style-${pluginId}`
+            style.textContent = css
+            document.head.appendChild(style)
+            const remove = () => style.remove()
+            this.trackResource(pluginId, remove)
+            return remove
+          }
+        : deny('addStyle'),
+      registerCommand: hasPerm('ui')
+        ? (cmd) => { const r = this.bridge.registerCommand(cmd); this.trackResource(pluginId, r); return r }
+        : deny('registerCommand'),
+      onContentChange: hasPerm('event')
+        ? (cb) => { const r = this.bridge.onContentChange(cb); this.trackResource(pluginId, r); return r }
+        : deny('onContentChange'),
       console: {
         log: console.log.bind(console, `[${manifest.id}]`),
         warn: console.warn.bind(console, `[${manifest.id}]`),

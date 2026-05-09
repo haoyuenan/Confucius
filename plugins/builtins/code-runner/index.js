@@ -175,7 +175,7 @@ var codeRunnerPlugin = {
     description: '在 Markdown 中运行代码块，支持 JavaScript 和 Python',
     author: 'renfy',
     apiVersion: '1.0',
-    permissions: ['run-code']
+    permissions: ['run-code', 'ui']
   },
 
   onActivate: function (ctx) {
