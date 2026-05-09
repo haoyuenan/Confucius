@@ -16,11 +16,12 @@
     "test:coverage": "vitest run --coverage",
     "test:e2e": "npx playwright test",
     "test:e2e:headed": "npx playwright test --headed",
-    "pack:win": "electron-builder --win",
-    "pack:mac": "electron-builder --mac",
-    "pack:linux": "electron-builder --linux"
+    "pack:win": "npm run build && electron-builder --win",
+    "pack:mac": "npm run build && electron-builder --mac",
+    "pack:linux": "npm run build && electron-builder --linux"
   },
-  "dependencies": {
+  "dependencies": {},
+  "devDependencies": {
     "@codemirror/commands": "^6.10.3",
     "@codemirror/lang-markdown": "^6.5.0",
     "@codemirror/language": "^6.12.3",
@@ -41,9 +42,7 @@
     "morphdom": "^2.7.8",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "zustand": "^4.5.2"
-  },
-  "devDependencies": {
+    "zustand": "^4.5.2",
     "@playwright/test": "^1.59.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
