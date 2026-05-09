@@ -8,7 +8,7 @@
 
 ### Three Editing Modes
 - **Split View** (split): Source code on the left, instant Markdown rendering on the right (default)
-- **WYSIWYG Mode**: Hide syntax markers in the editing area, restore display near cursor
+- **WYSIWYG Mode**: Hide syntax markers for headings, bold/italic/strikethrough, inline code, unordered lists, and blockquotes; restore display near cursor (links, tables, etc. not yet hidden)
 - **Preview Mode**: Full-screen reading with centered layout (`Ctrl+Shift+O`)
 
 ### Editor
@@ -45,6 +45,13 @@
   - Plugins can register status bar entries, sidebar panels, global commands
   - Dependency management (topological sort), event bus, config persistence
   - Plugin management UI (load/unload/enable/disable)
+  - TypeScript type definitions support
+- **Built-in Plugins** (auto-activated on startup):
+  - **Doc Templates**: Insert predefined templates (README, API docs, blog, weekly report, meeting notes) with variable substitution
+  - **Code Runner**: Run JavaScript/Python code blocks in Markdown and view output instantly
+- **Example Plugins** (load manually via Plugin Manager UI, located in `plugins/`):
+  - **Doc Stats**: Real-time word count, reading time, and full statistics report in the status bar
+  - **Writing Aid**: Smart suggestions and writing assistance
 
 ### Security
 - **XSS Protection**: DOMPurify whitelist filtering
@@ -173,7 +180,7 @@ confucius/
 │   ├── utils/                      # Utilities
 │   └── types/                      # TypeScript types
 │
-├── test/                           # Tests (131 tests)
+├── test/                           # Tests (115 unit/integration + 14 E2E)
 │   ├── unit/                       # Unit tests
 │   ├── integration/                # Integration tests
 │   └── e2e/                        # E2E tests (14 tests)
