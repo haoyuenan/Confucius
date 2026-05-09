@@ -1,7 +1,7 @@
 import { app, BrowserWindow, protocol, net } from 'electron'
 import path from 'path'
 import { setupMenu } from './menu'
-import { registerIpcHandlers } from './ipc-handlers'
+import { registerIpcHandlers, currentWorkspacePath } from './ipc-handlers'
 import { FileService } from './services/file-service'
 
 // 在打包后的生产环境，__dirname 指向 dist-electron
@@ -132,7 +132,23 @@ app.whenReady().then(() => {
   protocol.handle('local-asset', async (req) => {
     try {
       const filePath = decodeURIComponent(new URL(req.url).pathname)
-      return await net.fetch('file://' + filePath)
+      const resolved = path.resolve(filePath)
+
+      // 校验路径必须位于工作区或 userData 目录内
+      const allowedDirs = [
+        currentWorkspacePath,
+        app.getPath('userData'),
+      ].filter(Boolean) as string[]
+
+      const isAllowed = allowedDirs.some((dir) => {
+        const rel = path.relative(dir, resolved)
+        return !rel.startsWith('..') && !path.isAbsolute(rel)
+      })
+      if (!isAllowed) {
+        return new Response('Forbidden', { status: 403 })
+      }
+
+      return await net.fetch('file://' + resolved)
     } catch {
       return new Response('Not Found', { status: 404 })
     }

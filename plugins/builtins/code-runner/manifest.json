@@ -6,5 +6,5 @@
   "author": "renfy",
   "apiVersion": "1.0",
   "entry": "index.js",
-  "permissions": ["run-code"]
+  "permissions": ["run-code", "ui"]
 }

@@ -53,6 +53,7 @@ var docTemplatesPlugin = {
     description: '一键插入预定义文档模板，支持变量替换',
     author: 'renfy',
     apiVersion: '1.0',
+    permissions: ['ui', 'file', 'editor'],
   },
 
   onActivate: function (ctx) {

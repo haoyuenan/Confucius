@@ -13,6 +13,9 @@ const exportService = new ExportService()
 const scannerService = new ScannerService()
 let fileWatcher: FileWatcher | null = null
 
+/** 当前打开的工作区路径，供 local-asset 协议路径校验使用 */
+export let currentWorkspacePath: string | null = null
+
 /**
  * 解析插件目录路径
  * 开发模式：使用 process.cwd()（项目根目录）
@@ -116,6 +119,7 @@ export function registerIpcHandlers(): void {
       properties: ['openDirectory'],
     })
     if (result.canceled || result.filePaths.length === 0) return null
+    currentWorkspacePath = result.filePaths[0]
     return result.filePaths[0]
   })
 

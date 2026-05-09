@@ -114,34 +114,6 @@ const api = win.electronAPI
 
 ---
 
-#### S-02：SandboxFactory 插件沙箱可被绕过
-
-**文件**：`src/engine/SandboxFactory.ts`
-
-```ts
-const handler: ProxyHandler<typeof globalThis> = {
-  has: () => true,
-  get: (target, prop) => {
-    const key = String(prop)
-    if (SAFE_GLOBALS.has(key)) return (target as Record<string, unknown>)[key]
-    if (BLOCKED.has(key)) return undefined
-    if (key.startsWith('__')) return (target as Record<string, unknown>)[key]  // ⚠️ 放行 __proto__
-    return undefined
-  },
-}
-```
-
-两个已知问题：
-1. `key.startsWith('__')` 的判断会将 `__proto__` 透传给真实 globalThis，可被用于原型链污染和逃逸
-2. SAFE_GLOBALS 中包含 `Error`、`TypeError` 等构造函数，通过 `Error.constructor('return window')()` 可获取真实 globalThis
-
-**建议**：
-1. 删除 `key.startsWith('__')` 的特殊处理，改为明确白名单
-2. 从 SAFE_GLOBALS 中移除 `Error`、`TypeError`、`RangeError` 等构造函数，或用安全替代版本包装
-3. 考虑使用 `vm.runInContext`（主进程）或 iframe sandbox（渲染进程）代替 Proxy 方案
-
----
-
 ### 🟡 中危
 
 #### S-03：Content Security Policy（CSP）未设置
@@ -164,33 +136,6 @@ mainWindow.webContents.session.webRequest.onHeadersReceived((details, callback) 
   })
 })
 ```
-
----
-
-#### S-04：插件权限字段声明但不强制执行
-
-**文件**：`src/engine/PluginEngine.ts` → `createContext()`，`electron/services/scanner-service.ts`
-
-插件 `manifest.json` 中有 `permissions` 字段（如 `['run-code']`），但 `PluginEngine.createContext()` 对所有插件提供完全相同的 `ctx` 对象，**不校验权限**。任何插件均可调用 `ctx.insertText`、`ctx.addSidebarTab`、`ctx.registerCommand` 等，无论是否声明对应权限。
-
-**建议**：在 `createContext()` 中根据 `manifest.permissions` 过滤可用 API，对未声明权限的调用返回 `undefined` 或抛出明确错误。
-
----
-
-#### S-05：`local-asset:` 自定义协议无路径限制
-
-**文件**：`electron/main.ts`
-
-```ts
-protocol.handle('local-asset', async (req) => {
-  const filePath = decodeURIComponent(new URL(req.url).pathname)
-  return await net.fetch('file://' + filePath)
-})
-```
-
-该协议将任意本地路径暴露给渲染进程，且 `sanitize.ts` 的 `ALLOWED_URI_REGEXP` 明确允许 `local-asset:` scheme。如果攻击者能向预览区注入一个 `<img src="local-asset:///path/to/sensitive">` 标签（例如通过插件或某种 DOMPurify bypass），则可触发对任意文件的读取请求，结果在 DevTools 网络面板中可见。
-
-**建议**：在 `local-asset` 协议处理器中校验路径必须位于已知工作目录（`app.getPath('userData')` 或已打开的文件夹）内。
 
 ---
 
@@ -240,14 +185,6 @@ const pattern = options?.regex
 
 ---
 
-## 四、文档一致性问题
-
-| # | 位置 | 问题 |
-|---|------|------|
-| D-01 | `README.md` 「快速开始」 | 注释「115 tests」，项目结构中写「131 tests」，两处不一致（实际：115 单元/集成 + 14 E2E = 129 场景） |
-| D-02 | `README.md` 「内置插件」 | 将 `doc-stats` 和 `writing-aid` 列为内置插件，但实际为示例用户插件，需手动加载 |
-| D-03 | `Future-Roadmap.md` 「当前局限」 | 标注「无代码块运行器」，但 `code-runner` 插件已存在，应更新 |
-
 ---
 
 ## 五、总结
@@ -255,18 +192,16 @@ const pattern = options?.regex
 | 类别 | 数量 | 状态 |
 |------|------|------|
 | 功能基本完整 | Phase 1–6 全部 ✅ | — |
-| 功能待完善 | 2 项（WYSIWYG 覆盖范围、内置插件归类） | 待处理 |
-| 安全隐患：高危 | 2 项（S-01、S-02） | ⚠️ 建议优先修复 |
-| 安全隐患：中危 | 3 项（S-03、S-04、S-05） | 待处理 |
+| 功能待完善 | 1 项（WYSIWYG 覆盖范围） | 待处理 |
+| 安全隐患：高危 | 1 项（S-01） | ⚠️ 建议优先修复 |
+| 安全隐患：中危 | 1 项（S-03） | 待处理 |
 | 安全隐患：低危 | 2 项（S-06、S-07）+ Electron 版本 | 可计划处理 |
 | 代码质量 | 5 项（Q-01 ~ Q-05） | 待处理 |
-| 文档一致性 | 3 项（D-01 ~ D-03） | 待处理 |
+| 文档一致性 | 0 项 | ✅ 已修复 |
 
 **最高优先级修复建议**：
 1. **S-01**：为 JS 代码运行添加与 Python 相同的用户确认弹窗（1 小时内可完成）
-2. **S-02**：修复 SandboxFactory 的 `__proto__` 透传和 Error 构造函数逃逸（0.5 天）
-3. **S-03**：添加 CSP 响应头（30 分钟）
-4. **D-02 + D-03**：更新 README 文档（15 分钟）
+2. **S-03**：添加 CSP 响应头（30 分钟）
 
 ---
 

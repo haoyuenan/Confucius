@@ -5,9 +5,11 @@ const SAFE_GLOBALS = new Set([
   'String', 'Number', 'Boolean', 'RegExp', 'Map', 'Set',
   'parseInt', 'parseFloat', 'encodeURI', 'decodeURI',
   'setTimeout', 'clearTimeout', 'setInterval', 'clearInterval',
-  'isNaN', 'isFinite', 'Error', 'TypeError', 'RangeError',
+  'isNaN', 'isFinite',
   'null', 'undefined', 'true', 'false', 'NaN', 'Infinity',
 ])
+
+const ERROR_CTORS = new Set(['Error', 'TypeError', 'RangeError'])
 
 const BLOCKED = new Set([
   'window', 'document', 'localStorage', 'sessionStorage',
@@ -19,6 +21,21 @@ const BLOCKED = new Set([
   'Event', 'CustomEvent', 'MutationObserver',
   'addEventListener', 'removeEventListener',
 ])
+
+function createSafeErrorCtor(realCtor: (...args: unknown[]) => unknown): object {
+  return new Proxy(realCtor, {
+    construct(target, args) {
+      return Reflect.construct(target, args)
+    },
+    get(target, prop) {
+      if (prop === 'constructor' || prop === 'prototype') return undefined
+      return Reflect.get(target, prop)
+    },
+    apply(target, thisArg, args) {
+      return Reflect.apply(target, thisArg, args)
+    },
+  })
+}
 
 /**
  * SandboxFactory — 沙箱执行插件代码
@@ -34,8 +51,11 @@ export class SandboxFactory {
       get: (target, prop) => {
         const key = String(prop)
         if (SAFE_GLOBALS.has(key)) return (target as Record<string, unknown>)[key]
+        if (ERROR_CTORS.has(key)) {
+          const raw = (target as Record<string, unknown>)[key]
+          return typeof raw === 'function' ? createSafeErrorCtor(raw as (...args: unknown[]) => unknown) : raw
+        }
         if (BLOCKED.has(key)) return undefined
-        if (key.startsWith('__')) return (target as Record<string, unknown>)[key]
         return undefined
       },
       set: () => true,
