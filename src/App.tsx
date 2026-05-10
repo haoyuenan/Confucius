@@ -7,7 +7,7 @@ import Sidebar from './components/Sidebar/Sidebar'
 import EditorLayout from './components/Editor/EditorLayout'
 import ThemeSelector from './components/Settings/ThemeSelector'
 import StatusBar from './components/Editor/StatusBar'
-import { themeService } from './services/theme-service'
+import { themeService, type ThemeName } from './services/theme-service'
 import { checkLargeFile } from './editor/large-file-handler'
 import { PluginEngine } from './engine/PluginEngine'
 import { HostAPIBridgeImpl } from './engine/HostAPIBridge'
@@ -19,15 +19,12 @@ import * as bridge from './services/electron-bridge'
 function App() {
   const [showPluginDialog, setShowPluginDialog] = useState(false)
   const [showAboutDialog, setShowAboutDialog] = useState(false)
-  const version = useAppStore((s) => s.version)
   const sidebarVisible = useAppStore((s) => s.sidebarVisible)
 
-  const activeTab = useTabStore((s) => s.activeTab())
   const newUntitledTab = useTabStore((s) => s.newUntitledTab)
   const markTabSaved = useTabStore((s) => s.markTabSaved)
   const openFile = useTabStore((s) => s.openFile)
 
-  const setVersion = useAppStore((s) => s.setVersion)
   const toggleSidebar = useAppStore((s) => s.toggleSidebar)
   const setMode = useEditorStore((s) => s.setMode)
   const toggleFocusMode = useEditorStore((s) => s.toggleFocusMode)
@@ -114,9 +111,9 @@ function App() {
         case 'search:focus': toggleSidebar(); setActiveTab('search'); break
         case 'export:html': bridge.exportHtml(); break
         case 'export:pdf': bridge.exportPdf(); break
-        case 'theme:light': themeService.switchTheme('light'); break
-        case 'theme:dark': themeService.switchTheme('dark'); break
-        case 'theme:sepia': themeService.switchTheme('sepia'); break
+        case 'theme:light': themeService.switchTheme('light'); setCurrentTheme('light'); break
+        case 'theme:dark': themeService.switchTheme('dark'); setCurrentTheme('dark'); break
+        case 'theme:sepia': themeService.switchTheme('sepia'); setCurrentTheme('sepia'); break
         case 'mode:toggle': useEditorStore.getState().toggleMode(); break
         case 'mode:preview':
           setMode(useEditorStore.getState().mode === 'preview' ? 'split' : 'preview')
@@ -130,10 +127,6 @@ function App() {
     })
     return () => cleanup?.()
   }, [toggleSidebar, handleNewFile, handleOpenFile, handleSaveFile, handleSaveAs, setActiveTab, toggleFocusMode, toggleTypewriterMode, setMode])
-
-  useEffect(() => {
-    bridge.getVersion().then(setVersion).catch(console.error)
-  }, [setVersion])
 
   useEffect(() => {
     const cleanup = bridge.onExportDone((info) => {
@@ -159,18 +152,66 @@ function App() {
     return () => cleanup?.()
   }, [openFile, setIsLargeFile, setMode])
 
-  const fileName = activeTab?.fileName ?? 'Confucius'
-  const isModified = activeTab?.isModified ?? false
-  const hasFile = activeTab !== null
   const isPreviewMode = useEditorStore((s) => s.mode) === 'preview'
+  const mode = useEditorStore((s) => s.mode)
+  const [currentTheme, setCurrentTheme] = useState<ThemeName>(themeService.getCurrentTheme())
+
+  const handleSearch = useCallback(() => {
+    toggleSidebar()
+    setActiveTab('search')
+  }, [toggleSidebar, setActiveTab])
+
+  const handleToggleTheme = useCallback(() => {
+    themeService.toggleTheme()
+    setCurrentTheme(themeService.getCurrentTheme())
+  }, [])
+
+  const handleExport = useCallback(() => {
+    bridge.exportHtml()
+  }, [])
+
+  const handleHelp = useCallback(() => {
+    setShowAboutDialog(true)
+  }, [])
+
+  const handleEditToggle = useCallback(() => {
+    useEditorStore.getState().toggleMode()
+  }, [])
+
+  const handleViewToggle = useCallback(() => {
+    const cur = useEditorStore.getState().mode
+    setMode(cur === 'preview' ? 'split' : 'preview')
+  }, [setMode])
 
   return (
     <div className={`app-root${isPreviewMode ? ' preview-mode' : ''}`}>
       <header className="app-titlebar">
-        <span className="app-title">
-          {hasFile ? <>{fileName}{isModified && <span className="modified-dot"> ●</span>}</> : 'Confucius'}
-        </span>
-        <span className="app-version">v{version || '...'}</span>
+        <div className="toolbar-group">
+          <button className="toolbar-btn" onClick={handleSearch} title="全局搜索">🔍 搜索</button>
+        </div>
+        <div className="toolbar-sep" />
+        <div className="toolbar-group">
+          <button className="toolbar-btn" onClick={handleToggleTheme} title="切换主题">
+            {currentTheme === 'light' ? '☀ 亮色' : currentTheme === 'dark' ? '🌙 暗色' : '🟡 护眼'}
+          </button>
+        </div>
+        <div className="toolbar-sep" />
+        <div className="toolbar-group">
+          <button className="toolbar-btn" onClick={handleExport} title="导出 HTML">📤 导出</button>
+        </div>
+        <div className="toolbar-sep" />
+        <div className="toolbar-group">
+          <button className="toolbar-btn" onClick={handleHelp} title="关于">💡 帮助</button>
+        </div>
+        <div className="toolbar-sep" />
+        <div className="toolbar-group">
+          <button className={`toolbar-btn${mode !== 'preview' ? ' active' : ''}`} onClick={handleEditToggle} title="切换编辑模式">
+            ✏ 编辑
+          </button>
+          <button className={`toolbar-btn${mode === 'preview' ? ' active' : ''}`} onClick={handleViewToggle} title="切换分栏/预览">
+            {mode === 'preview' ? '⊞ 分栏' : '👁 预览'}
+          </button>
+        </div>
       </header>
       <div className="app-body">
         <aside className={`app-sidebar ${sidebarVisible ? '' : 'collapsed'}`}>
