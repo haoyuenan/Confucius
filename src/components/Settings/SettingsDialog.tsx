@@ -66,7 +66,7 @@ function SettingsDialog({ onClose, initialTab = 'general' }: Props) {
   const toggleSidebar = useAppStore((s) => s.toggleSidebar)
 
   const [currentTheme, setCurrentTheme] = useState<ThemeId>(() => themeService.getCurrentTheme())
-
+  const [hideMenu, setHideMenu] = useState(() => localStorage.getItem('confucius-hide-menu') !== 'false')
   const [version, setVersion] = useState('...')
   const [env, setEnv] = useState<EnvInfo | null>(null)
 
@@ -142,6 +142,24 @@ function SettingsDialog({ onClose, initialTab = 'general' }: Props) {
                         type="checkbox"
                         checked={sidebarVisible}
                         onChange={toggleSidebar}
+                      />
+                      <span className="settings-toggle-track">
+                        <span className="settings-toggle-thumb" />
+                      </span>
+                    </label>
+                  </div>
+                  <div className="settings-row">
+                    <span className="settings-row-label">隐藏主菜单</span>
+                    <label className="settings-toggle">
+                      <input
+                        type="checkbox"
+                        checked={hideMenu}
+                        onChange={() => {
+                          const next = !hideMenu
+                          setHideMenu(next)
+                          localStorage.setItem('confucius-hide-menu', String(next))
+                          bridge.setMenuVisible(!next).catch(() => {})
+                        }}
                       />
                       <span className="settings-toggle-track">
                         <span className="settings-toggle-thumb" />

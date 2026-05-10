@@ -107,3 +107,7 @@ export function getVersion(): Promise<string> {
 export function getEnv(): Promise<{ electron: string; chrome: string; node: string; platform: string; arch: string }> {
   return window.electronAPI.getEnv()
 }
+
+export function setMenuVisible(visible: boolean): Promise<void> {
+  return window.electronAPI.setMenuVisible(visible)
+}

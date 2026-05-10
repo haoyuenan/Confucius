@@ -12,7 +12,7 @@
 - **Preview Mode**: Full-screen reading with centered layout (`Ctrl+Shift+O`)
 
 ### Editor
-- **Format Toolbar**: Headings, bold/italic/strikethrough, quote/code block/list, link/image/hr/formula
+- **Format Toolbar**: Undo/redo, headings, bold/italic/strikethrough, quote/code block/list, link/image/hr/formula, focus/typewriter mode toggle
 - **CodeMirror 6 Core**: High-performance text editing with Markdown syntax highlighting
 - **Code Highlighting**: Support for 190+ languages (highlight.js)
 - **Math Formulas**: KaTeX rendering for `$...$` inline and `$$...$$` block formulas
@@ -20,17 +20,20 @@
 - **GFM Compatible**: Task lists, tables, etc.
 - **Focus Mode** (F11): Non-active lines semi-transparent
 - **Typewriter Mode** (F12): Active line always centered in viewport
+- **Context Menu**: Right-click in editor for save/save-as/undo/redo/cut/copy/paste
 
 ### File Management
+- **Quick Toolbar**: New file, open, toggle sidebar, search, theme toggle, export, edit/preview mode, settings
 - **File Tree Sidebar**: Browse and open Markdown files within a folder
 - **Outline Panel**: Auto-extract heading structure, click to jump to editor and preview
 - **Global Search**: Cross-file full-text search with 300ms debounce, parallel reading
 - **File Operations**: New, open, save, save as
-- **Context Menu**: New file/directory, rename, delete
+- **Sidebar Context Menu**: New file/directory, rename, delete
 - **Drag & Drop Open**: Drag .md/.markdown files to app icon to open directly
 
 ### View & Appearance
-- **Three Themes**: Light / Dark / Sepia, persisted in localStorage
+- **Seven Themes**: Light mode (Plain White, Eye Care, Cloud, Mint) / Dark mode (Night Black, Deep Sea, Warm Gray), toolbar toggle, persisted in localStorage
+- **Unified Settings Panel**: General settings (focus/typewriter/hide menu), theme management with preview, shortcut reference, about info
 - **Resizable Split**: Adjust split width freely
 - **Scroll Sync**: Editor and preview scroll percentage synced in split mode
 
@@ -75,7 +78,7 @@
 | `Ctrl+\` | Toggle sidebar |
 | `Ctrl+Shift+F` | Global search |
 | `Ctrl+Shift+P` | Toggle editing mode (split ↔ wysiwyg) |
-| `Ctrl+Shift+O` | Toggle preview mode |
+| `Ctrl+Shift+O` | Toggle preview mode / Ordered list |
 | `Ctrl+Shift+I` | Plugin manager |
 | `F11` | Focus mode |
 | `F12` | Typewriter mode |
@@ -191,7 +194,7 @@ confucius/
 │   └── release.yml                 # Multi-platform packaging
 │
 ├── docs/                           # Documentation
-├── themes/                         # Theme CSS variables
+├── themes/                         # Theme CSS variables (7 themes)
 ├── plugins/                        # Third-party plugins
 │
 ├── package.json

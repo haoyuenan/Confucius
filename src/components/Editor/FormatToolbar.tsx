@@ -1,4 +1,6 @@
+import { undo, redo } from '@codemirror/commands'
 import { getActiveView } from '../../editor/active-view'
+import { useEditorStore } from '../../stores/editor-store'
 import * as fmt from '../../editor/format-helpers'
 import styles from './FormatToolbar.module.css'
 
@@ -31,6 +33,13 @@ function exec(command: string, level?: number): void {
 }
 
 const groups: { label: string; buttons: ButtonDef[] }[] = [
+  {
+    label: '撤销重做',
+    buttons: [
+      { icon: '↩', title: '撤销 (Ctrl+Z)', action: () => { const v = getActiveView(); if (v) { v.focus(); undo(v) } } },
+      { icon: '↪', title: '重做 (Ctrl+Y)', action: () => { const v = getActiveView(); if (v) { v.focus(); redo(v) } } },
+    ],
+  },
   {
     label: '标题',
     buttons: [
@@ -66,25 +75,40 @@ const groups: { label: string; buttons: ButtonDef[] }[] = [
       { icon: '—', title: '分割线', action: () => exec('hr') },
     ],
   },
+  {
+    label: '辅助',
+    buttons: [
+      { icon: '🎯', title: '专注模式 (F11)', action: () => useEditorStore.getState().toggleFocusMode() },
+      { icon: '📝', title: '打字机模式 (F12)', action: () => useEditorStore.getState().toggleTypewriterMode() },
+    ],
+  },
 ]
 
 function FormatToolbar() {
+  const focusMode = useEditorStore((s) => s.focusMode)
+  const typewriterMode = useEditorStore((s) => s.typewriterMode)
+
   return (
     <div className={styles.formatToolbar}>
       {groups.map((group, gi) => (
         <span key={group.label} className={styles.toolbarGroup}>
           {gi > 0 && <span className={styles.toolbarDivider} />}
-          {group.buttons.map((btn) => (
-            <button
-              key={btn.title}
-              data-testid={`format-btn-${btn.icon}`}
-              className={`${styles.toolbarBtn}${btn.btnStyle ? ` ${btn.btnStyle}` : ''}`}
-              data-tooltip={btn.title}
-              onClick={btn.action}
-            >
-              {btn.icon}
-            </button>
-          ))}
+          {group.buttons.map((btn) => {
+            const isFocus = btn.icon === '🎯'
+            const isTypewriter = btn.icon === '📝'
+            const active = (isFocus && focusMode) || (isTypewriter && typewriterMode)
+            return (
+              <button
+                key={btn.title}
+                data-testid={`format-btn-${btn.icon}`}
+                className={`${styles.toolbarBtn}${btn.btnStyle ? ` ${btn.btnStyle}` : ''}${active ? ` ${styles.active}` : ''}`}
+                data-tooltip={btn.title}
+                onClick={btn.action}
+              >
+                {btn.icon}
+              </button>
+            )
+          })}
         </span>
       ))}
     </div>

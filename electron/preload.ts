@@ -111,6 +111,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // 外部链接
   openExternal: (url: string): Promise<void> => ipcRenderer.invoke('shell:open-external', url),
 
+  // 菜单显示控制
+  setMenuVisible: (visible: boolean): Promise<void> => ipcRenderer.invoke('menu:set-visible', visible),
+
   // Phase 2: 插件系统
   scannerScan: (dirPath: string): Promise<PluginPackage[]> => ipcRenderer.invoke('scanner:scan', dirPath),
   scannerReadEntry: (entryPath: string): Promise<{ code: string }> =>
