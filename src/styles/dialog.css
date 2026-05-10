@@ -218,9 +218,15 @@
 }
 
 /* 暗色适配 */
-[data-theme='dark'] .plugin-msg.success { background: #1a3a1a; }
-[data-theme='dark'] .plugin-msg.error { background: #3a1a1a; }
-[data-theme='dark'] .plugin-unload-btn:hover { background: #3a1a1a; }
+[data-theme='night-black'] .plugin-msg.success,
+[data-theme='deep-sea'] .plugin-msg.success,
+[data-theme='warm-gray'] .plugin-msg.success { background: #1a3a1a; }
+[data-theme='night-black'] .plugin-msg.error,
+[data-theme='deep-sea'] .plugin-msg.error,
+[data-theme='warm-gray'] .plugin-msg.error { background: #3a1a1a; }
+[data-theme='night-black'] .plugin-unload-btn:hover,
+[data-theme='deep-sea'] .plugin-unload-btn:hover,
+[data-theme='warm-gray'] .plugin-unload-btn:hover { background: #3a1a1a; }
 
 /* ═══════════════════════════════════════════
    统一设置对话框
@@ -683,6 +689,65 @@
 .theme-card.active .theme-card-name {
   color: #1a7d36;
   font-weight: 600;
+}
+
+/* ═══════════════════════════════════════════
+   快捷键页面
+   ═══════════════════════════════════════════ */
+
+.shortcut-group {
+  margin-bottom: 20px;
+}
+
+.shortcut-rows {
+  display: flex;
+  flex-direction: column;
+}
+
+.shortcut-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.shortcut-row:last-child {
+  border-bottom: none;
+}
+
+.shortcut-desc {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.shortcut-keys {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  margin-left: 24px;
+}
+
+.shortcut-plus {
+  margin: 0 3px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.shortcut-key {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 22px;
+  padding: 0 6px;
+  font-size: 11px;
+  font-family: inherit;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  color: var(--text-primary);
+  box-shadow: 0 1px 0 var(--border-color);
 }
 
 /* ── 暗色适配 ── */

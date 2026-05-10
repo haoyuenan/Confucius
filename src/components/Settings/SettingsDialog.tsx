@@ -12,7 +12,7 @@ interface EnvInfo {
   arch: string
 }
 
-export type SettingsTab = 'general' | 'display' | 'about'
+export type SettingsTab = 'general' | 'display' | 'shortcuts' | 'about'
 
 const THEME_SWATCHES: Record<ThemeId, { bg: string; accent: string; secondary: string }> = {
   'plain-white': { bg: '#ffffff', accent: '#0366d6', secondary: '#f6f8fa' },
@@ -46,6 +46,7 @@ const PLATFORM_LABELS: Record<string, string> = {
 const NAV_ITEMS: { id: SettingsTab; label: string; icon: string }[] = [
   { id: 'general', label: '通用', icon: '⚙' },
   { id: 'display', label: '显示', icon: '🎨' },
+  { id: 'shortcuts', label: '快捷键', icon: '⌨' },
   { id: 'about', label: '关于', icon: '📝' },
 ]
 
@@ -210,6 +211,51 @@ function SettingsDialog({ onClose, initialTab = 'general' }: Props) {
               </div>
             )}
 
+            {activeTab === 'shortcuts' && (
+              <div className="settings-section">
+                <h3 className="settings-section-title">快捷键</h3>
+
+                <ShortcutGroup title="文件操作" shortcuts={[
+                  { keys: ['Ctrl', 'N'], desc: '新建文件' },
+                  { keys: ['Ctrl', 'O'], desc: '打开文件' },
+                  { keys: ['Ctrl', 'S'], desc: '保存文件' },
+                  { keys: ['Ctrl', 'Shift', 'S'], desc: '另存为' },
+                  { keys: ['Ctrl', 'Shift', 'H'], desc: '导出 HTML' },
+                  { keys: ['Ctrl', 'Shift', 'E'], desc: '导出 PDF' },
+                  { keys: ['Ctrl', 'W'], desc: '关闭窗口' },
+                ]} />
+
+                <ShortcutGroup title="编辑格式" shortcuts={[
+                  { keys: ['Ctrl', 'B'], desc: '加粗' },
+                  { keys: ['Ctrl', 'I'], desc: '斜体' },
+                  { keys: ['Ctrl', 'K'], desc: '插入链接' },
+                  { keys: ['Ctrl', '`'], desc: '行内代码' },
+                  { keys: ['Ctrl', 'Shift', '`'], desc: '代码块' },
+                  { keys: ['Ctrl', 'Shift', 'M'], desc: '公式块' },
+                  { keys: ['Ctrl', 'Shift', 'L'], desc: '无序列表' },
+                  { keys: ['Ctrl', 'Shift', '['], desc: '引用块' },
+                  { keys: ['Ctrl', 'Shift', 'O'], desc: '有序列表' },
+                ]} />
+
+                <ShortcutGroup title="视图模式" shortcuts={[
+                  { keys: ['Ctrl', 'Shift', 'P'], desc: '切换编辑模式 (分屏 ↔ WYSIWYG)' },
+                  { keys: ['Ctrl', 'Shift', 'O'], desc: '切换预览模式' },
+                  { keys: ['Ctrl', '\\'], desc: '切换侧边栏' },
+                  { keys: ['Ctrl', 'Shift', 'F'], desc: '全局搜索' },
+                  { keys: ['F11'], desc: '专注模式' },
+                  { keys: ['F12'], desc: '打字机模式' },
+                ]} />
+
+                <ShortcutGroup title="其他" shortcuts={[
+                  { keys: ['Ctrl', 'Z'], desc: '撤销' },
+                  { keys: ['Ctrl', 'Y'], desc: '重做' },
+                  { keys: ['Ctrl', 'Shift', 'I'], desc: '插件管理' },
+                  { keys: ['Esc'], desc: '关闭对话框' },
+                  { keys: ['Ctrl', '滚轮'], desc: '预览区缩放' },
+                ]} />
+              </div>
+            )}
+
             {activeTab === 'about' && (
               <div className="settings-section about-section">
                 <div className="about-header-compact">
@@ -248,6 +294,34 @@ function SettingsDialog({ onClose, initialTab = 'general' }: Props) {
             )}
           </div>
         </div>
+      </div>
+    </div>
+  )
+}
+
+interface ShortcutDef {
+  keys: string[]
+  desc: string
+}
+
+function ShortcutGroup({ title, shortcuts }: { title: string; shortcuts: ShortcutDef[] }) {
+  return (
+    <div className="shortcut-group">
+      <h4 className="settings-section-subtitle">{title}</h4>
+      <div className="shortcut-rows">
+        {shortcuts.map((s, i) => (
+          <div key={i} className="shortcut-row">
+            <span className="shortcut-desc">{s.desc}</span>
+            <span className="shortcut-keys">
+              {s.keys.map((k, j) => (
+                <span key={j}>
+                  {j > 0 && <span className="shortcut-plus">+</span>}
+                  <kbd className="shortcut-key">{k}</kbd>
+                </span>
+              ))}
+            </span>
+          </div>
+        ))}
       </div>
     </div>
   )

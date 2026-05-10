@@ -180,20 +180,28 @@
 }
 
 /* 暗色主题适配 */
-[data-theme="dark"] .doc-template-item:hover {
+[data-theme="night-black"] .doc-template-item:hover,
+[data-theme="deep-sea"] .doc-template-item:hover,
+[data-theme="warm-gray"] .doc-template-item:hover {
   background: var(--bg-hover, #3a3a3a);
 }
 
-[data-theme="dark"] .doc-template-item.active {
+[data-theme="night-black"] .doc-template-item.active,
+[data-theme="deep-sea"] .doc-template-item.active,
+[data-theme="warm-gray"] .doc-template-item.active {
   background: var(--bg-active, #1e3a5f);
   border-color: var(--primary-color, #4a9eff);
 }
 
-[data-theme="dark"] .doc-template-preview {
+[data-theme="night-black"] .doc-template-preview,
+[data-theme="deep-sea"] .doc-template-preview,
+[data-theme="warm-gray"] .doc-template-preview {
   background: var(--bg-code, #2a2a2a);
   border-color: var(--border-color, #444);
 }
 
-[data-theme="dark"] .doc-template-preview-code {
+[data-theme="night-black"] .doc-template-preview-code,
+[data-theme="deep-sea"] .doc-template-preview-code,
+[data-theme="warm-gray"] .doc-template-preview-code {
   color: var(--text-primary, #e0e0e0);
 }
