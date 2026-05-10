@@ -13,12 +13,12 @@ import { PluginEngine } from './engine/PluginEngine'
 import { HostAPIBridgeImpl } from './engine/HostAPIBridge'
 import { StatusBarPlugin } from './plugins/builtins/status-bar-info'
 import PluginManagerDialog from './components/Settings/PluginManagerDialog'
-import AboutDialog from './components/Settings/AboutDialog'
+import SettingsDialog, { type SettingsTab } from './components/Settings/SettingsDialog'
 import * as bridge from './services/electron-bridge'
 
 function App() {
   const [showPluginDialog, setShowPluginDialog] = useState(false)
-  const [showAboutDialog, setShowAboutDialog] = useState(false)
+  const [settingsTab, setSettingsTab] = useState<SettingsTab | null>(null)
   const sidebarVisible = useAppStore((s) => s.sidebarVisible)
 
   const newUntitledTab = useTabStore((s) => s.newUntitledTab)
@@ -119,7 +119,7 @@ function App() {
           setMode(useEditorStore.getState().mode === 'preview' ? 'split' : 'preview')
           break
         case 'plugin:manage': setShowPluginDialog(true); break
-        case 'app:about': setShowAboutDialog(true); break
+        case 'app:about': setSettingsTab('about'); break
         case 'focus:mode': toggleFocusMode(); break
         case 'typewriter:mode': toggleTypewriterMode(); break
         case 'file:close': window.close(); break
@@ -171,7 +171,7 @@ function App() {
   }, [])
 
   const handleHelp = useCallback(() => {
-    setShowAboutDialog(true)
+    setSettingsTab('about')
   }, [])
 
   const handleEditToggle = useCallback(() => {
@@ -222,7 +222,7 @@ function App() {
       </div>
       <StatusBar />
       {showPluginDialog && <PluginManagerDialog onClose={() => setShowPluginDialog(false)} />}
-      {showAboutDialog && <AboutDialog onClose={() => setShowAboutDialog(false)} />}
+      {settingsTab && <SettingsDialog initialTab={settingsTab} onClose={() => setSettingsTab(null)} />}
     </div>
   )
 }
