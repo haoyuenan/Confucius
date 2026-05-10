@@ -40,6 +40,12 @@ function App() {
     }
   }, [newUntitledTab])
 
+  // 启动时同步菜单显示状态
+  useEffect(() => {
+    const hidden = localStorage.getItem('confucius-hide-menu') !== 'false'
+    bridge.setMenuVisible(!hidden).catch(() => {})
+  }, [])
+
   // 初始化插件引擎（防止 StrictMode / HMR 重复初始化）
   useEffect(() => {
     const w = window as { __pluginEngine?: PluginEngine }
@@ -189,7 +195,13 @@ function App() {
     <div className={`app-root${isPreviewMode ? ' preview-mode' : ''}`}>
       <header className="app-titlebar">
         <div className="toolbar-group">
-          <button className="toolbar-btn" onClick={handleSearch} title="全局搜索">🔍 搜索</button>
+          <button className="toolbar-btn" onClick={handleNewFile} title="新建 (Ctrl+N)">📄 新建</button>
+          <button className="toolbar-btn" onClick={handleOpenFile} title="打开 (Ctrl+O)">📂 打开</button>
+          <button className="toolbar-btn" onClick={() => { toggleSidebar() }} title="切换侧边栏 (Ctrl+\)">📑 侧边</button>
+        </div>
+        <div className="toolbar-sep" />
+        <div className="toolbar-group">
+          <button className="toolbar-btn" onClick={handleSearch} title="全局搜索 (Ctrl+Shift+F)">🔍 搜索</button>
         </div>
         <div className="toolbar-sep" />
         <div className="toolbar-group">
@@ -203,7 +215,7 @@ function App() {
         </div>
         <div className="toolbar-sep" />
         <div className="toolbar-group">
-          <button className={`toolbar-btn${mode !== 'preview' ? ' active' : ''}`} onClick={handleEditToggle} title="切换编辑模式">
+          <button className={`toolbar-btn${mode !== 'preview' ? ' active' : ''}`} onClick={handleEditToggle} title="切换编辑模式 (split ↔ wysiwyg)">
             ✏ 编辑
           </button>
           <button className={`toolbar-btn${mode === 'preview' ? ' active' : ''}`} onClick={handleViewToggle} title="切换分栏/预览">

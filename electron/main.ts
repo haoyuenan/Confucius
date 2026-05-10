@@ -1,4 +1,4 @@
-import { app, BrowserWindow, protocol, net } from 'electron'
+import { app, BrowserWindow, protocol, net, Menu, ipcMain } from 'electron'
 import path from 'path'
 import { setupMenu } from './menu'
 import { registerIpcHandlers, currentWorkspacePath } from './ipc-handlers'
@@ -73,6 +73,24 @@ function createMainWindow(): void {
   } else {
     mainWindow.loadFile(path.join(DIST, 'index.html'))
   }
+
+  // 编辑区右键菜单
+  mainWindow.webContents.on('context-menu', (_event, params) => {
+    const { x, y } = params
+
+    const menu = Menu.buildFromTemplate([
+      { label: '保存', accelerator: 'CmdOrCtrl+S', click: () => mainWindow?.webContents.send('menu:action', 'file:save') },
+      { label: '另存为...', accelerator: 'CmdOrCtrl+Shift+S', click: () => mainWindow?.webContents.send('menu:action', 'file:save-as') },
+      { type: 'separator' },
+      { role: 'undo', label: '撤销' },
+      { role: 'redo', label: '重做' },
+      { type: 'separator' },
+      { role: 'cut', label: '剪切' },
+      { role: 'copy', label: '复制' },
+      { role: 'paste', label: '粘贴' },
+    ])
+    menu.popup({ window: mainWindow!, x, y })
+  })
 }
 
 // ─── 单实例锁定（Windows/Linux 拖拽文件到已运行应用图标）───
@@ -160,6 +178,15 @@ app.whenReady().then(() => {
   createMainWindow()
   setupMenu(mainWindow!)
   registerIpcHandlers()
+
+  // 菜单显示控制（renderer 发来请求时切换）
+  ipcMain.handle('menu:set-visible', async (_event, visible: boolean) => {
+    if (visible) {
+      setupMenu(mainWindow!)
+    } else {
+      Menu.setApplicationMenu(null)
+    }
+  })
 
   // macOS：点击 dock 图标时重新创建窗口
   app.on('activate', () => {

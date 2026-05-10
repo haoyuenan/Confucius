@@ -25,6 +25,11 @@
   flex-shrink: 0;
 }
 
+.active {
+  color: var(--accent-color) !important;
+  background: var(--bg-primary) !important;
+}
+
 .toolbarBtn {
   display: flex;
   align-items: center;
