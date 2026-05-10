@@ -22,7 +22,7 @@ import hljsGithub from 'highlight.js/styles/github.css?inline'
 import hljsIdea from 'highlight.js/styles/idea.css?inline'
 import hljsAtomDark from 'highlight.js/styles/atom-one-dark.css?inline'
 import hljsMonokai from 'highlight.js/styles/monokai.css?inline'
-import hljsNord from 'highlight.js/styles/nord.css?inline'
+
 import hljsAtomLight from 'highlight.js/styles/atom-one-light.css?inline'
 import hljsGithubDark from 'highlight.js/styles/github-dark.css?inline'
 
@@ -30,7 +30,7 @@ const hljsMap: Record<string, string> = {
   'plain-white': hljsGithub,
   'eye-care': hljsIdea,
   'cloud': hljsAtomLight,
-  'mint': hljsNord,
+  'mint': hljsGithub,
   'night-black': hljsAtomDark,
   'deep-sea': hljsGithubDark,
   'warm-gray': hljsMonokai,

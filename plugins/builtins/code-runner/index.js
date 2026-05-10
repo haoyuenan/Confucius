@@ -820,20 +820,26 @@ var codeRunnerPlugin = {
         line-height: 1.5;
       }
 
-      /* 暗色主题适配 */
-      [data-theme="dark"] .code-runner-output.success {
+      /* 深色主题适配 */
+      [data-theme="night-black"] .code-runner-output.success,
+      [data-theme="deep-sea"] .code-runner-output.success,
+      [data-theme="warm-gray"] .code-runner-output.success {
         background: var(--bg-code, #2d2d2d);
         color: var(--text-primary, #e0e0e0);
         border-color: var(--border-color, #444);
       }
 
-      [data-theme="dark"] .code-runner-output.error {
+      [data-theme="night-black"] .code-runner-output.error,
+      [data-theme="deep-sea"] .code-runner-output.error,
+      [data-theme="warm-gray"] .code-runner-output.error {
         background: #3e2723;
         color: #ff8a80;
         border-color: #5d4037;
       }
 
-      [data-theme="dark"] .code-runner-note {
+      [data-theme="night-black"] .code-runner-note,
+      [data-theme="deep-sea"] .code-runner-note,
+      [data-theme="warm-gray"] .code-runner-note {
         background: var(--bg-secondary, #333);
       }
     `

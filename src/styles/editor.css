@@ -32,6 +32,16 @@
   background: var(--editor-selection-blur, rgba(3, 102, 214, 0.2)) !important;
 }
 
+/* ---- CM6 行号区 ---- */
+.cm-gutters {
+  background: var(--bg-secondary) !important;
+  border-right: 1px solid var(--border-color) !important;
+}
+
+.cm-lineNumbers .cm-gutterElement {
+  color: var(--text-muted) !important;
+}
+
 /* ---- CM6 当前行高亮（需比选中更淡） ---- */
 .cm-editor .cm-activeLine {
   background: var(--editor-active-line, rgba(0, 0, 0, 0.03)) !important;
