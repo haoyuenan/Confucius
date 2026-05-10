@@ -1,6 +1,13 @@
+.wrapper {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
 .themeSelector {
   display: flex;
   gap: 4px;
+  flex: 1;
 }
 
 .themeBtn {
@@ -38,4 +45,26 @@
 
 .themeLabel {
   font-size: 11px;
+}
+
+.modeToggle {
+  width: 28px;
+  height: 28px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background: transparent;
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+
+.modeToggle:hover {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
 }

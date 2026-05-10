@@ -13,41 +13,61 @@ beforeEach(() => {
 })
 
 describe('theme-service', () => {
-  test('默认主题为 light，data-theme 正确设置', async () => {
+  test('默认主题为 plain-white，data-theme 正确设置', async () => {
     const { themeService } = await import('../../../src/services/theme-service')
-    expect(themeService.getCurrentTheme()).toBe('light')
-    expect(document.documentElement.getAttribute('data-theme')).toBe('light')
+    expect(themeService.getCurrentTheme()).toBe('plain-white')
+    expect(document.documentElement.getAttribute('data-theme')).toBe('plain-white')
   })
 
-  test('switchTheme 切换为 dark 并持久化到 localStorage', async () => {
+  test('switchTheme 切换为 night-black 并持久化到 localStorage', async () => {
     const { themeService } = await import('../../../src/services/theme-service')
-    themeService.switchTheme('dark')
-    expect(themeService.getCurrentTheme()).toBe('dark')
-    expect(document.documentElement.getAttribute('data-theme')).toBe('dark')
-    expect(localStorage.getItem('confucius-theme')).toBe('dark')
+    themeService.switchTheme('night-black')
+    expect(themeService.getCurrentTheme()).toBe('night-black')
+    expect(document.documentElement.getAttribute('data-theme')).toBe('night-black')
+    expect(localStorage.getItem('confucius-theme')).toBe('night-black')
   })
 
-  test('switchTheme 切换为 sepia 并持久化到 localStorage', async () => {
+  test('switchTheme 切换为 eye-care 并持久化到 localStorage', async () => {
     const { themeService } = await import('../../../src/services/theme-service')
-    themeService.switchTheme('sepia')
-    expect(themeService.getCurrentTheme()).toBe('sepia')
-    expect(localStorage.getItem('confucius-theme')).toBe('sepia')
+    themeService.switchTheme('eye-care')
+    expect(themeService.getCurrentTheme()).toBe('eye-care')
+    expect(localStorage.getItem('confucius-theme')).toBe('eye-care')
   })
 
-  test('toggleTheme light→dark→sepia→light 循环', async () => {
+  test('toggleTheme light mode → dark mode 循环', async () => {
     const { themeService } = await import('../../../src/services/theme-service')
+    expect(themeService.getCurrentMode()).toBe('light')
     themeService.toggleTheme()
-    expect(themeService.getCurrentTheme()).toBe('dark')
+    expect(themeService.getCurrentTheme()).toBe('night-black')
+    expect(themeService.getCurrentMode()).toBe('dark')
     themeService.toggleTheme()
-    expect(themeService.getCurrentTheme()).toBe('sepia')
-    themeService.toggleTheme()
-    expect(themeService.getCurrentTheme()).toBe('light')
+    expect(themeService.getCurrentTheme()).toBe('plain-white')
+    expect(themeService.getCurrentMode()).toBe('light')
   })
 
-  test('localStorage 已保存 dark 则恢复为 dark', async () => {
+  test('本地已保存 legacy light 则映射为 plain-white', async () => {
+    localStorage.setItem('confucius-theme', 'light')
+    const { themeService } = await import('../../../src/services/theme-service')
+    expect(themeService.getCurrentTheme()).toBe('plain-white')
+    expect(document.documentElement.getAttribute('data-theme')).toBe('plain-white')
+  })
+
+  test('本地已保存 legacy dark 则映射为 night-black', async () => {
     localStorage.setItem('confucius-theme', 'dark')
     const { themeService } = await import('../../../src/services/theme-service')
-    expect(themeService.getCurrentTheme()).toBe('dark')
-    expect(document.documentElement.getAttribute('data-theme')).toBe('dark')
+    expect(themeService.getCurrentTheme()).toBe('night-black')
+  })
+
+  test('本地已保存 legacy sepia 则映射为 eye-care', async () => {
+    localStorage.setItem('confucius-theme', 'sepia')
+    const { themeService } = await import('../../../src/services/theme-service')
+    expect(themeService.getCurrentTheme()).toBe('eye-care')
+  })
+
+  test('本地已保存 night-black 则恢复正确', async () => {
+    localStorage.setItem('confucius-theme', 'night-black')
+    const { themeService } = await import('../../../src/services/theme-service')
+    expect(themeService.getCurrentTheme()).toBe('night-black')
+    expect(document.documentElement.getAttribute('data-theme')).toBe('night-black')
   })
 })

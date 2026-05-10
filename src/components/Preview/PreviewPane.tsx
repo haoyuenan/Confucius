@@ -112,8 +112,7 @@ function PreviewPane({ content }: PreviewPaneProps) {
   }, [])
 
   useEffect(() => {
-    const theme = themeService.getCurrentTheme()
-    initMermaid(theme === 'dark' ? 'dark' : theme === 'sepia' ? 'neutral' : 'default')
+    initMermaid(themeService.getCurrentDef().mermaid)
   }, [])
 
   useEffect(() => {

@@ -1,8 +1,5 @@
-/* ============================================
-   亮色主题
-   ============================================ */
 :root,
-[data-theme='light'] {
+[data-theme='plain-white'] {
   --bg-primary: #ffffff;
   --bg-secondary: #f6f8fa;
   --bg-sidebar: #fafbfc;

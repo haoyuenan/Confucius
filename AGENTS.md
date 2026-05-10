@@ -26,7 +26,7 @@ npm run pack:linux # electron-builder → Linux .AppImage
 3. `PreviewPane` receives raw Markdown text → `markdown-renderer.ts` feeds it through `markdown-it` (with `highlight.js` for code blocks) → the resulting HTML is set via `innerHTML`. After that, `renderMermaidDiagrams()` runs first, then KaTeX formulas are processed via `renderMathInElement()` DOM walker.
 4. Keyboard shortcuts (bold, italic, link, etc.) are registered as CM6 `keymap` extensions in `src/editor/keybindings.ts`.
 
-**Theme system**. Three CSS variable files in `themes/` (light.css, dark.css, sepia.css) are loaded at startup. ThemeService sets `document.documentElement.dataset.theme` which triggers CSS selector matching. The theme is persisted in `localStorage`. Switching theme also updates the highlight.js `<link>` element and re-initializes Mermaid with the matching theme.
+**Theme system**. Seven CSS variable files in `themes/` define light mode (plain-white.css, eye-care.css, cloud.css, mint.css) and dark mode (night-black.css, deep-sea.css, warm-gray.css). ThemeService manages `ThemeId` and `ThemeMode`, sets `document.documentElement.dataset.theme` for CSS selector matching, and persists in `localStorage`. Legacy `light/dark/sepia` values auto-migrate. Switching theme updates highlight.js `<style>` elements and re-initializes Mermaid. Toolbar button toggles light/dark mode; settings panel offers per-mode theme selection.
 
 **File operations**. File operations always flow: React component → `window.electronAPI.method()` → IPC invoke → `ipc-handlers.ts` → Node.js `fs` module. File tree is built recursively in the main process (async, directory-first sort). File changes are watched via `fs.watch` (recursive) with a 500ms debounce.
 

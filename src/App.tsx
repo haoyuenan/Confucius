@@ -7,7 +7,7 @@ import Sidebar from './components/Sidebar/Sidebar'
 import EditorLayout from './components/Editor/EditorLayout'
 import ThemeSelector from './components/Settings/ThemeSelector'
 import StatusBar from './components/Editor/StatusBar'
-import { themeService, type ThemeName } from './services/theme-service'
+import { themeService, getThemeDef, type ThemeId } from './services/theme-service'
 import { checkLargeFile } from './editor/large-file-handler'
 import { PluginEngine } from './engine/PluginEngine'
 import { HostAPIBridgeImpl } from './engine/HostAPIBridge'
@@ -111,9 +111,9 @@ function App() {
         case 'search:focus': toggleSidebar(); setActiveTab('search'); break
         case 'export:html': bridge.exportHtml(); break
         case 'export:pdf': bridge.exportPdf(); break
-        case 'theme:light': themeService.switchTheme('light'); setCurrentTheme('light'); break
-        case 'theme:dark': themeService.switchTheme('dark'); setCurrentTheme('dark'); break
-        case 'theme:sepia': themeService.switchTheme('sepia'); setCurrentTheme('sepia'); break
+        case 'theme:light': themeService.switchTheme('plain-white'); setCurrentTheme('plain-white'); break
+        case 'theme:dark': themeService.switchTheme('night-black'); setCurrentTheme('night-black'); break
+        case 'theme:sepia': themeService.switchTheme('eye-care'); setCurrentTheme('eye-care'); break
         case 'mode:toggle': useEditorStore.getState().toggleMode(); break
         case 'mode:preview':
           setMode(useEditorStore.getState().mode === 'preview' ? 'split' : 'preview')
@@ -154,12 +154,14 @@ function App() {
 
   const isPreviewMode = useEditorStore((s) => s.mode) === 'preview'
   const mode = useEditorStore((s) => s.mode)
-  const [currentTheme, setCurrentTheme] = useState<ThemeName>(themeService.getCurrentTheme())
+  const [currentTheme, setCurrentTheme] = useState<ThemeId>(themeService.getCurrentTheme())
 
   const handleSearch = useCallback(() => {
     toggleSidebar()
     setActiveTab('search')
   }, [toggleSidebar, setActiveTab])
+
+  const currentMode = getThemeDef(currentTheme).mode
 
   const handleToggleTheme = useCallback(() => {
     themeService.toggleTheme()
@@ -170,8 +172,8 @@ function App() {
     bridge.exportHtml()
   }, [])
 
-  const handleHelp = useCallback(() => {
-    setSettingsTab('about')
+  const handleSettings = useCallback(() => {
+    setSettingsTab('general')
   }, [])
 
   const handleEditToggle = useCallback(() => {
@@ -191,17 +193,13 @@ function App() {
         </div>
         <div className="toolbar-sep" />
         <div className="toolbar-group">
-          <button className="toolbar-btn" onClick={handleToggleTheme} title="切换主题">
-            {currentTheme === 'light' ? '☀ 亮色' : currentTheme === 'dark' ? '🌙 暗色' : '🟡 护眼'}
+          <button className="toolbar-btn" onClick={handleToggleTheme} title="切换浅色/深色模式">
+            {currentMode === 'light' ? '🌙 深色' : '☀ 浅色'}
           </button>
         </div>
         <div className="toolbar-sep" />
         <div className="toolbar-group">
           <button className="toolbar-btn" onClick={handleExport} title="导出 HTML">📤 导出</button>
-        </div>
-        <div className="toolbar-sep" />
-        <div className="toolbar-group">
-          <button className="toolbar-btn" onClick={handleHelp} title="关于">💡 帮助</button>
         </div>
         <div className="toolbar-sep" />
         <div className="toolbar-group">
@@ -211,6 +209,10 @@ function App() {
           <button className={`toolbar-btn${mode === 'preview' ? ' active' : ''}`} onClick={handleViewToggle} title="切换分栏/预览">
             {mode === 'preview' ? '⊞ 分栏' : '👁 预览'}
           </button>
+        </div>
+        <div className="toolbar-sep" />
+        <div className="toolbar-group">
+          <button className="toolbar-btn" onClick={handleSettings} title="设置">⚙ 设置</button>
         </div>
       </header>
       <div className="app-body">

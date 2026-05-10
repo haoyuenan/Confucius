@@ -1,0 +1,32 @@
+[data-theme='cloud'] {
+  --bg-primary: #f5f5f0;
+  --bg-secondary: #ecece5;
+  --bg-sidebar: #f0f0e8;
+  --bg-editor: #f5f5f0;
+  --bg-preview: #f5f5f0;
+  --bg-code: #ecece5;
+
+  --text-primary: #2c2c2c;
+  --text-secondary: #666666;
+  --text-muted: #999999;
+
+  --border-color: #ddd8cc;
+  --border-divider: #d0ccbf;
+
+  --accent-color: #0284c7;
+  --accent-hover: #0369a1;
+
+  --code-highlight-bg: #ecece5;
+  --code-lang-color: #888888;
+
+  --table-border: #ddd8cc;
+  --table-header-bg: #ecece5;
+  --table-row-alt: #ecece5;
+
+  --editor-selection-focused: rgba(2, 132, 199, 0.4);
+  --editor-selection-blur: rgba(2, 132, 199, 0.18);
+  --editor-active-line: rgba(0, 0, 0, 0.03);
+
+  --scrollbar-bg: transparent;
+  --scrollbar-thumb: #c5c0b5;
+}
