@@ -9,27 +9,40 @@ import './styles/sidebar.css'
 import './styles/wysiwyg.css'
 import './styles/status-bar.css'
 import './styles/dialog.css'
-import '../themes/light.css'
-import '../themes/dark.css'
-import '../themes/sepia.css'
+import '../themes/plain-white.css'
+import '../themes/eye-care.css'
+import '../themes/cloud.css'
+import '../themes/mint.css'
+import '../themes/night-black.css'
+import '../themes/deep-sea.css'
+import '../themes/warm-gray.css'
 
 // ── highlight.js 主题（本地打包，移除 CDN 依赖）──
-import hljsLight from 'highlight.js/styles/github.css?inline'
-import hljsDark from 'highlight.js/styles/atom-one-dark.css?inline'
-import hljsSepia from 'highlight.js/styles/idea.css?inline'
+import hljsGithub from 'highlight.js/styles/github.css?inline'
+import hljsIdea from 'highlight.js/styles/idea.css?inline'
+import hljsAtomDark from 'highlight.js/styles/atom-one-dark.css?inline'
+import hljsMonokai from 'highlight.js/styles/monokai.css?inline'
+import hljsNord from 'highlight.js/styles/nord.css?inline'
+import hljsAtomLight from 'highlight.js/styles/atom-one-light.css?inline'
+import hljsGithubDark from 'highlight.js/styles/github-dark.css?inline'
 
-const hljsThemes: Record<string, string> = {
-  light: hljsLight,
-  dark: hljsDark,
-  sepia: hljsSepia,
+const hljsMap: Record<string, string> = {
+  'plain-white': hljsGithub,
+  'eye-care': hljsIdea,
+  'cloud': hljsAtomLight,
+  'mint': hljsNord,
+  'night-black': hljsAtomDark,
+  'deep-sea': hljsGithubDark,
+  'warm-gray': hljsMonokai,
 }
 
-// 创建 3 个 <style> 元素，默认只启用 light
-;(['light', 'dark', 'sepia'] as const).forEach((name) => {
+const THEME_IDS = ['plain-white', 'eye-care', 'cloud', 'mint', 'night-black', 'deep-sea', 'warm-gray'] as const
+
+THEME_IDS.forEach((id) => {
   const style = document.createElement('style')
-  style.id = `hljs-${name}`
-  style.textContent = hljsThemes[name]
-  style.disabled = name !== 'light'
+  style.id = `hljs-${id}`
+  style.textContent = hljsMap[id]
+  style.disabled = id !== 'plain-white'
   document.head.appendChild(style)
 })
 

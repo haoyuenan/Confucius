@@ -1,0 +1,32 @@
+[data-theme='deep-sea'] {
+  --bg-primary: #0d1117;
+  --bg-secondary: #161b22;
+  --bg-sidebar: #0d1117;
+  --bg-editor: #0d1117;
+  --bg-preview: #0d1117;
+  --bg-code: #161b22;
+
+  --text-primary: #c9d1d9;
+  --text-secondary: #8b949e;
+  --text-muted: #6e7681;
+
+  --border-color: #30363d;
+  --border-divider: #21262d;
+
+  --accent-color: #58a6ff;
+  --accent-hover: #79c0ff;
+
+  --code-highlight-bg: #161b22;
+  --code-lang-color: #808890;
+
+  --table-border: #30363d;
+  --table-header-bg: #161b22;
+  --table-row-alt: #161b22;
+
+  --editor-selection-focused: rgba(88, 166, 255, 0.5);
+  --editor-selection-blur: rgba(88, 166, 255, 0.25);
+  --editor-active-line: rgba(255, 255, 255, 0.03);
+
+  --scrollbar-bg: transparent;
+  --scrollbar-thumb: #404850;
+}

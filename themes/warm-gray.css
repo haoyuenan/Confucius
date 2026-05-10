@@ -1,0 +1,32 @@
+[data-theme='warm-gray'] {
+  --bg-primary: #1a1410;
+  --bg-secondary: #221c17;
+  --bg-sidebar: #1a1410;
+  --bg-editor: #1a1410;
+  --bg-preview: #1a1410;
+  --bg-code: #221c17;
+
+  --text-primary: #d4c9c0;
+  --text-secondary: #a69688;
+  --text-muted: #7a6e62;
+
+  --border-color: #3a3228;
+  --border-divider: #2f2820;
+
+  --accent-color: #d4a373;
+  --accent-hover: #e0b98a;
+
+  --code-highlight-bg: #221c17;
+  --code-lang-color: #8a7e72;
+
+  --table-border: #3a3228;
+  --table-header-bg: #221c17;
+  --table-row-alt: #221c17;
+
+  --editor-selection-focused: rgba(212, 163, 115, 0.4);
+  --editor-selection-blur: rgba(212, 163, 115, 0.2);
+  --editor-active-line: rgba(255, 255, 255, 0.03);
+
+  --scrollbar-bg: transparent;
+  --scrollbar-thumb: #4a4238;
+}

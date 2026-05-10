@@ -295,6 +295,8 @@
 }
 
 .settings-nav-icon {
+  width: 24px;
+  text-align: center;
   font-size: 18px;
   line-height: 1;
   flex-shrink: 0;
@@ -512,17 +514,200 @@
   color: var(--text-secondary);
 }
 
-/* ── 暗色适配 ── */
-[data-theme='dark'] .theme-btn-item.active {
-  background: #1a3a1a;
+/* ═══════════════════════════════════════════
+   主题管理 — 扁平化插图风格
+   ═══════════════════════════════════════════ */
+
+/* ── 模式选择区 ── */
+.mode-select-area {
+  margin-bottom: 24px;
+}
+
+.mode-select-label {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+  margin: 0 0 10px;
+}
+
+.mode-cards {
+  display: flex;
+  gap: 16px;
+}
+
+.mode-card {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 16px;
+  border: 2px solid var(--border-color);
+  border-radius: 12px;
+  background: var(--bg-primary);
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.2s;
+}
+
+.mode-card:hover {
+  border-color: var(--text-muted);
+}
+
+.mode-card.active {
   border-color: #2ea043;
+  background: #e6f4ea;
+}
+
+/* ── 扁平化窗口图标 ── */
+.mode-card-window {
+  display: flex;
+  flex-direction: column;
+  width: 100px;
+  height: 72px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.mode-card-titlebar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
+  height: 24px;
+}
+
+.mode-card-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.mode-card-title-icon {
+  font-size: 11px;
+  line-height: 1;
+  margin-left: auto;
+}
+
+.mode-card-body {
+  flex: 1;
+}
+
+.mode-card-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.mode-card.active .mode-card-label {
+  color: #1a7d36;
+  font-weight: 600;
+}
+
+/* ── 主题预设区 ── */
+.theme-preset-area {
+  margin-bottom: 8px;
+}
+
+.theme-cards {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.theme-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px;
+  border: 2px solid var(--border-color);
+  border-radius: 12px;
+  background: var(--bg-primary);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.theme-card:hover {
+  border-color: var(--text-muted);
+}
+
+.theme-card.active {
+  border-color: #2ea043;
+  background: #e6f4ea;
+}
+
+/* ── 色块条 ── */
+.theme-card-swatches {
+  display: flex;
+  height: 32px;
+  border-radius: 6px;
+  overflow: hidden;
+  position: relative;
+}
+
+.theme-card-swatch {
+  flex: 1;
+}
+
+.theme-card-check {
+  position: absolute;
+  right: 4px;
+  top: 4px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #2ea043;
+  color: #fff;
+  font-size: 12px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.theme-card-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+  text-align: center;
+}
+
+.theme-card.active .theme-card-name {
+  color: #1a7d36;
+  font-weight: 600;
+}
+
+/* ── 暗色适配 ── */
+[data-theme='night-black'] .mode-card.active,
+[data-theme='deep-sea'] .mode-card.active,
+[data-theme='warm-gray'] .mode-card.active {
+  background: #1a3a1a;
+}
+
+[data-theme='night-black'] .mode-card.active .mode-card-label,
+[data-theme='deep-sea'] .mode-card.active .mode-card-label,
+[data-theme='warm-gray'] .mode-card.active .mode-card-label {
   color: #5ddb6b;
 }
 
-[data-theme='sepia'] .theme-btn-item.active {
-  background: #e8dcc8;
-  border-color: #8b7355;
-  color: #5c4a32;
+[data-theme='night-black'] .theme-card.active,
+[data-theme='deep-sea'] .theme-card.active,
+[data-theme='warm-gray'] .theme-card.active {
+  background: #1a3a1a;
+}
+
+[data-theme='night-black'] .theme-card.active .theme-card-name,
+[data-theme='deep-sea'] .theme-card.active .theme-card-name,
+[data-theme='warm-gray'] .theme-card.active .theme-card-name {
+  color: #5ddb6b;
 }
 
 /* ═══════════════════════════════════════════

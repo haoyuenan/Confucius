@@ -28,7 +28,7 @@
 - **拖拽打开**：拖拽 .md/.markdown 文件到应用图标直接打开
 
 ### 视图 & 外观
-- **三主题切换**：亮色 / 暗色 / 护眼，持久化 localStorage
+- **七主题切换**：浅色（素白纸、护眼、云白、薄荷）/ 深色（暗夜黑、深海、暖灰），持久化 localStorage，工具栏一键切换浅/深模式
 - **可拖拽分栏**：双栏宽度自由调节
 - **滚动同步**：双栏模式下编辑区与预览区滚动百分比同步
 
@@ -257,9 +257,13 @@ confucius/
 │   └── writing-aid/                # 写作辅助插件（示例）
 │
 ├── themes/                         # 主题 CSS 变量
-│   ├── light.css
-│   ├── dark.css
-│   └── sepia.css
+│   ├── plain-white.css              # 浅色·素白纸
+│   ├── eye-care.css                 # 浅色·护眼
+│   ├── cloud.css                    # 浅色·云白
+│   ├── mint.css                     # 浅色·薄荷
+│   ├── night-black.css              # 深色·暗夜黑
+│   ├── deep-sea.css                 # 深色·深海
+│   └── warm-gray.css                # 深色·暖灰
 │
 ├── test/                           # 测试（115 单元/集成 + 14 E2E）
 │   ├── setup.ts                    # 全局 setup + mock ElectronAPI

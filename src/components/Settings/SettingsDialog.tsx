@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import * as bridge from '../../services/electron-bridge'
-import { themeService, type ThemeName } from '../../services/theme-service'
+import { themeService, getThemesByMode, type ThemeMode, type ThemeId } from '../../services/theme-service'
 import { useEditorStore } from '../../stores/editor-store'
 import { useAppStore } from '../../stores/app-store'
 
@@ -13,6 +13,16 @@ interface EnvInfo {
 }
 
 export type SettingsTab = 'general' | 'display' | 'about'
+
+const THEME_SWATCHES: Record<ThemeId, { bg: string; accent: string; secondary: string }> = {
+  'plain-white': { bg: '#ffffff', accent: '#0366d6', secondary: '#f6f8fa' },
+  'eye-care': { bg: '#fbf0d9', accent: '#8b5e3c', secondary: '#f2e6c9' },
+  'cloud': { bg: '#f5f5f0', accent: '#0284c7', secondary: '#ecece5' },
+  'mint': { bg: '#f0f5f3', accent: '#0d9488', secondary: '#e8efe9' },
+  'night-black': { bg: '#1e1e1e', accent: '#569cd6', secondary: '#252526' },
+  'deep-sea': { bg: '#0d1117', accent: '#58a6ff', secondary: '#161b22' },
+  'warm-gray': { bg: '#1a1410', accent: '#d4a373', secondary: '#221c17' },
+}
 
 const FEATURES = [
   'Markdown 编辑与实时预览',
@@ -32,12 +42,6 @@ const PLATFORM_LABELS: Record<string, string> = {
   darwin: 'macOS',
   linux: 'Linux',
 }
-
-const THEMES: { id: ThemeName; label: string; icon: string }[] = [
-  { id: 'light', label: '亮色', icon: '☀' },
-  { id: 'dark', label: '暗色', icon: '🌙' },
-  { id: 'sepia', label: '护眼', icon: '🟡' },
-]
 
 const NAV_ITEMS: { id: SettingsTab; label: string; icon: string }[] = [
   { id: 'general', label: '通用', icon: '⚙' },
@@ -60,7 +64,7 @@ function SettingsDialog({ onClose, initialTab = 'general' }: Props) {
   const sidebarVisible = useAppStore((s) => s.sidebarVisible)
   const toggleSidebar = useAppStore((s) => s.toggleSidebar)
 
-  const [currentTheme, setCurrentTheme] = useState<ThemeName>(() => themeService.getCurrentTheme())
+  const [currentTheme, setCurrentTheme] = useState<ThemeId>(() => themeService.getCurrentTheme())
 
   const [version, setVersion] = useState('...')
   const [env, setEnv] = useState<EnvInfo | null>(null)
@@ -150,20 +154,57 @@ function SettingsDialog({ onClose, initialTab = 'general' }: Props) {
             {activeTab === 'display' && (
               <div className="settings-section">
                 <h3 className="settings-section-title">主题</h3>
-                <div className="settings-rows">
-                  <div className="settings-row">
-                    <span className="settings-row-label">选择主题</span>
-                    <div className="theme-btn-group">
-                      {THEMES.map((t) => (
+
+                <div className="mode-select-area">
+                  <p className="mode-select-label">主题模式</p>
+                  <div className="mode-cards">
+                    {(['light', 'dark'] as ThemeMode[]).map((mode) => {
+                      const active = themeService.getCurrentMode() === mode
+                      return (
                         <button
+                          key={mode}
+                          className={`mode-card${active ? ' active' : ''}`}
+                          onClick={() => {
+                            const first = getThemesByMode(mode)[0]
+                            if (first) { themeService.switchTheme(first.id); setCurrentTheme(first.id) }
+                          }}
+                        >
+                          <span className="mode-card-window">
+                            <span className="mode-card-titlebar">
+                              <span className="mode-card-dot" />
+                              <span className="mode-card-title-icon">{mode === 'light' ? '☀' : '🌙'}</span>
+                            </span>
+                            <span className="mode-card-body" style={{ background: mode === 'light' ? '#f0f0f0' : '#222' }} />
+                          </span>
+                          <span className="mode-card-label">{mode === 'light' ? '浅色模式' : '深色模式'}</span>
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+
+                <div className="theme-preset-area">
+                  <p className="mode-select-label">主题预设</p>
+                  <div className="theme-cards">
+                    {getThemesByMode(themeService.getCurrentMode()).map((t) => {
+                      const active = currentTheme === t.id
+                      const swatch = THEME_SWATCHES[t.id]
+                      return (
+                        <div
                           key={t.id}
-                          className={`theme-btn-item${currentTheme === t.id ? ' active' : ''}`}
+                          className={`theme-card${active ? ' active' : ''}`}
                           onClick={() => { themeService.switchTheme(t.id); setCurrentTheme(t.id) }}
                         >
-                          {t.icon} {t.label}
-                        </button>
-                      ))}
-                    </div>
+                          <span className="theme-card-swatches">
+                            <span className="theme-card-swatch" style={{ background: swatch.bg }} />
+                            <span className="theme-card-swatch" style={{ background: swatch.secondary }} />
+                            <span className="theme-card-swatch" style={{ background: swatch.accent }} />
+                            {active && <span className="theme-card-check">✓</span>}
+                          </span>
+                          <span className="theme-card-name">{t.icon} {t.label}</span>
+                        </div>
+                      )
+                    })}
                   </div>
                 </div>
               </div>

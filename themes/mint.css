@@ -1,0 +1,32 @@
+[data-theme='mint'] {
+  --bg-primary: #f0f5f3;
+  --bg-secondary: #e8efe9;
+  --bg-sidebar: #eaf1eb;
+  --bg-editor: #f0f5f3;
+  --bg-preview: #f0f5f3;
+  --bg-code: #e4ebe5;
+
+  --text-primary: #1a2e2a;
+  --text-secondary: #4a6358;
+  --text-muted: #7a8f85;
+
+  --border-color: #d0ddd4;
+  --border-divider: #c4d4c7;
+
+  --accent-color: #0d9488;
+  --accent-hover: #0f766e;
+
+  --code-highlight-bg: #e4ebe5;
+  --code-lang-color: #6a8a78;
+
+  --table-border: #d0ddd4;
+  --table-header-bg: #e4ebe5;
+  --table-row-alt: #e4ebe5;
+
+  --editor-selection-focused: rgba(13, 148, 136, 0.4);
+  --editor-selection-blur: rgba(13, 148, 136, 0.18);
+  --editor-active-line: rgba(0, 0, 0, 0.02);
+
+  --scrollbar-bg: transparent;
+  --scrollbar-thumb: #bccbc0;
+}
