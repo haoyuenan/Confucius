@@ -73,12 +73,63 @@ body,
   height: var(--titlebar-height);
   display: flex;
   align-items: center;
-  justify-content: flex-end;
-  padding: 0 16px;
+  gap: 2px;
+  padding: 0 12px 0 0;
   border-bottom: 1px solid var(--border-color);
   background: var(--bg-secondary);
   -webkit-app-region: drag; /* 可拖拽区域 */
   flex-shrink: 0;
+}
+
+/* 品牌区 — 占据左侧，将工具栏推到右侧 */
+.titlebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 14px;
+  margin-right: auto;
+  flex-shrink: 0;
+  -webkit-app-region: drag;
+}
+
+.titlebar-brand-icon {
+  font-size: 18px;
+  line-height: 1;
+  color: var(--accent-color);
+  opacity: 0.9;
+  font-family: 'KaiTi', 'STKaiti', serif;
+  user-select: none;
+}
+
+.titlebar-brand-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.titlebar-app-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.2;
+  letter-spacing: 0.03em;
+  user-select: none;
+}
+
+.titlebar-app-tagline {
+  font-size: 9px;
+  color: var(--text-muted);
+  line-height: 1;
+  letter-spacing: 0.05em;
+  user-select: none;
+}
+
+/* 工具栏第一组容器 */
+.titlebar-tools {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  -webkit-app-region: no-drag;
 }
 
 .toolbar-group {

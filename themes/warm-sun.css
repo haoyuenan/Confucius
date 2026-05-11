@@ -1,0 +1,33 @@
+/* 暖阳 — 温暖的黄白纸张感，比护眼更明亮，带有日光温度 */
+[data-theme='warm-sun'] {
+  --bg-primary: #faf4e4;
+  --bg-secondary: #f2e8cc;
+  --bg-sidebar: #f4ecce;
+  --bg-editor: #faf4e4;
+  --bg-preview: #faf4e4;
+  --bg-code: #ede0bc;
+
+  --text-primary: #3d2e18;
+  --text-secondary: #5c4729;
+  --text-muted: #8a7050;
+
+  --border-color: #dbc98a;
+  --border-divider: #cfb870;
+
+  --accent-color: #b07d26;
+  --accent-hover: #8f6418;
+
+  --code-highlight-bg: #ede0bc;
+  --code-lang-color: #806040;
+
+  --table-border: #dbc98a;
+  --table-header-bg: #ede0bc;
+  --table-row-alt: #ede0bc;
+
+  --editor-selection-focused: rgba(176, 125, 38, 0.35);
+  --editor-selection-blur: rgba(176, 125, 38, 0.18);
+  --editor-active-line: rgba(0, 0, 0, 0.025);
+
+  --scrollbar-bg: transparent;
+  --scrollbar-thumb: #c9aa6a;
+}

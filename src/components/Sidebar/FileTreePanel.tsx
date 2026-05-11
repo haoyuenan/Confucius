@@ -1,10 +1,105 @@
-import { useEffect, useCallback } from 'react'
+import { useEffect, useCallback, useState } from 'react'
 import { useSidebarStore } from '../../stores/sidebar-store'
 import { useTabStore } from '../../stores/tab-store'
 import { flattenTree, type FileTreeNode } from '../../types/file-tree'
 import { fileNameFromPath } from '../../utils/path'
 import * as bridge from '../../services/electron-bridge'
+import { addRecentFile, getRecentFiles, type RecentFile } from '../../services/recent-files'
 
+/* ─── 欢迎屏（零状态） ─── */
+function WelcomePanel({
+  onOpenFolder,
+  onNewFile,
+}: {
+  onOpenFolder: () => void
+  onNewFile: () => void
+}) {
+  const [recentFiles, setRecentFiles] = useState<RecentFile[]>(() => getRecentFiles())
+  const openFile = useTabStore((s) => s.openFile)
+
+  const handleOpenRecent = useCallback(
+    async (filePath: string) => {
+      try {
+        const result = await bridge.readFile(filePath)
+        openFile(result.filePath, result.content)
+        addRecentFile(filePath)
+        setRecentFiles(getRecentFiles())
+      } catch {
+        // 文件不存在时刷新列表
+        setRecentFiles(getRecentFiles())
+      }
+    },
+    [openFile],
+  )
+
+  return (
+    <div className="welcome-panel">
+      {/* 装饰区 */}
+      <div className="welcome-deco" aria-hidden="true">
+        <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg" className="welcome-deco-svg">
+          {/* 毛笔笔触 */}
+          <path d="M20 60 Q30 20 50 15 Q60 12 62 20 Q64 30 50 40 Q38 50 30 65 Q26 72 20 60Z"
+            fill="currentColor" opacity="0.12"/>
+          {/* 笔尖 */}
+          <path d="M60 14 Q65 10 68 12 Q66 16 62 20Z" fill="currentColor" opacity="0.2"/>
+          {/* 书卷线条 */}
+          <line x1="10" y1="72" x2="70" y2="72" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" opacity="0.15"/>
+          <line x1="16" y1="76" x2="64" y2="76" stroke="currentColor" strokeWidth="1" strokeLinecap="round" opacity="0.1"/>
+        </svg>
+      </div>
+
+      <div className="welcome-text">
+        <h2 className="welcome-title">开始你的创作</h2>
+        <p className="welcome-subtitle">知之为知之，不知为不知</p>
+      </div>
+
+      <div className="welcome-actions">
+        <button className="welcome-btn welcome-btn-primary" onClick={onOpenFolder}>
+          <span className="welcome-btn-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <path d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"
+                fill="currentColor" opacity="0.9"/>
+            </svg>
+          </span>
+          打开文件夹
+        </button>
+        <button className="welcome-btn welcome-btn-secondary" onClick={onNewFile}>
+          <span className="welcome-btn-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z"
+                stroke="currentColor" strokeWidth="2" strokeLinejoin="round"/>
+              <path d="M14 2v6h6M12 12v6M9 15h6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+            </svg>
+          </span>
+          新建笔记
+        </button>
+      </div>
+
+      {recentFiles.length > 0 && (
+        <div className="welcome-recent">
+          <div className="welcome-recent-title">最近打开</div>
+          <ul className="welcome-recent-list">
+            {recentFiles.slice(0, 5).map((f) => (
+              <li key={f.filePath}>
+                <button
+                  className="welcome-recent-item"
+                  onClick={() => handleOpenRecent(f.filePath)}
+                  title={f.filePath}
+                >
+                  <span className="welcome-recent-icon">📄</span>
+                  <span className="welcome-recent-name">{f.fileName}</span>
+                  <span className="welcome-recent-path">{f.filePath.split(/[\\/]/).slice(-3, -1).join('/')}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  )
+}
+
+/* ─── 文件树主面板 ─── */
 function FileTreePanel() {
   const rootPath = useSidebarStore((s) => s.rootPath)
   const fileTree = useSidebarStore((s) => s.fileTree)
@@ -16,6 +111,7 @@ function FileTreePanel() {
   const selectFile = useSidebarStore((s) => s.selectFile)
 
   const openFile = useTabStore((s) => s.openFile)
+  const newUntitledTab = useTabStore((s) => s.newUntitledTab)
 
   // 监听文件变更
   useEffect(() => {
@@ -34,7 +130,6 @@ function FileTreePanel() {
   const handleOpenFolder = useCallback(async () => {
     const folderPath = await bridge.openFolderDialog()
     if (!folderPath) return
-
     setRootPath(folderPath)
     const tree = await bridge.buildFileTree(folderPath)
     setFileTree(tree)
@@ -56,11 +151,11 @@ function FileTreePanel() {
         return
       }
       if (node.type !== 'file') return
-
       selectFile(node.path)
       try {
         const result = await bridge.readFile(node.path)
         openFile(result.filePath, result.content)
+        addRecentFile(node.path)
       } catch (err) {
         console.error('打开文件失败:', err)
       }
@@ -79,25 +174,22 @@ function FileTreePanel() {
 
   const flatItems = fileTree ? flattenTree(fileTree, expandedPaths, 0) : []
 
+  // 未打开文件夹时显示欢迎屏
+  if (!rootPath) {
+    return <WelcomePanel onOpenFolder={handleOpenFolder} onNewFile={newUntitledTab} />
+  }
+
   return (
     <div className="file-tree-panel">
       <div className="file-tree-toolbar">
-        {rootPath ? (
-          <>
-            <span className="folder-path" title={rootPath}>
-              {fileNameFromPath(rootPath)}
-            </span>
-            <button className="toolbar-btn" onClick={handleCloseFolder} title="关闭文件夹">✕</button>
-          </>
-        ) : (
-          <button className="open-folder-btn" onClick={handleOpenFolder}>打开文件夹</button>
-        )}
+        <span className="folder-path" title={rootPath}>
+          {fileNameFromPath(rootPath)}
+        </span>
+        <button className="toolbar-btn" onClick={handleCloseFolder} title="关闭文件夹">✕</button>
       </div>
 
       <div className="file-tree-list">
-        {!rootPath ? (
-          <div className="sidebar-empty">打开文件夹以浏览文件</div>
-        ) : flatItems.length === 0 ? (
+        {flatItems.length === 0 ? (
           <div className="sidebar-empty">文件夹为空</div>
         ) : (
           flatItems.map(({ depth, node }) => (

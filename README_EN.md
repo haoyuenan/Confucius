@@ -4,68 +4,73 @@
 
 [中文文档](./README.md)
 
+## Screenshot
+
+![Main Window](docs/screenshots/main_window.png)
+
+Split editing mode: CodeMirror 6 editor on the left, markdown-it live preview on the right, status bar at bottom.
+
 ## Features
 
 ### Three Editing Modes
 - **Split View** (split): Source code on the left, instant Markdown rendering on the right (default)
-- **WYSIWYG Mode**: Hide syntax markers for headings, bold/italic/strikethrough, inline code, unordered lists, and blockquotes; restore display near cursor (links, tables, etc. not yet hidden)
+- **WYSIWYG Mode**: Hide syntax markers for headings, bold/italic/strikethrough, inline code, unordered lists, and blockquotes; restore display near cursor
 - **Preview Mode**: Full-screen reading with centered layout (`Ctrl+Shift+O`)
 
 ### Editor
-- **Format Toolbar**: Undo/redo, headings, bold/italic/strikethrough, quote/code block/list, link/image/hr/formula, focus/typewriter mode toggle
+- **Format Toolbar**: Undo/redo, headings, bold/italic/strikethrough, quote/code block/list, link/image/hr/formula, focus/typewriter mode
 - **CodeMirror 6 Core**: High-performance text editing with Markdown syntax highlighting
-- **Code Highlighting**: Support for 190+ languages (highlight.js)
+- **Code Highlighting**: 190+ languages via highlight.js
 - **Math Formulas**: KaTeX rendering for `$...$` inline and `$$...$$` block formulas
 - **Diagram Support**: Mermaid flowcharts, sequence diagrams, Gantt charts, etc.
 - **GFM Compatible**: Task lists, tables, etc.
 - **Focus Mode** (F11): Non-active lines semi-transparent
 - **Typewriter Mode** (F12): Active line always centered in viewport
-- **Context Menu**: Right-click in editor for save/save-as/undo/redo/cut/copy/paste
+- **Context Menu**: Right-click for save/save-as/undo/redo/cut/copy/paste
 
 ### File Management
-- **Quick Toolbar**: New file, open, toggle sidebar, search, theme toggle, export, edit/preview mode, settings
+- **Welcome Screen**: Rich zero-state panel with cultural brush-stroke decoration, "Open Folder" and "New Note" quick actions
+- **Recent Files**: Auto-tracks last 10 opened files, one-click reopen from welcome screen
+- **Quick Toolbar**: New, open, toggle sidebar, search, theme toggle, export, edit/preview mode, settings
 - **File Tree Sidebar**: Browse and open Markdown files within a folder
-- **Outline Panel**: Auto-extract heading structure, click to jump to editor and preview
-- **Global Search**: Cross-file full-text search with 300ms debounce, parallel reading
+- **Outline Panel**: Auto-extract heading structure, click to jump in editor and preview
+- **Global Search**: Cross-file full-text search, 300ms debounce, parallel reading
 - **File Operations**: New, open, save, save as
 - **Sidebar Context Menu**: New file/directory, rename, delete
-- **Drag & Drop Open**: Drag .md/.markdown files to app icon to open directly
+- **Drag & Drop Open**: Drag `.md` / `.markdown` files to app icon to open directly
 
 ### View & Appearance
-- **Seven Themes**: Light mode (Plain White, Eye Care, Cloud, Mint) / Dark mode (Night Black, Deep Sea, Warm Gray), toolbar toggle, persisted in localStorage
-- **Unified Settings Panel**: General settings (focus/typewriter/hide menu), theme management with preview, shortcut reference, about info
-- **Resizable Split**: Adjust split width freely
+- **Eight Themes**: Light (Plain White, Warm Sun, Cloud, Mint) / Dark (Night Black, Deep Sea, Warm Gray, Ink Bamboo), persisted in localStorage, toolbar one-click toggle
+- **Brand Titlebar**: App name and tagline on the left, toolbar on the right
+- **Unified Settings Panel**: General settings (focus/typewriter/hide menu), theme management with swatches, shortcut reference, about
+- **Resizable Split**: Drag to adjust split width freely
 - **Scroll Sync**: Editor and preview scroll percentage synced in split mode
+- **Sidebar Paper Texture**: Subtle CSS-generated grain overlay on warm themes
 
 ### Export
 - **HTML Export**: Generate standalone HTML file
 - **PDF Export**: Generate A4 document via Electron printToPDF
 
 ### Status Bar & Plugins
-- **Status Bar**: Display editing mode, file encoding/size, cursor position, word count at bottom
-- **Plugin System**: Support for built-in and external plugins
-  - Commander mode + sandbox execution
+- **Status Bar**: Show editing mode, file encoding/size, cursor position, word count
+- **Plugin System**: Built-in and external plugin support
+  - Sandbox execution + command bus
   - Plugins can register status bar entries, sidebar panels, global commands
   - Dependency management (topological sort), event bus, config persistence
   - Plugin management UI (load/unload/enable/disable)
-  - TypeScript type definitions support
+  - TypeScript type definitions
 - **Built-in Plugins** (auto-activated on startup):
   - **Doc Templates**: Insert predefined templates (README, API docs, blog, weekly report, meeting notes) with variable substitution
   - **Code Runner**: Run JavaScript/Python code blocks in Markdown and view output instantly
-- **Example Plugins** (load manually via Plugin Manager UI, located in `plugins/`):
-  - **Doc Stats**: Real-time word count, reading time, and full statistics report in the status bar
+- **Example Plugins** (load via Plugin Manager UI, located in `plugins/`):
+  - **Doc Stats**: Real-time word count, reading time, full statistics report in status bar
   - **Writing Aid**: Smart suggestions and writing assistance
 
 ### Security
 - **XSS Protection**: DOMPurify whitelist filtering
 - **Path Validation**: Reject `..` traversal and null byte injection
+- **Python Execution Confirmation**: Show code preview dialog before running, user must confirm
 - **Encoding Detection**: BOM + jschardet, support UTF-8/GBK/Shift-JIS
-
-## Screenshot
-
-![Main Window](./public/screenshots/main_window.png)
-
-**Split editing mode**: CodeMirror 6 editor on the left, markdown-it live preview on the right, status bar at bottom showing editing info.
 
 ## Keyboard Shortcuts
 
@@ -78,7 +83,7 @@
 | `Ctrl+\` | Toggle sidebar |
 | `Ctrl+Shift+F` | Global search |
 | `Ctrl+Shift+P` | Toggle editing mode (split ↔ wysiwyg) |
-| `Ctrl+Shift+O` | Toggle preview mode / Ordered list |
+| `Ctrl+Shift+O` | Toggle preview mode |
 | `Ctrl+Shift+I` | Plugin manager |
 | `F11` | Focus mode |
 | `F12` | Typewriter mode |
@@ -105,15 +110,15 @@ npm run dev
 # Type check
 npm run typecheck
 
-# Run unit/integration tests (115 tests)
+# Run unit/integration tests (118 tests)
 npm test
 
 # Run E2E tests (14 tests, requires build first)
 npm run build
 npm run test:e2e
 
-# Production build
-npm run build
+# Regenerate app icons (after editing build/icons/icon.svg)
+npm run icons
 
 # Package installer
 npm run pack:win    # Windows .exe
@@ -144,84 +149,76 @@ npm run pack:linux  # Linux .AppImage
 ```
 confucius/
 ├── electron/                       # Main process (Node.js)
-│   ├── main.ts                     # Window creation, lifecycle, drag & drop open
+│   ├── main.ts                     # Window, lifecycle, drag & drop
 │   ├── menu.ts                     # Native menu
 │   ├── preload.ts                  # contextBridge secure API
 │   ├── ipc-handlers.ts             # IPC channel registration
-│   └── services/
-│       ├── file-service.ts         # File read/write (path security check)
-│       ├── file-watcher.ts         # File change listener
-│       ├── export-service.ts       # HTML/PDF export
-│       ├── search-service.ts       # Parallel full-text search
-│       ├── scanner-service.ts      # Plugin directory scan
-│       └── encoding-detector.ts    # Auto encoding detection
+│   └── services/                   # File, export, search, scanner, encoding
 │
 ├── src/                            # Renderer process (React)
 │   ├── main.tsx                    # React entry
-│   ├── App.tsx                     # Root component (menu action dispatch)
-│   │
+│   ├── App.tsx                     # Root component
 │   ├── components/
 │   │   ├── Editor/                 # Editor components
 │   │   ├── Preview/                # Preview components
-│   │   ├── Sidebar/                # Sidebar components
-│   │   └── Settings/               # Settings components
-│   │
-│   ├── editor/                     # Editor core
-│   │   ├── cm6-setup.ts            # CM6 configuration
-│   │   ├── keybindings.ts          # Editor shortcuts
-│   │   ├── markdown-renderer.ts    # markdown-it + texmath
-│   │   └── ...
-│   │
+│   │   ├── Sidebar/
+│   │   │   ├── Sidebar.tsx         # VS Code-style icon bar container
+│   │   │   ├── FileTreePanel.tsx   # File tree (welcome screen + recent files)
+│   │   │   ├── OutlinePanel.tsx    # Outline
+│   │   │   └── SearchPanel.tsx     # Global search
+│   │   └── Settings/               # Settings panel
 │   ├── engine/                     # Plugin engine
-│   │   ├── PluginEngine.ts         # Engine core
-│   │   ├── HostAPIBridge.ts        # Host adapter
-│   │   └── ...
-│   │
-│   ├── services/                   # Services
+│   ├── services/
+│   │   ├── theme-service.ts        # Theme management (8 themes)
+│   │   ├── recent-files.ts         # Recent files (localStorage)
+│   │   └── electron-bridge.ts      # IPC wrappers
 │   ├── stores/                     # Zustand stores
-│   ├── styles/                     # CSS styles
-│   ├── utils/                      # Utilities
-│   └── types/                      # TypeScript types
+│   └── styles/                     # CSS styles
 │
-├── test/                           # Tests (115 unit/integration + 14 E2E)
-│   ├── unit/                       # Unit tests
-│   ├── integration/                # Integration tests
-│   └── e2e/                        # E2E tests (14 tests)
+├── themes/                         # Theme CSS variables (8 themes)
+│   ├── plain-white.css             # Light · Plain White
+│   ├── warm-sun.css                # Light · Warm Sun
+│   ├── cloud.css                   # Light · Cloud
+│   ├── mint.css                    # Light · Mint
+│   ├── night-black.css             # Dark · Night Black
+│   ├── deep-sea.css                # Dark · Deep Sea
+│   ├── warm-gray.css               # Dark · Warm Gray
+│   └── mo-zhu.css                  # Dark · Ink Bamboo
 │
-├── .github/workflows/              # CI/CD
-│   ├── ci.yml                      # lint + typecheck + unit tests
-│   ├── e2e.yml                     # E2E tests
-│   └── release.yml                 # Multi-platform packaging
+├── plugins/                        # Plugin directory
+│   ├── builtins/doc-templates/     # Doc templates plugin
+│   ├── builtins/code-runner/       # Code runner plugin
+│   ├── doc-stats/                  # Doc stats (example)
+│   └── writing-aid/                # Writing aid (example)
 │
-├── docs/                           # Documentation
-├── themes/                         # Theme CSS variables (7 themes)
-├── plugins/                        # Third-party plugins
+├── build/icons/                    # App icons
+│   ├── icon.svg                    # Vector source (M↓ design)
+│   ├── png/                        # Multi-size PNG (16~1024px)
+│   └── win/icon.ico                # Windows icon
 │
+├── test/                           # Tests (118 unit/integration + 14 E2E)
+├── docs/                           # Design docs & screenshots
+├── scripts/generate-icons.js       # Icon generation script
 ├── package.json
 ├── vite.config.mts
-├── playwright.config.ts
 └── electron-builder.yml
 ```
 
 ## Development Status
 
-| Phase | Status | Content |
-|-------|--------|---------|
-| Phase 1 | ✅ Done | Project skeleton, Electron + Vite + React, IPC communication |
-| Phase 2 | ✅ Done | CM6 editor, split preview, file new/open/save |
-| Phase 3 | ✅ Done | Code highlighting, formulas, sidebar (file tree/outline/search), shortcuts, tab bar |
-| Phase 4 | ✅ Done | HTML/PDF export, theme system, Mermaid, file watcher |
-| Phase 5 | ✅ Done | WYSIWYG instant rendering, format toolbar, focus/typewriter mode |
-| Phase 6 | ✅ Done | DOMPurify XSS protection, morphdom incremental rendering, large file handling |
-| — | | |
-| Plugin System v3 | ✅ Done | PluginEngine, HostAPIBridge decoupling, dependency management, event bus, sandbox execution, config persistence, plugin management UI |
-| Preview Mode | ✅ Done | Full-screen reading/switch/scroll sync |
-| Tech Debt | ✅ Done | CSS Modules migration, dead code cleanup, state simplification, IPC simplification |
-| Unit/Integration Tests | ✅ Done | 115 tests / 20 files |
-| E2E Tests | ✅ Done | 14 tests (Playwright + Electron) |
-| CI/CD | ✅ Done | GitHub Actions (ci.yml / e2e.yml / release.yml) |
-| Drag & Drop Open | ✅ Done | Drag .md files to app icon to open directly |
+All core features are stable and complete: three editing modes, plugin system, security hardening, 8-theme system, welcome screen with recent files, custom app icon — with 118 unit/integration tests and 14 E2E tests passing, CI/CD pipelines ready for all three platforms.
+
+## Roadmap
+
+- **AI Writing Assistant**: Integrate local or cloud LLM for autocomplete, polish, and summarization via plugin — zero core coupling
+- **Real-time Collaboration**: CRDT-based (e.g. Yjs) multi-user editing with shared document state
+- **Version History**: Local Git-style snapshots per file, with diff view and one-click rollback
+- **Cloud Sync**: Optional WebDAV / S3 / iCloud backend for multi-device document sync
+- **Mobile**: Explore Tauri v2 or React Native to bring the editing experience to iOS / Android
+- **Plugin Marketplace**: Publish, discover, and one-click install plugins from a central registry
+- **Theme Editor**: Real-time color picker in settings panel with CSS export, lowering the barrier for custom themes
 
 ## License
 
 MIT
+
