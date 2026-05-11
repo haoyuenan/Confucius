@@ -1,6 +1,6 @@
 {
   "name": "confucius",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "本地 Markdown 编辑器，支持插件扩展",
   "author": "renfy",
   "license": "MIT",
