@@ -119,7 +119,7 @@ function App() {
         case 'export:pdf': bridge.exportPdf(); break
         case 'theme:light': themeService.switchTheme('plain-white'); setCurrentTheme('plain-white'); break
         case 'theme:dark': themeService.switchTheme('night-black'); setCurrentTheme('night-black'); break
-        case 'theme:sepia': themeService.switchTheme('eye-care'); setCurrentTheme('eye-care'); break
+        case 'theme:sepia': themeService.switchTheme('warm-sun'); setCurrentTheme('warm-sun'); break
         case 'mode:toggle': useEditorStore.getState().toggleMode(); break
         case 'mode:preview':
           setMode(useEditorStore.getState().mode === 'preview' ? 'split' : 'preview')
@@ -194,7 +194,16 @@ function App() {
   return (
     <div className={`app-root${isPreviewMode ? ' preview-mode' : ''}`}>
       <header className="app-titlebar">
-        <div className="toolbar-group">
+        {/* 品牌区 — 左侧固定 */}
+        <div className="titlebar-brand">
+          <span className="titlebar-brand-icon">毛</span>
+          <div className="titlebar-brand-text">
+            <span className="titlebar-app-name">Confucius</span>
+            <span className="titlebar-app-tagline">一个安静的写作空间</span>
+          </div>
+        </div>
+        {/* 工具栏 — 占满剩余空间，右对齐 */}
+        <div className="titlebar-tools">
           <button className="toolbar-btn" onClick={handleNewFile} title="新建 (Ctrl+N)">📄 新建</button>
           <button className="toolbar-btn" onClick={handleOpenFile} title="打开 (Ctrl+O)">📂 打开</button>
           <button className="toolbar-btn" onClick={() => { toggleSidebar() }} title="切换侧边栏 (Ctrl+\)">📑 侧边</button>

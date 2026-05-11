@@ -10,12 +10,13 @@ import './styles/wysiwyg.css'
 import './styles/status-bar.css'
 import './styles/dialog.css'
 import '../themes/plain-white.css'
-import '../themes/eye-care.css'
+import '../themes/warm-sun.css'
 import '../themes/cloud.css'
 import '../themes/mint.css'
 import '../themes/night-black.css'
 import '../themes/deep-sea.css'
 import '../themes/warm-gray.css'
+import '../themes/mo-zhu.css'
 
 // ── highlight.js 主题（本地打包，移除 CDN 依赖）──
 import hljsGithub from 'highlight.js/styles/github.css?inline'
@@ -28,15 +29,16 @@ import hljsGithubDark from 'highlight.js/styles/github-dark.css?inline'
 
 const hljsMap: Record<string, string> = {
   'plain-white': hljsGithub,
-  'eye-care': hljsIdea,
-  'cloud': hljsAtomLight,
-  'mint': hljsGithub,
+  'warm-sun':    hljsIdea,
+  'cloud':       hljsAtomLight,
+  'mint':        hljsGithub,
   'night-black': hljsAtomDark,
-  'deep-sea': hljsGithubDark,
-  'warm-gray': hljsMonokai,
+  'deep-sea':    hljsGithubDark,
+  'warm-gray':   hljsMonokai,
+  'mo-zhu':      hljsAtomDark,
 }
 
-const THEME_IDS = ['plain-white', 'eye-care', 'cloud', 'mint', 'night-black', 'deep-sea', 'warm-gray'] as const
+const THEME_IDS = ['plain-white', 'warm-sun', 'cloud', 'mint', 'night-black', 'deep-sea', 'warm-gray', 'mo-zhu'] as const
 
 THEME_IDS.forEach((id) => {
   const style = document.createElement('style')

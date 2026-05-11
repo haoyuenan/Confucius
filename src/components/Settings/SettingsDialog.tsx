@@ -16,12 +16,13 @@ export type SettingsTab = 'general' | 'display' | 'shortcuts' | 'about'
 
 const THEME_SWATCHES: Record<ThemeId, { bg: string; accent: string; secondary: string }> = {
   'plain-white': { bg: '#ffffff', accent: '#0366d6', secondary: '#f6f8fa' },
-  'eye-care': { bg: '#fbf0d9', accent: '#8b5e3c', secondary: '#f2e6c9' },
-  'cloud': { bg: '#f5f5f0', accent: '#0284c7', secondary: '#ecece5' },
-  'mint': { bg: '#f0f5f3', accent: '#0d9488', secondary: '#e8efe9' },
+  'warm-sun':    { bg: '#faf4e4', accent: '#b07d26', secondary: '#f2e8cc' },
+  'cloud':       { bg: '#f5f5f0', accent: '#0284c7', secondary: '#ecece5' },
+  'mint':        { bg: '#f0f5f3', accent: '#0d9488', secondary: '#e8efe9' },
   'night-black': { bg: '#1e1e1e', accent: '#569cd6', secondary: '#252526' },
-  'deep-sea': { bg: '#0d1117', accent: '#58a6ff', secondary: '#161b22' },
-  'warm-gray': { bg: '#1a1410', accent: '#d4a373', secondary: '#221c17' },
+  'deep-sea':    { bg: '#0d1117', accent: '#58a6ff', secondary: '#161b22' },
+  'warm-gray':   { bg: '#1a1410', accent: '#d4a373', secondary: '#221c17' },
+  'mo-zhu':      { bg: '#0e1812', accent: '#5db87a', secondary: '#142318' },
 }
 
 const FEATURES = [

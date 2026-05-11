@@ -3,12 +3,13 @@ import { getMermaidInstance } from '../editor/mermaid-renderer'
 export type ThemeMode = 'light' | 'dark'
 export type ThemeId =
   | 'plain-white'
-  | 'eye-care'
+  | 'warm-sun'
   | 'cloud'
   | 'mint'
   | 'night-black'
   | 'deep-sea'
   | 'warm-gray'
+  | 'mo-zhu'
 
 export interface ThemeDef {
   id: ThemeId
@@ -21,19 +22,21 @@ export interface ThemeDef {
 
 export const THEMES: ThemeDef[] = [
   { id: 'plain-white', mode: 'light', label: '素白纸', icon: '☀', hljs: 'plain-white', mermaid: 'default' },
-  { id: 'eye-care',    mode: 'light', label: '护眼',    icon: '📜', hljs: 'eye-care',    mermaid: 'neutral' },
+  { id: 'warm-sun',   mode: 'light', label: '暖阳',    icon: '🌤', hljs: 'warm-sun',    mermaid: 'neutral' },
   { id: 'cloud',       mode: 'light', label: '云白',    icon: '☁', hljs: 'cloud',       mermaid: 'default' },
   { id: 'mint',        mode: 'light', label: '薄荷',    icon: '🌿', hljs: 'mint',        mermaid: 'default' },
   { id: 'night-black', mode: 'dark',  label: '暗夜黑',  icon: '🌙', hljs: 'night-black', mermaid: 'dark' },
   { id: 'deep-sea',    mode: 'dark',  label: '深海',    icon: '🌊', hljs: 'deep-sea',    mermaid: 'dark' },
   { id: 'warm-gray',   mode: 'dark',  label: '暖灰',    icon: '🔥', hljs: 'warm-gray',   mermaid: 'dark' },
+  { id: 'mo-zhu',     mode: 'dark',  label: '墨竹',    icon: '🎋', hljs: 'mo-zhu',     mermaid: 'dark' },
 ]
 
 /** 旧 localStorage 值 → 新 ThemeId 映射 */
 const LEGACY_MAP: Record<string, ThemeId> = {
   light: 'plain-white',
   dark: 'night-black',
-  sepia: 'eye-care',
+  sepia: 'warm-sun',
+  'eye-care': 'warm-sun',
 }
 
 export function getThemeDef(id: ThemeId): ThemeDef {

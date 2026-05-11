@@ -1,0 +1,33 @@
+/* 墨竹 — 深色竹林意境，墨绿底色，青竹点睛 */
+[data-theme='mo-zhu'] {
+  --bg-primary: #0e1812;
+  --bg-secondary: #142318;
+  --bg-sidebar: #101c14;
+  --bg-editor: #0e1812;
+  --bg-preview: #0e1812;
+  --bg-code: #192d1e;
+
+  --text-primary: #c4d9c8;
+  --text-secondary: #8aaa90;
+  --text-muted: #526a57;
+
+  --border-color: #253a28;
+  --border-divider: #1e3023;
+
+  --accent-color: #5db87a;
+  --accent-hover: #4da568;
+
+  --code-highlight-bg: #192d1e;
+  --code-lang-color: #6a9e74;
+
+  --table-border: #253a28;
+  --table-header-bg: #142318;
+  --table-row-alt: #142318;
+
+  --editor-selection-focused: rgba(93, 184, 122, 0.35);
+  --editor-selection-blur: rgba(93, 184, 122, 0.15);
+  --editor-active-line: rgba(255, 255, 255, 0.03);
+
+  --scrollbar-bg: transparent;
+  --scrollbar-thumb: #3a6644;
+}
