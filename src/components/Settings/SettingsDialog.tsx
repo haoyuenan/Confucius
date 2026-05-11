@@ -48,7 +48,7 @@ const NAV_ITEMS: { id: SettingsTab; label: string; icon: string }[] = [
   { id: 'general', label: '通用', icon: '⚙' },
   { id: 'display', label: '显示', icon: '🎨' },
   { id: 'shortcuts', label: '快捷键', icon: '⌨' },
-  { id: 'about', label: '关于', icon: '📝' },
+  { id: 'about', label: '关于', icon: 'app' },
 ]
 
 interface Props {
@@ -99,7 +99,26 @@ function SettingsDialog({ onClose, initialTab = 'general' }: Props) {
                 className={`settings-nav-card${activeTab === item.id ? ' active' : ''}`}
                 onClick={() => setActiveTab(item.id)}
               >
-                <span className="settings-nav-icon">{item.icon}</span>
+                {item.icon === 'app' ? (
+                  <span className="settings-nav-icon settings-nav-icon-app">
+                    <svg viewBox="0 0 512 512" width="18" height="18" xmlns="http://www.w3.org/2000/svg">
+                      <defs>
+                        <linearGradient id="snbg" x1="0%" y1="0%" x2="100%" y2="100%">
+                          <stop offset="0%" stopColor="#c8832c"/>
+                          <stop offset="100%" stopColor="#7a4e10"/>
+                        </linearGradient>
+                      </defs>
+                      <rect width="512" height="512" rx="96" ry="96" fill="url(#snbg)"/>
+                      <rect x="112" y="80" width="288" height="352" rx="22" fill="#fff" opacity="0.93"/>
+                      <polygon points="336,80 400,80 400,144" fill="#f5e6cc" opacity="0.9"/>
+                      <path d="M138 240 L138 334 L168 334 L168 290 L204 326 L240 290 L240 334 L270 334 L270 240 L240 240 L204 278 L168 240 Z" fill="#8b5010"/>
+                      <line x1="316" y1="238" x2="316" y2="306" stroke="#8b5010" strokeWidth="26" strokeLinecap="round"/>
+                      <polyline points="284,289 316,336 348,289" stroke="#8b5010" strokeWidth="26" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+                    </svg>
+                  </span>
+                ) : (
+                  <span className="settings-nav-icon">{item.icon}</span>
+                )}
                 <span className="settings-nav-label">{item.label}</span>
               </button>
             ))}
@@ -278,7 +297,28 @@ function SettingsDialog({ onClose, initialTab = 'general' }: Props) {
             {activeTab === 'about' && (
               <div className="settings-section about-section">
                 <div className="about-header-compact">
-                  <div className="about-big-icon">📝</div>
+                  <div className="about-big-icon">
+                    <svg viewBox="0 0 512 512" width="72" height="72" xmlns="http://www.w3.org/2000/svg">
+                      <defs>
+                        <linearGradient id="abbg" x1="0%" y1="0%" x2="100%" y2="100%">
+                          <stop offset="0%" stopColor="#c8832c"/>
+                          <stop offset="100%" stopColor="#7a4e10"/>
+                        </linearGradient>
+                      </defs>
+                      <rect width="512" height="512" rx="96" ry="96" fill="url(#abbg)"/>
+                      <rect x="112" y="80" width="288" height="352" rx="22" fill="#fff" opacity="0.93"/>
+                      <polygon points="336,80 400,80 400,144" fill="#f5e6cc" opacity="0.9"/>
+                      <polyline points="336,80 336,144 400,144" fill="none" stroke="#d4a860" strokeWidth="3"/>
+                      <rect x="144" y="136" width="30" height="11" rx="5" fill="#c8832c" opacity="0.55"/>
+                      <rect x="182" y="136" width="120" height="11" rx="5" fill="#c8832c" opacity="0.55"/>
+                      <rect x="144" y="166" width="192" height="9" rx="4.5" fill="#c8832c" opacity="0.3"/>
+                      <rect x="144" y="188" width="174" height="9" rx="4.5" fill="#c8832c" opacity="0.3"/>
+                      <line x1="144" y1="212" x2="368" y2="212" stroke="#d4a860" strokeWidth="2" opacity="0.4"/>
+                      <path d="M138 240 L138 334 L168 334 L168 290 L204 326 L240 290 L240 334 L270 334 L270 240 L240 240 L204 278 L168 240 Z" fill="#8b5010"/>
+                      <line x1="316" y1="238" x2="316" y2="306" stroke="#8b5010" strokeWidth="26" strokeLinecap="round"/>
+                      <polyline points="284,289 316,336 348,289" stroke="#8b5010" strokeWidth="26" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+                    </svg>
+                  </div>
                   <h3 className="about-name">Confucius</h3>
                   <span className="about-ver-badge">v{version}</span>
                   <p className="about-tagline">本地 Markdown 编辑器 — 简洁、快速、可扩展</p>
