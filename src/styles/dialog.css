@@ -308,6 +308,19 @@
   flex-shrink: 0;
 }
 
+.settings-nav-icon-app {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.about-big-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 8px;
+}
+
 .settings-nav-label {
   font-weight: 500;
 }
