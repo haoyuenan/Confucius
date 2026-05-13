@@ -11,6 +11,42 @@
 }
 .tabBar::-webkit-scrollbar { height: 0; }
 
+.sidebarToggle {
+  width: 32px;
+  height: 100%;
+  border: none;
+  border-right: 1px solid var(--border-color);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.1s, background 0.1s;
+}
+.sidebarToggle:hover {
+  color: var(--accent-color);
+  background: var(--bg-primary);
+}
+.sidebarToggle.collapsed {
+  color: var(--text-muted);
+}
+.sidebarToggle.collapsed:hover {
+  color: var(--accent-color);
+}
+
+.sidebarIcon {
+  display: block;
+}
+.leftFill {
+  opacity: 0.3;
+  transition: opacity 0.15s;
+}
+.collapsed .leftFill {
+  opacity: 0 !important;
+}
+
 .tabList {
   display: flex;
   flex: 1;

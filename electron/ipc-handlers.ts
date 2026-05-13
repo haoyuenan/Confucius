@@ -245,6 +245,13 @@ export function registerIpcHandlers(): void {
     await exportService.exportPdf(win)
   })
 
+  // ---- 打印 ----
+  handle('print:preview', async () => {
+    const win = BrowserWindow.getFocusedWindow()
+    if (!win) return
+    await exportService.printPreview(win)
+  })
+
   // ---- 外部链接 ----
   handle('shell:open-external', async (_event, url: string) => {
     // 仅允许 http/https 协议，防止恶意协议调用

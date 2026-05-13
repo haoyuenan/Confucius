@@ -91,6 +91,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // ---- Phase 4：导出 ----
   exportHtml: (): Promise<void> => ipcRenderer.invoke('export:html'),
   exportPdf: (): Promise<void> => ipcRenderer.invoke('export:pdf'),
+  printPreview: (): Promise<void> => ipcRenderer.invoke('print:preview'),
 
   /** 监听导出完成通知 */
   onExportDone: (callback: (info: { format: string; path: string }) => void): (() => void) => {

@@ -178,6 +178,10 @@ function App() {
     bridge.exportHtml()
   }, [])
 
+  const handlePrint = useCallback(() => {
+    bridge.printPreview()
+  }, [])
+
   const handleSettings = useCallback(() => {
     setSettingsTab('general')
   }, [])
@@ -217,6 +221,7 @@ function App() {
         <div className="toolbar-sep" />
         <div className="toolbar-group">
           <button className="toolbar-btn" onClick={handleExport} title="导出 HTML">📤 导出</button>
+          <button className="toolbar-btn" onClick={handlePrint} title="打印 (Ctrl+P)">🖨 打印</button>
         </div>
         <div className="toolbar-sep" />
         <div className="toolbar-group">
