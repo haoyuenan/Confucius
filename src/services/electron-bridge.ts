@@ -86,6 +86,9 @@ export function exportHtml(): Promise<void> {
 export function exportPdf(): Promise<void> {
   return window.electronAPI.exportPdf()
 }
+export function printPreview(): Promise<void> {
+  return window.electronAPI.printPreview()
+}
 export function onExportDone(callback: (info: { format: string; path: string }) => void): () => void {
   return window.electronAPI.onExportDone(callback)
 }

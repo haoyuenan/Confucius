@@ -41,6 +41,7 @@ export interface ElectronAPI {
   // Phase 4
   exportHtml: () => Promise<void>
   exportPdf: () => Promise<void>
+  printPreview: () => Promise<void>
   onExportDone: (callback: (info: { format: string; path: string }) => void) => () => void
 
   // 外部文件打开（拖拽文件到应用图标）

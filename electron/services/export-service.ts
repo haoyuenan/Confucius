@@ -67,6 +67,37 @@ export class ExportService {
     }
   }
 
+  async printPreview(win: BrowserWindow): Promise<void> {
+    const bodyHtml = await win.webContents.executeJavaScript(
+      `window.__exportPreviewHTML__()`,
+    )
+    if (typeof bodyHtml !== 'string') {
+      throw new Error('printPreview: 获取预览内容失败')
+    }
+    const fullHtml = this.wrapHtmlDocument(bodyHtml)
+    const printWindow = new BrowserWindow({
+      show: false,
+      webPreferences: {
+        contextIsolation: true,
+        nodeIntegration: false,
+      },
+    })
+
+    try {
+      await printWindow.loadURL(
+        `data:text/html;charset=utf-8,${encodeURIComponent(fullHtml)}`,
+      )
+      await waitForPageReady(printWindow)
+      // 弹出系统打印对话框
+      printWindow.webContents.print({ printBackground: true }, (_success) => {
+        printWindow.close()
+      })
+    } catch (err) {
+      printWindow.close()
+      throw err
+    }
+  }
+
   private wrapHtmlDocument(bodyHtml: string): string {
     const exportCss = this.getExportCss()
     return `<!DOCTYPE html>
