@@ -1,13 +1,12 @@
-import { useEffect, useCallback, useState } from 'react'
+import { useEffect, useCallback, useState, useRef } from 'react'
 import { useAppStore } from './stores/app-store'
 import { useEditorStore } from './stores/editor-store'
 import { useTabStore } from './stores/tab-store'
 import { useSidebarStore } from './stores/sidebar-store'
 import Sidebar from './components/Sidebar/Sidebar'
 import EditorLayout from './components/Editor/EditorLayout'
-import ThemeSelector from './components/Settings/ThemeSelector'
 import StatusBar from './components/Editor/StatusBar'
-import { themeService, getThemeDef, type ThemeId } from './services/theme-service'
+import { themeService, getThemeDef, getThemesByMode, type ThemeId } from './services/theme-service'
 import { checkLargeFile } from './editor/large-file-handler'
 import { PluginEngine } from './engine/PluginEngine'
 import { HostAPIBridgeImpl } from './engine/HostAPIBridge'
@@ -169,10 +168,33 @@ function App() {
 
   const currentMode = getThemeDef(currentTheme).mode
 
+  const [themePickerOpen, setThemePickerOpen] = useState(false)
+  const themePickerRef = useRef<HTMLDivElement>(null)
+
+  // 点击外部关闭主题选择器
+  useEffect(() => {
+    if (!themePickerOpen) return
+    const onOutsideClick = (e: MouseEvent) => {
+      if (themePickerRef.current && !themePickerRef.current.contains(e.target as Node)) {
+        setThemePickerOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', onOutsideClick)
+    return () => document.removeEventListener('mousedown', onOutsideClick)
+  }, [themePickerOpen])
+
   const handleToggleTheme = useCallback(() => {
     themeService.toggleTheme()
     setCurrentTheme(themeService.getCurrentTheme())
   }, [])
+
+  const handleThemeSelect = useCallback((id: ThemeId) => {
+    themeService.switchTheme(id)
+    setCurrentTheme(id)
+    setThemePickerOpen(false)
+  }, [])
+
+  const currentThemes = getThemesByMode(currentMode)
 
   const handleExport = useCallback(() => {
     bridge.exportHtml()
@@ -217,6 +239,30 @@ function App() {
           <button className="toolbar-btn" onClick={handleToggleTheme} title="切换浅色/深色模式">
             {currentMode === 'light' ? '🌙 深色' : '☀ 浅色'}
           </button>
+          <div className="theme-picker-wrapper" ref={themePickerRef}>
+            <button
+              className="toolbar-btn theme-picker-btn"
+              onClick={() => setThemePickerOpen((v) => !v)}
+              title="选择主题"
+            >
+              🎨
+            </button>
+            {themePickerOpen && (
+              <div className="theme-picker-dropdown">
+                {currentThemes.map((t) => (
+                  <button
+                    key={t.id}
+                    className={`theme-picker-item${currentTheme === t.id ? ' active' : ''}`}
+                    onClick={() => handleThemeSelect(t.id)}
+                  >
+                    <span className="theme-picker-icon">{t.icon}</span>
+                    <span className="theme-picker-label">{t.label}</span>
+                    {currentTheme === t.id && <span className="theme-picker-check">✓</span>}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
         <div className="toolbar-sep" />
         <div className="toolbar-group">
@@ -240,7 +286,7 @@ function App() {
       <div className="app-body">
         <aside className={`app-sidebar ${sidebarVisible ? '' : 'collapsed'}`}>
           <Sidebar />
-          <div className="sidebar-footer"><ThemeSelector /></div>
+
         </aside>
         <main className="app-main"><EditorLayout /></main>
       </div>
