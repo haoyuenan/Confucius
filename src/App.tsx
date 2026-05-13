@@ -196,11 +196,7 @@ function App() {
       <header className="app-titlebar">
         {/* 品牌区 — 左侧固定 */}
         <div className="titlebar-brand">
-          <span className="titlebar-brand-icon">毛</span>
-          <div className="titlebar-brand-text">
-            <span className="titlebar-app-name">Confucius</span>
-            <span className="titlebar-app-tagline">一个安静的写作空间</span>
-          </div>
+          <span className="titlebar-app-name">Confucius：一个安静的写作/阅读空间</span>
         </div>
         {/* 工具栏 — 占满剩余空间，右对齐 */}
         <div className="titlebar-tools">

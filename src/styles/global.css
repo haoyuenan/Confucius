@@ -101,27 +101,14 @@ body,
   user-select: none;
 }
 
-.titlebar-brand-text {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-}
-
 .titlebar-app-name {
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 600;
   color: var(--text-primary);
-  line-height: 1.2;
+  line-height: 1;
   letter-spacing: 0.03em;
   user-select: none;
-}
-
-.titlebar-app-tagline {
-  font-size: 9px;
-  color: var(--text-muted);
-  line-height: 1;
-  letter-spacing: 0.05em;
-  user-select: none;
+  white-space: nowrap;
 }
 
 /* 工具栏第一组容器 */
