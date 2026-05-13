@@ -126,13 +126,13 @@ body,
   -webkit-app-region: no-drag;
 }
 
-.toolbar-btn {
+.app-titlebar .toolbar-btn {
   background: none;
   border: none;
   cursor: pointer;
   padding: 4px 10px;
   font-size: 13px;
-  color: var(--text-secondary);
+  color: var(--text-primary);
   border-radius: 4px;
   transition: background 0.15s, color 0.15s;
   white-space: nowrap;
@@ -140,11 +140,11 @@ body,
   align-items: center;
   gap: 4px;
 }
-.toolbar-btn:hover {
+.app-titlebar .toolbar-btn:hover {
   background: var(--bg-primary);
   color: var(--text-primary);
 }
-.toolbar-btn.active {
+.app-titlebar .toolbar-btn.active {
   color: var(--accent-color);
 }
 

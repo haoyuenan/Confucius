@@ -1,4 +1,4 @@
-[data-theme='mint'] {
+html[data-theme='mint'] {
   --bg-primary: #f0f5f3;
   --bg-secondary: #e8efe9;
   --bg-sidebar: #eaf1eb;

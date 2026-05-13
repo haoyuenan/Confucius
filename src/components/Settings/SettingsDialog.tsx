@@ -18,11 +18,15 @@ const THEME_SWATCHES: Record<ThemeId, { bg: string; accent: string; secondary: s
   'plain-white': { bg: '#ffffff', accent: '#0366d6', secondary: '#f6f8fa' },
   'warm-sun':    { bg: '#faf4e4', accent: '#b07d26', secondary: '#f2e8cc' },
   'cloud':       { bg: '#f5f5f0', accent: '#0284c7', secondary: '#ecece5' },
-  'mint':        { bg: '#f0f5f3', accent: '#0d9488', secondary: '#e8efe9' },
+  'mint':              { bg: '#f0f5f3', accent: '#0d9488', secondary: '#e8efe9' },
+  'tokyo-night-light': { bg: '#fbfbfd', accent: '#3760bf', secondary: '#f1f2f6' },
+  'rose-pine-dawn':    { bg: '#faf4ed', accent: '#d7827e', secondary: '#f0eae0' },
   'night-black': { bg: '#1e1e1e', accent: '#569cd6', secondary: '#252526' },
   'deep-sea':    { bg: '#0d1117', accent: '#58a6ff', secondary: '#161b22' },
   'warm-gray':   { bg: '#1a1410', accent: '#d4a373', secondary: '#221c17' },
   'mo-zhu':      { bg: '#0e1812', accent: '#5db87a', secondary: '#142318' },
+  'tokyo-night': { bg: '#1a1b26', accent: '#7aa2f7', secondary: '#1f2132' },
+  'rose-pine':   { bg: '#191724', accent: '#ebbcba', secondary: '#1f1d2e' },
 }
 
 const FEATURES = [

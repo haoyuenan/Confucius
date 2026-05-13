@@ -1,5 +1,5 @@
 /* 暖阳 — 温暖的黄白纸张感，比护眼更明亮，带有日光温度 */
-[data-theme='warm-sun'] {
+html[data-theme='warm-sun'] {
   --bg-primary: #faf4e4;
   --bg-secondary: #f2e8cc;
   --bg-sidebar: #f4ecce;

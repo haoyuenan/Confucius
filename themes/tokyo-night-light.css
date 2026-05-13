@@ -1,0 +1,33 @@
+/* Tokyo Night Light — 清冷白底配钢蓝点缀，代码感与书写感平衡 */
+html[data-theme='tokyo-night-light'] {
+  --bg-primary: #fbfbfd;
+  --bg-secondary: #f1f2f6;
+  --bg-sidebar: #f4f5f8;
+  --bg-editor: #fbfbfd;
+  --bg-preview: #fbfbfd;
+  --bg-code: #ecedf0;
+
+  --text-primary: #1a1b26;
+  --text-secondary: #4c505e;
+  --text-muted: #8a8f9e;
+
+  --border-color: #d8dbe3;
+  --border-divider: #c9ccd6;
+
+  --accent-color: #3760bf;
+  --accent-hover: #2a4da8;
+
+  --code-highlight-bg: #ecedf0;
+  --code-lang-color: #8a8f9e;
+
+  --table-border: #d8dbe3;
+  --table-header-bg: #ecedf0;
+  --table-row-alt: #f1f2f6;
+
+  --editor-selection-focused: rgba(55, 96, 191, 0.35);
+  --editor-selection-blur: rgba(55, 96, 191, 0.15);
+  --editor-active-line: rgba(0, 0, 0, 0.025);
+
+  --scrollbar-bg: transparent;
+  --scrollbar-thumb: #c4c6ce;
+}

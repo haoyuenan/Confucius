@@ -1,4 +1,4 @@
-[data-theme='night-black'] {
+html[data-theme='night-black'] {
   --bg-primary: #1e1e1e;
   --bg-secondary: #252526;
   --bg-sidebar: #252526;

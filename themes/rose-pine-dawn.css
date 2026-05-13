@@ -1,0 +1,33 @@
+/* Rose Pine Dawn — 温润粉白浅色主题，玫瑰金点缀，柔和书写体验 */
+html[data-theme='rose-pine-dawn'] {
+  --bg-primary: #faf4ed;
+  --bg-secondary: #f0eae0;
+  --bg-sidebar: #f5efe7;
+  --bg-editor: #faf4ed;
+  --bg-preview: #faf4ed;
+  --bg-code: #ede4d8;
+
+  --text-primary: #575279;
+  --text-secondary: #797593;
+  --text-muted: #9e9ab3;
+
+  --border-color: #e1dcd0;
+  --border-divider: #d6d0c4;
+
+  --accent-color: #d7827e;
+  --accent-hover: #c9706c;
+
+  --code-highlight-bg: #ede4d8;
+  --code-lang-color: #9e9ab3;
+
+  --table-border: #e1dcd0;
+  --table-header-bg: #ede4d8;
+  --table-row-alt: #f0eae0;
+
+  --editor-selection-focused: rgba(215, 130, 126, 0.35);
+  --editor-selection-blur: rgba(215, 130, 126, 0.15);
+  --editor-active-line: rgba(0, 0, 0, 0.02);
+
+  --scrollbar-bg: transparent;
+  --scrollbar-thumb: #cfc9bd;
+}
