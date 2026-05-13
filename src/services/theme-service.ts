@@ -6,10 +6,14 @@ export type ThemeId =
   | 'warm-sun'
   | 'cloud'
   | 'mint'
+  | 'tokyo-night-light'
+  | 'rose-pine-dawn'
   | 'night-black'
   | 'deep-sea'
   | 'warm-gray'
   | 'mo-zhu'
+  | 'tokyo-night'
+  | 'rose-pine'
 
 export interface ThemeDef {
   id: ThemeId
@@ -24,11 +28,15 @@ export const THEMES: ThemeDef[] = [
   { id: 'plain-white', mode: 'light', label: '素白纸', icon: '☀', hljs: 'plain-white', mermaid: 'default' },
   { id: 'warm-sun',   mode: 'light', label: '暖阳',    icon: '🌤', hljs: 'warm-sun',    mermaid: 'neutral' },
   { id: 'cloud',       mode: 'light', label: '云白',    icon: '☁', hljs: 'cloud',       mermaid: 'default' },
-  { id: 'mint',        mode: 'light', label: '薄荷',    icon: '🌿', hljs: 'mint',        mermaid: 'default' },
+  { id: 'mint',              mode: 'light', label: '薄荷',          icon: '🌿', hljs: 'mint',              mermaid: 'default' },
+  { id: 'tokyo-night-light', mode: 'light', label: '东京夜白',      icon: '🌃', hljs: 'tokyo-night-light', mermaid: 'default' },
+  { id: 'rose-pine-dawn',    mode: 'light', label: '玫瑰黎明',      icon: '🌹', hljs: 'rose-pine-dawn',    mermaid: 'default' },
   { id: 'night-black', mode: 'dark',  label: '暗夜黑',  icon: '🌙', hljs: 'night-black', mermaid: 'dark' },
   { id: 'deep-sea',    mode: 'dark',  label: '深海',    icon: '🌊', hljs: 'deep-sea',    mermaid: 'dark' },
   { id: 'warm-gray',   mode: 'dark',  label: '暖灰',    icon: '🔥', hljs: 'warm-gray',   mermaid: 'dark' },
   { id: 'mo-zhu',     mode: 'dark',  label: '墨竹',    icon: '🎋', hljs: 'mo-zhu',     mermaid: 'dark' },
+  { id: 'tokyo-night', mode: 'dark',  label: '东京夜',  icon: '🌃', hljs: 'tokyo-night-dark', mermaid: 'dark' },
+  { id: 'rose-pine',   mode: 'dark',  label: '玫瑰松',  icon: '🌹', hljs: 'rose-pine',        mermaid: 'dark' },
 ]
 
 /** 旧 localStorage 值 → 新 ThemeId 映射 */

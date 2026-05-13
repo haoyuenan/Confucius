@@ -1,5 +1,4 @@
-:root,
-[data-theme='plain-white'] {
+html[data-theme='plain-white'] {
   --bg-primary: #ffffff;
   --bg-secondary: #f6f8fa;
   --bg-sidebar: #fafbfc;

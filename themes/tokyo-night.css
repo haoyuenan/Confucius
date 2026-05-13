@@ -1,0 +1,33 @@
+/* Tokyo Night — 经典夜蓝色深色主题，蓝紫底色高辨识度 */
+html[data-theme='tokyo-night'] {
+  --bg-primary: #1a1b26;
+  --bg-secondary: #1f2132;
+  --bg-sidebar: #171821;
+  --bg-editor: #1a1b26;
+  --bg-preview: #1a1b26;
+  --bg-code: #252740;
+
+  --text-primary: #a9b1d6;
+  --text-secondary: #787c99;
+  --text-muted: #565a7a;
+
+  --border-color: #2e3050;
+  --border-divider: #252742;
+
+  --accent-color: #7aa2f7;
+  --accent-hover: #89b4ff;
+
+  --code-highlight-bg: #252740;
+  --code-lang-color: #686c8e;
+
+  --table-border: #2e3050;
+  --table-header-bg: #252740;
+  --table-row-alt: #1f2132;
+
+  --editor-selection-focused: rgba(122, 162, 247, 0.45);
+  --editor-selection-blur: rgba(122, 162, 247, 0.2);
+  --editor-active-line: rgba(255, 255, 255, 0.04);
+
+  --scrollbar-bg: transparent;
+  --scrollbar-thumb: #3c3f60;
+}

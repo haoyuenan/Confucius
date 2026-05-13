@@ -1,5 +1,5 @@
 /* 墨竹 — 深色竹林意境，墨绿底色，青竹点睛 */
-[data-theme='mo-zhu'] {
+html[data-theme='mo-zhu'] {
   --bg-primary: #0e1812;
   --bg-secondary: #142318;
   --bg-sidebar: #101c14;

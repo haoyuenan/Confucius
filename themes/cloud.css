@@ -1,4 +1,4 @@
-[data-theme='cloud'] {
+html[data-theme='cloud'] {
   --bg-primary: #f5f5f0;
   --bg-secondary: #ecece5;
   --bg-sidebar: #f0f0e8;

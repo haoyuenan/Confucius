@@ -233,8 +233,8 @@
    ═══════════════════════════════════════════ */
 
 .settings-dialog {
-  width: 640px;
-  height: 460px;
+  width: 860px;
+  height: 620px;
   background: var(--bg-primary);
   border: 1px solid var(--border-color);
   border-radius: 12px;

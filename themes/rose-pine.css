@@ -1,0 +1,33 @@
+/* Rose Pine — 暗紫灰深色主题，玫瑰色点缀，静谧优雅 */
+html[data-theme='rose-pine'] {
+  --bg-primary: #191724;
+  --bg-secondary: #1f1d2e;
+  --bg-sidebar: #1a1825;
+  --bg-editor: #191724;
+  --bg-preview: #191724;
+  --bg-code: #26233a;
+
+  --text-primary: #e0def4;
+  --text-secondary: #908caa;
+  --text-muted: #6e6a86;
+
+  --border-color: #322f44;
+  --border-divider: #282538;
+
+  --accent-color: #ebbcba;
+  --accent-hover: #f5cdcb;
+
+  --code-highlight-bg: #26233a;
+  --code-lang-color: #6e6a86;
+
+  --table-border: #322f44;
+  --table-header-bg: #26233a;
+  --table-row-alt: #1f1d2e;
+
+  --editor-selection-focused: rgba(235, 188, 186, 0.4);
+  --editor-selection-blur: rgba(235, 188, 186, 0.18);
+  --editor-active-line: rgba(255, 255, 255, 0.03);
+
+  --scrollbar-bg: transparent;
+  --scrollbar-thumb: #403d58;
+}

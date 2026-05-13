@@ -1,4 +1,4 @@
-[data-theme='warm-gray'] {
+html[data-theme='warm-gray'] {
   --bg-primary: #1a1410;
   --bg-secondary: #221c17;
   --bg-sidebar: #1a1410;

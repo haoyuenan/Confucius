@@ -13,10 +13,14 @@ import '../themes/plain-white.css'
 import '../themes/warm-sun.css'
 import '../themes/cloud.css'
 import '../themes/mint.css'
+import '../themes/tokyo-night-light.css'
+import '../themes/rose-pine-dawn.css'
 import '../themes/night-black.css'
 import '../themes/deep-sea.css'
 import '../themes/warm-gray.css'
 import '../themes/mo-zhu.css'
+import '../themes/tokyo-night.css'
+import '../themes/rose-pine.css'
 
 // ── highlight.js 主题（本地打包，移除 CDN 依赖）──
 import hljsGithub from 'highlight.js/styles/github.css?inline'
@@ -27,18 +31,27 @@ import hljsMonokai from 'highlight.js/styles/monokai.css?inline'
 import hljsAtomLight from 'highlight.js/styles/atom-one-light.css?inline'
 import hljsGithubDark from 'highlight.js/styles/github-dark.css?inline'
 
+import hljsTokyoNightLight from 'highlight.js/styles/tokyo-night-light.css?inline'
+import hljsTokyoNightDark from 'highlight.js/styles/tokyo-night-dark.css?inline'
+import hljsRosePineDawn from 'highlight.js/styles/rose-pine-dawn.css?inline'
+import hljsRosePine from 'highlight.js/styles/rose-pine.css?inline'
+
 const hljsMap: Record<string, string> = {
   'plain-white': hljsGithub,
   'warm-sun':    hljsIdea,
   'cloud':       hljsAtomLight,
-  'mint':        hljsGithub,
+  'mint':              hljsGithub,
+  'tokyo-night-light': hljsTokyoNightLight,
+  'rose-pine-dawn':    hljsRosePineDawn,
   'night-black': hljsAtomDark,
   'deep-sea':    hljsGithubDark,
   'warm-gray':   hljsMonokai,
   'mo-zhu':      hljsAtomDark,
+  'tokyo-night-dark': hljsTokyoNightDark,
+  'rose-pine':        hljsRosePine,
 }
 
-const THEME_IDS = ['plain-white', 'warm-sun', 'cloud', 'mint', 'night-black', 'deep-sea', 'warm-gray', 'mo-zhu'] as const
+const THEME_IDS = ['plain-white', 'warm-sun', 'cloud', 'mint', 'tokyo-night-light', 'rose-pine-dawn', 'night-black', 'deep-sea', 'warm-gray', 'mo-zhu', 'tokyo-night', 'rose-pine'] as const
 
 THEME_IDS.forEach((id) => {
   const style = document.createElement('style')
