@@ -27,11 +27,11 @@ describe('theme-service', () => {
     expect(localStorage.getItem('confucius-theme')).toBe('night-black')
   })
 
-  test('switchTheme 切换为 eye-care 并持久化到 localStorage', async () => {
+  test('switchTheme 切换为 warm-sun 并持久化到 localStorage', async () => {
     const { themeService } = await import('../../../src/services/theme-service')
-    themeService.switchTheme('eye-care')
-    expect(themeService.getCurrentTheme()).toBe('eye-care')
-    expect(localStorage.getItem('confucius-theme')).toBe('eye-care')
+    themeService.switchTheme('warm-sun')
+    expect(themeService.getCurrentTheme()).toBe('warm-sun')
+    expect(localStorage.getItem('confucius-theme')).toBe('warm-sun')
   })
 
   test('toggleTheme light mode → dark mode 循环', async () => {
@@ -58,10 +58,10 @@ describe('theme-service', () => {
     expect(themeService.getCurrentTheme()).toBe('night-black')
   })
 
-  test('本地已保存 legacy sepia 则映射为 eye-care', async () => {
+  test('本地已保存 legacy sepia 则映射为 warm-sun', async () => {
     localStorage.setItem('confucius-theme', 'sepia')
     const { themeService } = await import('../../../src/services/theme-service')
-    expect(themeService.getCurrentTheme()).toBe('eye-care')
+    expect(themeService.getCurrentTheme()).toBe('warm-sun')
   })
 
   test('本地已保存 night-black 则恢复正确', async () => {

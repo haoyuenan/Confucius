@@ -12,7 +12,7 @@ describe('ThemeSelector', () => {
   test('渲染当前浅色模式下的主题按钮', () => {
     const { container } = render(<ThemeSelector />)
     expect(container.textContent).toContain('素白纸')
-    expect(container.textContent).toContain('护眼')
+    expect(container.textContent).toContain('暖阳')
     expect(container.textContent).toContain('云白')
     expect(container.textContent).toContain('薄荷')
   })
@@ -28,9 +28,9 @@ describe('ThemeSelector', () => {
   test('点击主题按钮切换 data-theme', () => {
     const { container } = render(<ThemeSelector />)
     const buttons = Array.from(container.querySelectorAll('button'))
-    const btn = buttons.find((b) => b.textContent?.includes('护眼'))
+    const btn = buttons.find((b) => b.textContent?.includes('暖阳'))
     expect(btn).toBeTruthy()
     fireEvent.click(btn!)
-    expect(document.documentElement.getAttribute('data-theme')).toBe('eye-care')
+    expect(document.documentElement.getAttribute('data-theme')).toBe('warm-sun')
   })
 })

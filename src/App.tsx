@@ -11,12 +11,10 @@ import { checkLargeFile } from './editor/large-file-handler'
 import { PluginEngine } from './engine/PluginEngine'
 import { HostAPIBridgeImpl } from './engine/HostAPIBridge'
 import { StatusBarPlugin } from './plugins/builtins/status-bar-info'
-import PluginManagerDialog from './components/Settings/PluginManagerDialog'
-import SettingsDialog, { type SettingsTab } from './components/Settings/SettingsDialog'
+import SettingsDialog, { type SettingsTab, THEME_SWATCHES } from './components/Settings/SettingsDialog'
 import * as bridge from './services/electron-bridge'
 
 function App() {
-  const [showPluginDialog, setShowPluginDialog] = useState(false)
   const [settingsTab, setSettingsTab] = useState<SettingsTab | null>(null)
   const sidebarVisible = useAppStore((s) => s.sidebarVisible)
 
@@ -116,14 +114,12 @@ function App() {
         case 'search:focus': toggleSidebar(); setActiveTab('search'); break
         case 'export:html': bridge.exportHtml(); break
         case 'export:pdf': bridge.exportPdf(); break
-        case 'theme:light': themeService.switchTheme('plain-white'); setCurrentTheme('plain-white'); break
-        case 'theme:dark': themeService.switchTheme('night-black'); setCurrentTheme('night-black'); break
-        case 'theme:sepia': themeService.switchTheme('warm-sun'); setCurrentTheme('warm-sun'); break
         case 'mode:toggle': useEditorStore.getState().toggleMode(); break
         case 'mode:preview':
           setMode(useEditorStore.getState().mode === 'preview' ? 'split' : 'preview')
           break
-        case 'plugin:manage': setShowPluginDialog(true); break
+        case 'plugin:manage': setSettingsTab('plugin'); break
+        case 'settings:display': setSettingsTab('display'); break
         case 'app:about': setSettingsTab('about'); break
         case 'focus:mode': toggleFocusMode(); break
         case 'typewriter:mode': toggleTypewriterMode(); break
@@ -249,17 +245,25 @@ function App() {
             </button>
             {themePickerOpen && (
               <div className="theme-picker-dropdown">
-                {currentThemes.map((t) => (
-                  <button
-                    key={t.id}
-                    className={`theme-picker-item${currentTheme === t.id ? ' active' : ''}`}
-                    onClick={() => handleThemeSelect(t.id)}
-                  >
-                    <span className="theme-picker-icon">{t.icon}</span>
-                    <span className="theme-picker-label">{t.label}</span>
-                    {currentTheme === t.id && <span className="theme-picker-check">✓</span>}
-                  </button>
-                ))}
+                {currentThemes.map((t) => {
+                  const swatch = THEME_SWATCHES[t.id]
+                  const active = currentTheme === t.id
+                  return (
+                    <button
+                      key={t.id}
+                      className={`theme-picker-card${active ? ' active' : ''}`}
+                      onClick={() => handleThemeSelect(t.id)}
+                    >
+                      <div className="theme-picker-card-swatches">
+                        <div style={{ background: swatch.bg }} />
+                        <div style={{ background: swatch.secondary }} />
+                        <div style={{ background: swatch.accent }} />
+                      </div>
+                      <span className="theme-picker-card-label">{t.icon} {t.label}</span>
+                      {active && <span className="theme-picker-card-check">✓</span>}
+                    </button>
+                  )
+                })}
               </div>
             )}
           </div>
@@ -291,7 +295,6 @@ function App() {
         <main className="app-main"><EditorLayout /></main>
       </div>
       <StatusBar />
-      {showPluginDialog && <PluginManagerDialog onClose={() => setShowPluginDialog(false)} />}
       {settingsTab && <SettingsDialog initialTab={settingsTab} onClose={() => setSettingsTab(null)} />}
     </div>
   )
