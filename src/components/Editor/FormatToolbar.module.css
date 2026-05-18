@@ -99,3 +99,75 @@
 :global([data-theme='night-black']) .toolbarBtn::before,
 :global([data-theme='deep-sea']) .toolbarBtn::before,
 :global([data-theme='warm-gray']) .toolbarBtn::before { border-bottom-color: #2d2d2d; }
+
+/* ── 表格插入弹窗 ── */
+.insertGroupWrapper {
+  position: relative;
+}
+
+.tablePopup {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 1000;
+  margin-top: 4px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  padding: 12px;
+  min-width: 180px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tablePopupRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-primary);
+}
+
+.tablePopupRow button {
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.tablePopupRow button:hover { background: var(--bg-primary); }
+
+.tablePopupVal {
+  min-width: 24px;
+  text-align: center;
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.tablePopupPreview {
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-muted);
+  padding: 4px 0;
+}
+
+.tablePopupInsert {
+  padding: 6px 16px;
+  border: none;
+  border-radius: 4px;
+  background: var(--accent-color);
+  color: #fff;
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+.tablePopupInsert:hover { background: var(--accent-hover); }

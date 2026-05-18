@@ -1,3 +1,4 @@
+import { useState, useRef, useEffect } from 'react'
 import { undo, redo } from '@codemirror/commands'
 import { getActiveView } from '../../editor/active-view'
 import { useEditorStore } from '../../stores/editor-store'
@@ -29,6 +30,7 @@ function exec(command: string, level?: number): void {
     case 'image':      fmt.insertImage(view); break
     case 'hr':         fmt.insertHorizontalRule(view); break
     case 'mathblock':  fmt.insertMathBlock(view); break
+    case 'table':      break // handled inline via popup
   }
 }
 
@@ -70,6 +72,7 @@ const groups: { label: string; buttons: ButtonDef[] }[] = [
     label: '插入',
     buttons: [
       { icon: '∑', title: '公式块 (Ctrl+Shift+M)', action: () => exec('mathblock') },
+      { icon: '⊞', title: '表格', action: () => exec('table') },
       { icon: '↗', title: '链接 (Ctrl+K)', action: () => exec('link') },
       { icon: '□', title: '图片', action: () => exec('image') },
       { icon: '—', title: '分割线', action: () => exec('hr') },
@@ -88,29 +91,96 @@ function FormatToolbar() {
   const focusMode = useEditorStore((s) => s.focusMode)
   const typewriterMode = useEditorStore((s) => s.typewriterMode)
 
+  const [showTablePopup, setShowTablePopup] = useState(false)
+  const [tableCols, setTableCols] = useState(4)
+  const [tableRows, setTableRows] = useState(3)
+  const tableBtnRef = useRef<HTMLButtonElement>(null)
+  const tablePopupRef = useRef<HTMLDivElement>(null)
+
+  // 点击外部关闭弹窗
+  useEffect(() => {
+    if (!showTablePopup) return
+    const handler = (e: MouseEvent) => {
+      if (
+        tablePopupRef.current && !tablePopupRef.current.contains(e.target as Node) &&
+        tableBtnRef.current && !tableBtnRef.current.contains(e.target as Node)
+      ) {
+        setShowTablePopup(false)
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [showTablePopup])
+
+  function insertTablePopup() {
+    const view = getActiveView()
+    if (!view) return
+    fmt.insertTable(view, tableRows, tableCols)
+    setShowTablePopup(false)
+  }
+
   return (
     <div className={styles.formatToolbar}>
-      {groups.map((group, gi) => (
-        <span key={group.label} className={styles.toolbarGroup}>
-          {gi > 0 && <span className={styles.toolbarDivider} />}
-          {group.buttons.map((btn) => {
-            const isFocus = btn.icon === '🎯'
-            const isTypewriter = btn.icon === '📝'
-            const active = (isFocus && focusMode) || (isTypewriter && typewriterMode)
-            return (
-              <button
-                key={btn.title}
-                data-testid={`format-btn-${btn.icon}`}
-                className={`${styles.toolbarBtn}${btn.btnStyle ? ` ${btn.btnStyle}` : ''}${active ? ` ${styles.active}` : ''}`}
-                data-tooltip={btn.title}
-                onClick={btn.action}
-              >
-                {btn.icon}
-              </button>
-            )
-          })}
-        </span>
-      ))}
+      {groups.map((group, gi) => {
+        // 在 "插入" 分组外包裹一层，使表格按钮浮层定位正确
+        const isInsertGroup = group.label === '插入'
+        const inner = (
+          <span key={group.label} className={styles.toolbarGroup}>
+            {gi > 0 && <span className={styles.toolbarDivider} />}
+            {group.buttons.map((btn) => {
+              const isFocus = btn.icon === '🎯'
+              const isTypewriter = btn.icon === '📝'
+              const isTable = btn.icon === '⊞'
+              const active = (isFocus && focusMode) || (isTypewriter && typewriterMode)
+              return (
+                <button
+                  key={btn.title}
+                  ref={isTable ? tableBtnRef : undefined}
+                  data-testid={`format-btn-${btn.icon}`}
+                  className={`${styles.toolbarBtn}${btn.btnStyle ? ` ${btn.btnStyle}` : ''}${active ? ` ${styles.active}` : ''}`}
+                  data-tooltip={btn.title}
+                  onClick={() => {
+                    if (isTable) { setShowTablePopup((v) => !v); return }
+                    btn.action()
+                  }}
+                >
+                  {btn.icon}
+                </button>
+              )
+            })}
+          </span>
+        )
+        if (isInsertGroup) {
+          return (
+            <span key={group.label} className={styles.insertGroupWrapper}>
+              {inner}
+              {showTablePopup && (
+                <div className={styles.tablePopup} ref={tablePopupRef}>
+                  <div className={styles.tablePopupRow}>
+                    <span>列:</span>
+                    <button onClick={() => setTableCols(Math.max(1, tableCols - 1))}>−</button>
+                    <span className={styles.tablePopupVal}>{tableCols}</span>
+                    <button onClick={() => setTableCols(Math.min(8, tableCols + 1))}>+</button>
+                  </div>
+                  <div className={styles.tablePopupRow}>
+                    <span>行:</span>
+                    <button onClick={() => setTableRows(Math.max(1, tableRows - 1))}>−</button>
+                    <span className={styles.tablePopupVal}>{tableRows}</span>
+                    <button onClick={() => setTableRows(Math.min(10, tableRows + 1))}>+</button>
+                  </div>
+                  <div className={styles.tablePopupPreview}>
+                    {tableRows} 行 × {tableCols} 列
+                  </div>
+                  <button className={styles.tablePopupInsert} onClick={insertTablePopup}>
+                    插入表格
+                  </button>
+                </div>
+              )}
+            </span>
+          )
+        }
+        return inner
+      })}
     </div>
   )
 }

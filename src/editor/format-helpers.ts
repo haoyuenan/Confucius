@@ -181,3 +181,37 @@ export function insertImageFromPath(view: EditorView, filePath: string, fileName
     selection: { anchor: from + markdown.length },
   })
 }
+
+/** 插入 Markdown 表格模板 */
+export function insertTable(view: EditorView, rows: number, cols: number): boolean {
+  const { from } = view.state.selection.main
+
+  // 计算每列宽度（最小 8 字符）
+  const colWidths: number[] = []
+  for (let c = 1; c <= cols; c++) {
+    colWidths.push(Math.max(8, `Header ${c}`.length))
+  }
+
+  // 分隔线
+  const sep = colWidths.map((w) => '-'.repeat(w)).join(' | ')
+
+  // 表头行
+  const header = colWidths.map((_, c) => {
+    return `Header ${c + 1}`.padEnd(colWidths[c])
+  }).join(' | ')
+
+  // 数据行
+  const bodyRows: string[] = []
+  for (let r = 1; r <= rows; r++) {
+    bodyRows.push(colWidths.map((w) => 'Cell'.padEnd(w)).join(' | '))
+  }
+
+  const table = `| ${header} |\n| ${sep} |\n| ${bodyRows.join(' |\n| ')} |\n`
+  view.dispatch({
+    changes: { from, insert: table },
+    // 光标定位到第一个表头单元格，方便直接覆盖 "Header 1"
+    selection: { anchor: from + 2 + 'Header 1'.length },
+  })
+  view.focus()
+  return true
+}
