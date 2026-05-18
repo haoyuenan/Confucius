@@ -3,6 +3,7 @@ import * as bridge from '../../services/electron-bridge'
 import { themeService, getThemesByMode, type ThemeMode, type ThemeId } from '../../services/theme-service'
 import { useEditorStore } from '../../stores/editor-store'
 import { useAppStore } from '../../stores/app-store'
+import PluginPanel from './PluginPanel'
 
 interface EnvInfo {
   electron: string
@@ -12,9 +13,9 @@ interface EnvInfo {
   arch: string
 }
 
-export type SettingsTab = 'general' | 'display' | 'shortcuts' | 'about'
+export type SettingsTab = 'general' | 'display' | 'shortcuts' | 'plugin' | 'about'
 
-const THEME_SWATCHES: Record<ThemeId, { bg: string; accent: string; secondary: string }> = {
+export const THEME_SWATCHES: Record<ThemeId, { bg: string; accent: string; secondary: string }> = {
   'plain-white': { bg: '#ffffff', accent: '#0366d6', secondary: '#f6f8fa' },
   'warm-sun':    { bg: '#faf4e4', accent: '#b07d26', secondary: '#f2e8cc' },
   'cloud':       { bg: '#f5f5f0', accent: '#0284c7', secondary: '#ecece5' },
@@ -52,6 +53,7 @@ const NAV_ITEMS: { id: SettingsTab; label: string; icon: string }[] = [
   { id: 'general', label: '通用', icon: '⚙' },
   { id: 'display', label: '显示', icon: '🎨' },
   { id: 'shortcuts', label: '快捷键', icon: '⌨' },
+  { id: 'plugin', label: '插件', icon: '🧩' },
   { id: 'about', label: '关于', icon: 'app' },
 ]
 
@@ -295,6 +297,13 @@ function SettingsDialog({ onClose, initialTab = 'general' }: Props) {
                   { keys: ['Esc'], desc: '关闭对话框' },
                   { keys: ['Ctrl', '滚轮'], desc: '预览区缩放' },
                 ]} />
+              </div>
+            )}
+
+            {activeTab === 'plugin' && (
+              <div className="settings-section plugin-section">
+                <h3 className="settings-section-title">插件管理</h3>
+                <PluginPanel />
               </div>
             )}
 

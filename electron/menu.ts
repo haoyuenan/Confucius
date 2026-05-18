@@ -66,14 +66,7 @@ export function setupMenu(win: BrowserWindow): void {
       { label: '搜索', accelerator: 'CmdOrCtrl+Shift+F', click: () => win.webContents.send('menu:action', 'search:focus') },
       { type: 'separator' },
       // ── 外观 ──
-      {
-        label: '主题',
-        submenu: [
-          { label: '亮色', click: () => win.webContents.send('menu:action', 'theme:light') },
-          { label: '暗色', click: () => win.webContents.send('menu:action', 'theme:dark') },
-          { label: '护眼', click: () => win.webContents.send('menu:action', 'theme:sepia') },
-        ],
-      },
+      { label: '主题设置…', click: () => win.webContents.send('menu:action', 'settings:display') },
       { type: 'separator' },
       // ── 开发者 ──
       { role: 'toggleDevTools', label: '开发者工具' },

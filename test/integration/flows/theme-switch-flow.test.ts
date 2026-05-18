@@ -15,9 +15,9 @@ describe('theme-switch-flow', () => {
     expect(document.documentElement.getAttribute('data-theme')).toBe('night-black')
     expect(localStorage.getItem('confucius-theme')).toBe('night-black')
 
-    themeService.switchTheme('eye-care')
-    expect(document.documentElement.getAttribute('data-theme')).toBe('eye-care')
-    expect(localStorage.getItem('confucius-theme')).toBe('eye-care')
+    themeService.switchTheme('warm-sun')
+    expect(document.documentElement.getAttribute('data-theme')).toBe('warm-sun')
+    expect(localStorage.getItem('confucius-theme')).toBe('warm-sun')
 
     themeService.switchTheme('plain-white')
     expect(document.documentElement.getAttribute('data-theme')).toBe('plain-white')
@@ -35,9 +35,9 @@ describe('theme-switch-flow', () => {
   })
 
   test('localStorage 持久化 — 刷新后恢复主题', async () => {
-    localStorage.setItem('confucius-theme', 'eye-care')
+    localStorage.setItem('confucius-theme', 'warm-sun')
     const { themeService } = await import('../../../src/services/theme-service')
-    expect(themeService.getCurrentTheme()).toBe('eye-care')
-    expect(document.documentElement.getAttribute('data-theme')).toBe('eye-care')
+    expect(themeService.getCurrentTheme()).toBe('warm-sun')
+    expect(document.documentElement.getAttribute('data-theme')).toBe('warm-sun')
   })
 })

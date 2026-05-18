@@ -1,20 +1,27 @@
 /* Phase05-1 WYSIWYG 即时渲染样式 */
 
-/* ---- 隐藏语法标记（默认状态）---- */
+/* ---- WYSIWYG 布局容器 ---- */
+.wysiwyg-layout {
+  height: 100%;
+  position: relative;
+  background: var(--bg-editor);
+}
+
+/* ---- 隐藏语法标记（光标远处）---- */
 .cm-syntax-marker-hidden {
-  display: inline-block;
-  width: 0 !important;
+  position: absolute;
   overflow: hidden;
+  width: 0;
+  height: 0;
   opacity: 0;
   pointer-events: none;
   user-select: none;
-  font-size: 0;
 }
 
 /* ---- 光标附近显示标记（灰色半透明）---- */
 .cm-syntax-marker {
-  opacity: 0.35;
-  color: var(--text-muted, #959da5);
+  opacity: 0.3;
+  color: var(--text-muted);
   font-size: 0.85em;
 }
 
@@ -49,5 +56,3 @@
   font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
   font-size: 0.85em;
 }
-
-
