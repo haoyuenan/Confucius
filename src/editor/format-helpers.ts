@@ -153,3 +153,31 @@ export function insertMathBlock(view: EditorView): boolean {
   view.dispatch({ changes: { from, to, insert: ins } })
   return true
 }
+
+/** 粘贴 URL 时根据是否有选区自动转 Markdown 链接/图片 */
+export function wrapSelectionAsLink(view: EditorView, url: string): boolean {
+  const { from, to } = view.state.selection.main
+  const selected = view.state.sliceDoc(from, to)
+  if (selected && selected !== url) {
+    const isImage = /\.(png|jpg|jpeg|gif|svg|webp|bmp|ico)$/i.test(url)
+    const markdown = isImage ? `![${selected}](${url})` : `[${selected}](${url})`
+    view.dispatch({
+      changes: { from, to, insert: markdown },
+      selection: { anchor: from + markdown.length },
+    })
+    return true
+  }
+  return false
+}
+
+/** 从图片文件路径插入 Markdown 图片语法（用于粘贴/拖拽） */
+export function insertImageFromPath(view: EditorView, filePath: string, fileName: string): void {
+  const { from } = view.state.selection.main
+  const alt = fileName.replace(/\.[^.]+$/, '')
+  const encodedPath = filePath.replace(/\\/g, '/').split('/').map(seg => encodeURIComponent(seg)).join('/')
+  const markdown = `![${alt}](local-asset:///${encodedPath})`
+  view.dispatch({
+    changes: { from, insert: markdown },
+    selection: { anchor: from + markdown.length },
+  })
+}

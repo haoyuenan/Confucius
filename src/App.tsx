@@ -153,6 +153,22 @@ function App() {
     return () => cleanup?.()
   }, [openFile, setIsLargeFile, setMode])
 
+  // 自动保存：每 5 秒检查未保存的文件
+  useEffect(() => {
+    const id = setInterval(() => {
+      const tab = useTabStore.getState().activeTab()
+      if (!tab || !tab.filePath || !tab.isModified) return
+      bridge.writeFile(tab.filePath, tab.content)
+        .then(() => {
+          const s = useTabStore.getState()
+          const t = s.tabs.find(t2 => t2.id === tab.id)
+          if (t) s.markTabSaved(tab.id)
+        })
+        .catch((err) => console.error('自动保存失败:', err))
+    }, 5000)
+    return () => clearInterval(id)
+  }, [])
+
   const isPreviewMode = useEditorStore((s) => s.mode) === 'preview'
   const mode = useEditorStore((s) => s.mode)
   const [currentTheme, setCurrentTheme] = useState<ThemeId>(themeService.getCurrentTheme())

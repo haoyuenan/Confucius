@@ -19,6 +19,9 @@
 
 .status-left {
   flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 14px;
 }
 
 .status-right {
@@ -31,7 +34,7 @@
   white-space: nowrap;
 }
 
-/* 模式指示器加粗 */
-.status-item:first-child {
+/* 保存状态 */
+.status-save {
   font-weight: 600;
 }
