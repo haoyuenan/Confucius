@@ -1,9 +1,11 @@
 import { EditorView, basicSetup } from 'codemirror'
 import { keymap } from '@codemirror/view'
 import { defaultKeymap, historyKeymap } from '@codemirror/commands'
+import { searchKeymap, highlightSelectionMatches } from '@codemirror/search'
 import { markdown, markdownLanguage } from '@codemirror/lang-markdown'
 import { syntaxHighlighting, defaultHighlightStyle } from '@codemirror/language'
 import { editorKeyBindings } from './keybindings'
+import { wrapSelectionAsLink, insertImageFromPath } from './format-helpers'
 import { wysiwygMode } from './wysiwyg-plugin'
 import { typewriterScrollListener } from './typewriter-mode'
 
@@ -25,8 +27,54 @@ export function createEditorView(
         updateTimeout = setTimeout(() => { onChange(update.state.doc.toString()) }, 150)
       }
     }),
-    keymap.of([...defaultKeymap, ...historyKeymap]),
+    keymap.of([...defaultKeymap, ...historyKeymap, ...searchKeymap]),
+    highlightSelectionMatches(),
     editorKeyBindings,
+    // 粘贴 URL 自动转链接 / 粘贴图片文件自动插入
+    EditorView.domEventHandlers({
+      paste: (event, view) => {
+        const text = event.clipboardData?.getData('text/plain')
+        if (text) {
+          const isUrl = /^https?:\/\/\S+$/i.test(text.trim())
+          if (isUrl && wrapSelectionAsLink(view, text.trim())) {
+            event.preventDefault()
+            return true
+          }
+        }
+        const files = event.clipboardData?.files
+        if (files && files.length > 0) {
+          for (const file of Array.from(files)) {
+            if (file.type.startsWith('image/') && 'path' in file) {
+              insertImageFromPath(view, (file as { path: string }).path, file.name)
+              event.preventDefault()
+              return true
+            }
+          }
+        }
+        return false
+      },
+      drop: (event, view) => {
+        const files = event.dataTransfer?.files
+        if (!files || files.length === 0) return false
+        for (const file of Array.from(files)) {
+          if (file.type.startsWith('image/') && 'path' in file) {
+            const filePath = (file as { path: string }).path
+            const pos = view.posAtCoords({ x: event.clientX, y: event.clientY })
+            if (pos === null) continue
+            const alt = file.name.replace(/\.[^.]+$/, '')
+            const encodedPath = filePath.replace(/\\/g, '/').split('/').map(seg => encodeURIComponent(seg)).join('/')
+            const markdown = `![${alt}](local-asset:///${encodedPath})`
+            view.dispatch({
+              changes: { from: pos, insert: markdown },
+              selection: { anchor: pos + markdown.length },
+            })
+            event.preventDefault()
+            return true
+          }
+        }
+        return false
+      },
+    }),
     EditorView.theme({
       '&': { height: '100%', width: '100%' },
       '.cm-scroller': {
