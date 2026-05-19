@@ -3,6 +3,7 @@ import * as bridge from '../../services/electron-bridge'
 import { themeService, getThemesByMode, type ThemeMode, type ThemeId } from '../../services/theme-service'
 import { useEditorStore } from '../../stores/editor-store'
 import { useAppStore } from '../../stores/app-store'
+import { useTranslation, useI18nStore } from '../../i18n/i18n-store'
 import PluginPanel from './PluginPanel'
 
 interface EnvInfo {
@@ -30,18 +31,7 @@ export const THEME_SWATCHES: Record<ThemeId, { bg: string; accent: string; secon
   'rose-pine':   { bg: '#191724', accent: '#ebbcba', secondary: '#1f1d2e' },
 }
 
-const FEATURES = [
-  'Markdown 编辑与实时预览',
-  '双栏 / 即时渲染 / 纯预览三种模式',
-  '多标签管理',
-  '文件树与全文搜索',
-  'Mermaid 图表渲染',
-  'KaTeX 公式支持',
-  '专注模式 & 打字机模式',
-  '亮色 / 暗色 / 护眼三主题',
-  'HTML & PDF 导出',
-  '插件系统',
-]
+const FEATURE_KEYS = ['editor', 'modes', 'tabs', 'search', 'mermaid', 'katex', 'focus', 'themes', 'export', 'plugins']
 
 const PLATFORM_LABELS: Record<string, string> = {
   win32: 'Windows',
@@ -49,12 +39,12 @@ const PLATFORM_LABELS: Record<string, string> = {
   linux: 'Linux',
 }
 
-const NAV_ITEMS: { id: SettingsTab; label: string; icon: string }[] = [
-  { id: 'general', label: '通用', icon: '⚙' },
-  { id: 'display', label: '显示', icon: '🎨' },
-  { id: 'shortcuts', label: '快捷键', icon: '⌨' },
-  { id: 'plugin', label: '插件', icon: '🧩' },
-  { id: 'about', label: '关于', icon: 'app' },
+const NAV_ITEM_DEFS: { id: SettingsTab; icon: string }[] = [
+  { id: 'general', icon: '⚙' },
+  { id: 'display', icon: '🎨' },
+  { id: 'shortcuts', icon: '⌨' },
+  { id: 'plugin', icon: '🧩' },
+  { id: 'about', icon: 'app' },
 ]
 
 interface Props {
@@ -63,6 +53,9 @@ interface Props {
 }
 
 function SettingsDialog({ onClose, initialTab = 'general' }: Props) {
+  const { t } = useTranslation()
+  const lang = useI18nStore((s) => s.lang)
+  const setLang = useI18nStore((s) => s.setLang)
   const [activeTab, setActiveTab] = useState<SettingsTab>(initialTab)
 
   const focusMode = useEditorStore((s) => s.focusMode)
@@ -99,7 +92,7 @@ function SettingsDialog({ onClose, initialTab = 'general' }: Props) {
 
         <div className="settings-body">
           <nav className="settings-nav">
-            {NAV_ITEMS.map((item) => (
+            {NAV_ITEM_DEFS.map((item) => (
               <button
                 key={item.id}
                 className={`settings-nav-card${activeTab === item.id ? ' active' : ''}`}
@@ -125,7 +118,7 @@ function SettingsDialog({ onClose, initialTab = 'general' }: Props) {
                 ) : (
                   <span className="settings-nav-icon">{item.icon}</span>
                 )}
-                <span className="settings-nav-label">{item.label}</span>
+                <span className="settings-nav-label">{t(`settings.tab.${item.id}`)}</span>
               </button>
             ))}
           </nav>
@@ -133,10 +126,10 @@ function SettingsDialog({ onClose, initialTab = 'general' }: Props) {
           <div className="settings-content">
             {activeTab === 'general' && (
               <div className="settings-section">
-                <h3 className="settings-section-title">通用设置</h3>
+                <h3 className="settings-section-title">{t('settings.general.title')}</h3>
                 <div className="settings-rows">
                   <div className="settings-row">
-                    <span className="settings-row-label">专注模式</span>
+                    <span className="settings-row-label">{t('settings.general.focusMode')}</span>
                     <label className="settings-toggle">
                       <input
                         type="checkbox"
@@ -149,7 +142,7 @@ function SettingsDialog({ onClose, initialTab = 'general' }: Props) {
                     </label>
                   </div>
                   <div className="settings-row">
-                    <span className="settings-row-label">打字机模式</span>
+                    <span className="settings-row-label">{t('settings.general.typewriter')}</span>
                     <label className="settings-toggle">
                       <input
                         type="checkbox"
@@ -162,7 +155,7 @@ function SettingsDialog({ onClose, initialTab = 'general' }: Props) {
                     </label>
                   </div>
                   <div className="settings-row">
-                    <span className="settings-row-label">启动时展开侧边栏</span>
+                    <span className="settings-row-label">{t('settings.general.sidebar')}</span>
                     <label className="settings-toggle">
                       <input
                         type="checkbox"
@@ -175,7 +168,7 @@ function SettingsDialog({ onClose, initialTab = 'general' }: Props) {
                     </label>
                   </div>
                   <div className="settings-row">
-                    <span className="settings-row-label">隐藏主菜单</span>
+                    <span className="settings-row-label">{t('settings.general.hideMenu')}</span>
                     <label className="settings-toggle">
                       <input
                         type="checkbox"
@@ -192,16 +185,29 @@ function SettingsDialog({ onClose, initialTab = 'general' }: Props) {
                       </span>
                     </label>
                   </div>
+                  <div className="settings-row">
+                    <span className="settings-row-label">{t('settings.language.title')}</span>
+                    <div className="lang-toggle-group">
+                      <button
+                        className={`lang-btn${lang === 'zh' ? ' active' : ''}`}
+                        onClick={() => setLang('zh')}
+                      >🇨🇳 {t('settings.language.zh')}</button>
+                      <button
+                        className={`lang-btn${lang === 'en' ? ' active' : ''}`}
+                        onClick={() => setLang('en')}
+                      >🇺🇸 {t('settings.language.en')}</button>
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
 
             {activeTab === 'display' && (
               <div className="settings-section">
-                <h3 className="settings-section-title">主题</h3>
+                <h3 className="settings-section-title">{t('settings.display.title')}</h3>
 
                 <div className="mode-select-area">
-                  <p className="mode-select-label">主题模式</p>
+                  <p className="mode-select-label">{t('settings.display.mode')}</p>
                   <div className="mode-cards">
                     {(['light', 'dark'] as ThemeMode[]).map((mode) => {
                       const active = themeService.getCurrentMode() === mode
@@ -221,7 +227,7 @@ function SettingsDialog({ onClose, initialTab = 'general' }: Props) {
                             </span>
                             <span className="mode-card-body" style={{ background: mode === 'light' ? '#f0f0f0' : '#222' }} />
                           </span>
-                          <span className="mode-card-label">{mode === 'light' ? '浅色模式' : '深色模式'}</span>
+                          <span className="mode-card-label">{mode === 'light' ? t('settings.display.light') : t('settings.display.dark')}</span>
                         </button>
                       )
                     })}
@@ -229,16 +235,16 @@ function SettingsDialog({ onClose, initialTab = 'general' }: Props) {
                 </div>
 
                 <div className="theme-preset-area">
-                  <p className="mode-select-label">主题预设</p>
+                  <p className="mode-select-label">{t('settings.display.presets')}</p>
                   <div className="theme-cards">
-                    {getThemesByMode(themeService.getCurrentMode()).map((t) => {
-                      const active = currentTheme === t.id
-                      const swatch = THEME_SWATCHES[t.id]
+                    {getThemesByMode(themeService.getCurrentMode()).map((theme) => {
+                      const active = currentTheme === theme.id
+                      const swatch = THEME_SWATCHES[theme.id]
                       return (
                         <div
-                          key={t.id}
+                          key={theme.id}
                           className={`theme-card${active ? ' active' : ''}`}
-                          onClick={() => { themeService.switchTheme(t.id); setCurrentTheme(t.id) }}
+                          onClick={() => { themeService.switchTheme(theme.id); setCurrentTheme(theme.id) }}
                         >
                           <span className="theme-card-swatches">
                             <span className="theme-card-swatch" style={{ background: swatch.bg }} />
@@ -246,7 +252,7 @@ function SettingsDialog({ onClose, initialTab = 'general' }: Props) {
                             <span className="theme-card-swatch" style={{ background: swatch.accent }} />
                             {active && <span className="theme-card-check">✓</span>}
                           </span>
-                          <span className="theme-card-name">{t.icon} {t.label}</span>
+                          <span className="theme-card-name">{theme.icon} {t('theme.name.' + theme.id)}</span>
                         </div>
                       )
                     })}
@@ -257,52 +263,52 @@ function SettingsDialog({ onClose, initialTab = 'general' }: Props) {
 
             {activeTab === 'shortcuts' && (
               <div className="settings-section">
-                <h3 className="settings-section-title">快捷键</h3>
+                <h3 className="settings-section-title">{t('settings.shortcuts.title')}</h3>
 
-                <ShortcutGroup title="文件操作" shortcuts={[
-                  { keys: ['Ctrl', 'N'], desc: '新建文件' },
-                  { keys: ['Ctrl', 'O'], desc: '打开文件' },
-                  { keys: ['Ctrl', 'S'], desc: '保存文件' },
-                  { keys: ['Ctrl', 'Shift', 'S'], desc: '另存为' },
-                  { keys: ['Ctrl', 'Shift', 'H'], desc: '导出 HTML' },
-                  { keys: ['Ctrl', 'Shift', 'E'], desc: '导出 PDF' },
-                  { keys: ['Ctrl', 'W'], desc: '关闭窗口' },
+                <ShortcutGroup title={t('settings.shortcuts.file')} shortcuts={[
+                  { keys: ['Ctrl', 'N'], desc: t('settings.shortcuts.desc.newFile') },
+                  { keys: ['Ctrl', 'O'], desc: t('settings.shortcuts.desc.openFile') },
+                  { keys: ['Ctrl', 'S'], desc: t('settings.shortcuts.desc.save') },
+                  { keys: ['Ctrl', 'Shift', 'S'], desc: t('settings.shortcuts.desc.saveAs') },
+                  { keys: ['Ctrl', 'Shift', 'H'], desc: t('settings.shortcuts.desc.exportHtml') },
+                  { keys: ['Ctrl', 'Shift', 'E'], desc: t('settings.shortcuts.desc.exportPdf') },
+                  { keys: ['Ctrl', 'W'], desc: t('settings.shortcuts.desc.closeWindow') },
                 ]} />
 
-                <ShortcutGroup title="编辑格式" shortcuts={[
-                  { keys: ['Ctrl', 'B'], desc: '加粗' },
-                  { keys: ['Ctrl', 'I'], desc: '斜体' },
-                  { keys: ['Ctrl', 'K'], desc: '插入链接' },
-                  { keys: ['Ctrl', '`'], desc: '行内代码' },
-                  { keys: ['Ctrl', 'Shift', '`'], desc: '代码块' },
-                  { keys: ['Ctrl', 'Shift', 'M'], desc: '公式块' },
-                  { keys: ['Ctrl', 'Shift', 'L'], desc: '无序列表' },
-                  { keys: ['Ctrl', 'Shift', '['], desc: '引用块' },
-                  { keys: ['Ctrl', 'Shift', 'O'], desc: '有序列表' },
+                <ShortcutGroup title={t('settings.shortcuts.edit')} shortcuts={[
+                  { keys: ['Ctrl', 'B'], desc: t('settings.shortcuts.desc.bold') },
+                  { keys: ['Ctrl', 'I'], desc: t('settings.shortcuts.desc.italic') },
+                  { keys: ['Ctrl', 'K'], desc: t('settings.shortcuts.desc.link') },
+                  { keys: ['Ctrl', '`'], desc: t('settings.shortcuts.desc.inlineCode') },
+                  { keys: ['Ctrl', 'Shift', '`'], desc: t('settings.shortcuts.desc.codeBlock') },
+                  { keys: ['Ctrl', 'Shift', 'M'], desc: t('settings.shortcuts.desc.mathBlock') },
+                  { keys: ['Ctrl', 'Shift', 'L'], desc: t('settings.shortcuts.desc.unorderedList') },
+                  { keys: ['Ctrl', 'Shift', '['], desc: t('settings.shortcuts.desc.blockquote') },
+                  { keys: ['Ctrl', 'Shift', 'O'], desc: t('settings.shortcuts.desc.orderedList') },
                 ]} />
 
-                <ShortcutGroup title="视图模式" shortcuts={[
-                  { keys: ['Ctrl', 'Shift', 'P'], desc: '切换编辑模式 (分屏 ↔ WYSIWYG)' },
-                  { keys: ['Ctrl', 'Shift', 'O'], desc: '切换预览模式' },
-                  { keys: ['Ctrl', '\\'], desc: '切换侧边栏' },
-                  { keys: ['Ctrl', 'Shift', 'F'], desc: '全局搜索' },
-                  { keys: ['F11'], desc: '专注模式' },
-                  { keys: ['F12'], desc: '打字机模式' },
+                <ShortcutGroup title={t('settings.shortcuts.view')} shortcuts={[
+                  { keys: ['Ctrl', 'Shift', 'P'], desc: t('settings.shortcuts.desc.toggleMode') },
+                  { keys: ['Ctrl', 'Shift', 'O'], desc: t('settings.shortcuts.desc.togglePreview') },
+                  { keys: ['Ctrl', '\\'], desc: t('settings.shortcuts.desc.toggleSidebar') },
+                  { keys: ['Ctrl', 'Shift', 'F'], desc: t('settings.shortcuts.desc.globalSearch') },
+                  { keys: ['F11'], desc: t('settings.shortcuts.desc.focusMode') },
+                  { keys: ['F12'], desc: t('settings.shortcuts.desc.typewriter') },
                 ]} />
 
-                <ShortcutGroup title="其他" shortcuts={[
-                  { keys: ['Ctrl', 'Z'], desc: '撤销' },
-                  { keys: ['Ctrl', 'Y'], desc: '重做' },
-                  { keys: ['Ctrl', 'Shift', 'I'], desc: '插件管理' },
-                  { keys: ['Esc'], desc: '关闭对话框' },
-                  { keys: ['Ctrl', '滚轮'], desc: '预览区缩放' },
+                <ShortcutGroup title={t('settings.shortcuts.other')} shortcuts={[
+                  { keys: ['Ctrl', 'Z'], desc: t('settings.shortcuts.desc.undo') },
+                  { keys: ['Ctrl', 'Y'], desc: t('settings.shortcuts.desc.redo') },
+                  { keys: ['Ctrl', 'Shift', 'I'], desc: t('settings.shortcuts.desc.pluginManager') },
+                  { keys: ['Esc'], desc: t('settings.shortcuts.desc.closeDialog') },
+                  { keys: ['Ctrl', '滚轮'], desc: t('settings.shortcuts.desc.previewZoom') },
                 ]} />
               </div>
             )}
 
             {activeTab === 'plugin' && (
               <div className="settings-section plugin-section">
-                <h3 className="settings-section-title">插件管理</h3>
+                <h3 className="settings-section-title">{t('settings.plugin.title')}</h3>
                 <PluginPanel />
               </div>
             )}
@@ -334,23 +340,23 @@ function SettingsDialog({ onClose, initialTab = 'general' }: Props) {
                   </div>
                   <h3 className="about-name">Confucius</h3>
                   <span className="about-ver-badge">v{version}</span>
-                  <p className="about-tagline">本地 Markdown 编辑器 — 简洁、快速、可扩展</p>
+                  <p className="about-tagline">{t('settings.about.tagline')}</p>
                 </div>
 
                 <div className="settings-section">
-                  <h4 className="settings-section-subtitle">功能特性</h4>
+                  <h4 className="settings-section-subtitle">{t('settings.about.features')}</h4>
                   <div className="about-features-grid">
-                    {FEATURES.map((f) => (
-                      <span key={f} className="about-feature-tag">{f}</span>
+                    {FEATURE_KEYS.map((k) => (
+                      <span key={k} className="about-feature-tag">{t(`settings.about.feature.${k}`)}</span>
                     ))}
                   </div>
                 </div>
 
                 {env && (
                   <div className="settings-section">
-                    <h4 className="settings-section-subtitle">运行环境</h4>
+                    <h4 className="settings-section-subtitle">{t('settings.about.env')}</h4>
                     <div className="about-env-table">
-                      <div className="env-row"><span className="env-label">平台</span><span className="env-value">{PLATFORM_LABELS[env.platform] ?? env.platform} ({env.arch})</span></div>
+                      <div className="env-row"><span className="env-label">{t('settings.about.platform')}</span><span className="env-value">{PLATFORM_LABELS[env.platform] ?? env.platform} ({env.arch})</span></div>
                       <div className="env-row"><span className="env-label">Electron</span><span className="env-value">{env.electron}</span></div>
                       <div className="env-row"><span className="env-label">Chrome</span><span className="env-value">{env.chrome}</span></div>
                       <div className="env-row"><span className="env-label">Node.js</span><span className="env-value">{env.node}</span></div>
@@ -359,7 +365,7 @@ function SettingsDialog({ onClose, initialTab = 'general' }: Props) {
                 )}
 
                 <div className="settings-section">
-                  <h4 className="settings-section-subtitle">许可</h4>
+                  <h4 className="settings-section-subtitle">{t('settings.about.license')}</h4>
                   <p className="about-license-text">MIT License</p>
                 </div>
               </div>

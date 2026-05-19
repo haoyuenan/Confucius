@@ -1,10 +1,12 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
+import { useTranslation } from '../../i18n/i18n-store'
 import { useSidebarStore } from '../../stores/sidebar-store'
 import { useTabStore } from '../../stores/tab-store'
 import * as bridge from '../../services/electron-bridge'
 import type { SearchResult } from '../../types/search'
 
 function SearchPanel() {
+  const { t } = useTranslation()
   const rootPath = useSidebarStore((s) => s.rootPath)
   const searchResults = useSidebarStore((s) => s.searchResults)
   const isSearching = useSidebarStore((s) => s.isSearching)
@@ -94,7 +96,7 @@ function SearchPanel() {
           data-testid="search-input"
           className="search-input"
           type="text"
-          placeholder="搜索文件内容..."
+          placeholder={t('sidebar.search.placeholder')}
           value={query}
           onChange={(e) => handleInputChange(e.target.value)}
           autoFocus
@@ -104,20 +106,20 @@ function SearchPanel() {
       <div className="search-options">
         <label className="search-option">
           <input type="checkbox" checked={caseSensitive} onChange={(e) => setCaseSensitive(e.target.checked)} />
-          区分大小写
+          {t('sidebar.search.caseSensitive')}
         </label>
       </div>
 
       <div className="search-status">
-        {isSearching && <span className="search-loading">搜索中...</span>}
-        {!isSearching && query && <span className="search-count">找到 {searchResults.length} 个结果</span>}
+        {isSearching && <span className="search-loading">{t('sidebar.search.searching')}</span>}
+        {!isSearching && query && <span className="search-count">{t('sidebar.search.results', { count: searchResults.length })}</span>}
       </div>
 
       <div className="search-results">
         {!rootPath ? (
-          <div className="sidebar-empty">先打开文件夹以启用搜索</div>
+          <div className="sidebar-empty">{t('sidebar.search.noFolder')}</div>
         ) : searchResults.length === 0 && query && !isSearching ? (
-          <div className="sidebar-empty">未找到匹配结果</div>
+          <div className="sidebar-empty">{t('sidebar.search.noResults')}</div>
         ) : (
           searchResults.map((result, idx) => (
             <div

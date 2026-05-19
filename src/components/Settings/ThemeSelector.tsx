@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react'
 import { themeService, getThemesByMode, type ThemeId } from '../../services/theme-service'
+import { useTranslation } from '../../i18n/i18n-store'
 import styles from './ThemeSelector.module.css'
 
 function ThemeSelector() {
+  const { t } = useTranslation()
   const [currentId, setCurrentId] = useState<ThemeId>(() => themeService.getCurrentTheme())
   const mode = themeService.getCurrentMode()
   const currentThemes = getThemesByMode(mode)
@@ -36,7 +38,7 @@ function ThemeSelector() {
           </button>
         ))}
       </div>
-      <button className={styles.modeToggle} onClick={handleToggleMode} title="切换浅色/深色模式">
+      <button className={styles.modeToggle} onClick={handleToggleMode} title={t('app.toolbar.pickTheme')}>
         {mode === 'light' ? '🌙' : '☀'}
       </button>
     </div>

@@ -1,8 +1,10 @@
 import { useTabStore } from '../../stores/tab-store'
 import { useAppStore } from '../../stores/app-store'
+import { useTranslation } from '../../i18n/i18n-store'
 import styles from './TabBar.module.css'
 
 function TabBar() {
+  const { t } = useTranslation()
   const tabs = useTabStore((s) => s.tabs)
   const activeTabId = useTabStore((s) => s.activeTabId)
   const activateTab = useTabStore((s) => s.activateTab)
@@ -16,7 +18,7 @@ function TabBar() {
       <button
         className={`${styles.sidebarToggle}${!sidebarVisible ? ` ${styles.collapsed}` : ''}`}
         onClick={toggleSidebar}
-        title={sidebarVisible ? '隐藏侧边栏' : '显示侧边栏'}
+        title={sidebarVisible ? t('editor.tab.hideSidebar') : t('editor.tab.showSidebar')}
       >
         <svg className={styles.sidebarIcon} viewBox="0 0 16 16" width="11" height="11" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
           <rect x="1.5" y="1.5" width="13" height="13" rx="2" />
@@ -43,7 +45,7 @@ function TabBar() {
           </div>
         ))}
       </div>
-      <button data-testid="tab-new" className={styles.tabNewBtn} onClick={newUntitledTab} title="新建标签">+</button>
+      <button data-testid="tab-new" className={styles.tabNewBtn} onClick={newUntitledTab} title={t('editor.tab.newTab')}>+</button>
     </div>
   )
 }

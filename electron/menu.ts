@@ -1,97 +1,96 @@
 import { app, Menu, BrowserWindow, MenuItemConstructorOptions } from 'electron'
 
-export function setupMenu(win: BrowserWindow): void {
+const ZH_LABELS: Record<string, string> = {
+  'menu.file': '文件', 'menu.edit': '编辑', 'menu.view': '视图', 'menu.help': '帮助',
+  'menu.new': '新建', 'menu.open': '打开...', 'menu.save': '保存',
+  'menu.saveAs': '另存为...', 'menu.export': '导出',
+  'menu.exportHtml': '导出为 HTML...', 'menu.exportPdf': '导出为 PDF...',
+  'menu.closeWindow': '关闭窗口', 'menu.quit': '退出',
+  'menu.undo': '撤销', 'menu.redo': '重做', 'menu.cut': '剪切',
+  'menu.copy': '复制', 'menu.paste': '粘贴', 'menu.selectAll': '全选',
+  'menu.toggleSidebar': '切换侧边栏', 'menu.toggleMode': '切换编辑模式',
+  'menu.togglePreview': '切换预览模式',
+  'menu.focusMode': '专注模式', 'menu.typewriter': '打字机模式',
+  'menu.search': '搜索', 'menu.themeSettings': '主题设置…',
+  'menu.devTools': '开发者工具', 'menu.reload': '重新加载',
+  'menu.zoomIn': '放大', 'menu.zoomOut': '缩小', 'menu.resetZoom': '重置缩放',
+  'menu.pluginManager': '插件管理', 'menu.about': '关于 Confucius',
+}
+
+function lb(labels: Record<string, string> | undefined, key: string): string {
+  return labels?.[key] ?? ZH_LABELS[key] ?? key
+}
+
+export function setupMenu(win: BrowserWindow, labels?: Record<string, string>): void {
+  const L = (key: string) => lb(labels, key)
   const isMac = process.platform === 'darwin'
 
   const fileMenu: MenuItemConstructorOptions = {
-    label: '文件',
+    label: L('menu.file'),
     submenu: [
-      { label: '新建', accelerator: 'CmdOrCtrl+N', click: () => win.webContents.send('menu:action', 'file:new') },
-      { label: '打开...', accelerator: 'CmdOrCtrl+O', click: () => win.webContents.send('menu:action', 'file:open') },
+      { label: L('menu.new'), accelerator: 'CmdOrCtrl+N', click: () => win.webContents.send('menu:action', 'file:new') },
+      { label: L('menu.open'), accelerator: 'CmdOrCtrl+O', click: () => win.webContents.send('menu:action', 'file:open') },
       { type: 'separator' },
-      { label: '保存', accelerator: 'CmdOrCtrl+S', click: () => win.webContents.send('menu:action', 'file:save') },
-      { label: '另存为...', accelerator: 'CmdOrCtrl+Shift+S', click: () => win.webContents.send('menu:action', 'file:save-as') },
+      { label: L('menu.save'), accelerator: 'CmdOrCtrl+S', click: () => win.webContents.send('menu:action', 'file:save') },
+      { label: L('menu.saveAs'), accelerator: 'CmdOrCtrl+Shift+S', click: () => win.webContents.send('menu:action', 'file:save-as') },
       { type: 'separator' },
       {
-        label: '导出',
+        label: L('menu.export'),
         submenu: [
-          { label: '导出为 HTML...', accelerator: 'CmdOrCtrl+Shift+H', click: () => win.webContents.send('menu:action', 'export:html') },
-          { label: '导出为 PDF...', accelerator: 'CmdOrCtrl+Shift+E', click: () => win.webContents.send('menu:action', 'export:pdf') },
+          { label: L('menu.exportHtml'), accelerator: 'CmdOrCtrl+Shift+H', click: () => win.webContents.send('menu:action', 'export:html') },
+          { label: L('menu.exportPdf'), accelerator: 'CmdOrCtrl+Shift+E', click: () => win.webContents.send('menu:action', 'export:pdf') },
         ],
       },
       { type: 'separator' },
       ...(isMac
-        ? [{ label: '关闭窗口', accelerator: 'CmdOrCtrl+W', click: () => win.webContents.send('menu:action', 'file:close') }]
-        : [{ role: 'quit' as const, label: '退出' }]),
+        ? [{ label: L('menu.closeWindow'), accelerator: 'CmdOrCtrl+W', click: () => win.webContents.send('menu:action', 'file:close') } as MenuItemConstructorOptions]
+        : [{ role: 'quit' as const, label: L('menu.quit') }]),
     ],
   }
 
   const editMenu: MenuItemConstructorOptions = {
-    label: '编辑',
+    label: L('menu.edit'),
     submenu: [
-      { role: 'undo', label: '撤销' },
-      { role: 'redo', label: '重做' },
+      { role: 'undo', label: L('menu.undo') },
+      { role: 'redo', label: L('menu.redo') },
       { type: 'separator' },
-      { role: 'cut', label: '剪切' },
-      { role: 'copy', label: '复制' },
-      { role: 'paste', label: '粘贴' },
-      { role: 'selectAll', label: '全选' },
+      { role: 'cut', label: L('menu.cut') },
+      { role: 'copy', label: L('menu.copy') },
+      { role: 'paste', label: L('menu.paste') },
+      { role: 'selectAll', label: L('menu.selectAll') },
     ],
   }
 
   const viewMenu: MenuItemConstructorOptions = {
-    label: '视图',
+    label: L('menu.view'),
     submenu: [
-      // ── 布局 ──
-      { label: '切换侧边栏', accelerator: 'CmdOrCtrl+\\', click: () => win.webContents.send('menu:action', 'view:toggle-sidebar') },
+      { label: L('menu.toggleSidebar'), accelerator: 'CmdOrCtrl+\\', click: () => win.webContents.send('menu:action', 'view:toggle-sidebar') },
       { type: 'separator' },
-      // ── 编辑模式 ──
-      {
-        label: '切换编辑模式',
-        accelerator: 'CmdOrCtrl+Shift+P',
-        click: () => win.webContents.send('menu:action', 'mode:toggle'),
-      },
-      {
-        label: '切换预览模式',
-        accelerator: 'CmdOrCtrl+Shift+O',
-        type: 'checkbox',
-        click: () => win.webContents.send('menu:action', 'mode:preview'),
-      },
+      { label: L('menu.toggleMode'), accelerator: 'CmdOrCtrl+Shift+P', click: () => win.webContents.send('menu:action', 'mode:toggle') },
+      { label: L('menu.togglePreview'), accelerator: 'CmdOrCtrl+Shift+O', type: 'checkbox' as const, click: () => win.webContents.send('menu:action', 'mode:preview') },
       { type: 'separator' },
-      // ── 阅读辅助 ──
-      { label: '专注模式', type: 'checkbox', accelerator: 'F11', click: () => win.webContents.send('menu:action', 'focus:mode') },
-      { label: '打字机模式', type: 'checkbox', accelerator: 'F12', click: () => win.webContents.send('menu:action', 'typewriter:mode') },
+      { label: L('menu.focusMode'), type: 'checkbox' as const, accelerator: 'F11', click: () => win.webContents.send('menu:action', 'focus:mode') },
+      { label: L('menu.typewriter'), type: 'checkbox' as const, accelerator: 'F12', click: () => win.webContents.send('menu:action', 'typewriter:mode') },
       { type: 'separator' },
-      // ── 工具 ──
-      { label: '搜索', accelerator: 'CmdOrCtrl+Shift+F', click: () => win.webContents.send('menu:action', 'search:focus') },
+      { label: L('menu.search'), accelerator: 'CmdOrCtrl+Shift+F', click: () => win.webContents.send('menu:action', 'search:focus') },
       { type: 'separator' },
-      // ── 外观 ──
-      { label: '主题设置…', click: () => win.webContents.send('menu:action', 'settings:display') },
+      { label: L('menu.themeSettings'), click: () => win.webContents.send('menu:action', 'settings:display') },
       { type: 'separator' },
-      // ── 开发者 ──
-      { role: 'toggleDevTools', label: '开发者工具' },
-      { role: 'reload', label: '重新加载' },
+      { role: 'toggleDevTools', label: L('menu.devTools') },
+      { role: 'reload', label: L('menu.reload') },
       { type: 'separator' },
-      // ── 缩放 ──
-      { role: 'zoomIn', label: '放大' },
-      { role: 'zoomOut', label: '缩小' },
-      { role: 'resetZoom', label: '重置缩放' },
+      { role: 'zoomIn', label: L('menu.zoomIn') },
+      { role: 'zoomOut', label: L('menu.zoomOut') },
+      { role: 'resetZoom', label: L('menu.resetZoom') },
     ],
   }
 
   const helpMenu: MenuItemConstructorOptions = {
-    label: '帮助',
+    label: L('menu.help'),
     submenu: [
-      {
-        label: '插件管理',
-        accelerator: 'CmdOrCtrl+Shift+I',
-        click: () => win.webContents.send('menu:action', 'plugin:manage'),
-      },
+      { label: L('menu.pluginManager'), accelerator: 'CmdOrCtrl+Shift+I', click: () => win.webContents.send('menu:action', 'plugin:manage') },
       { type: 'separator' },
-      {
-        label: '关于 Confucius',
-        click: () => win.webContents.send('menu:action', 'app:about'),
-      },
+      { label: L('menu.about'), click: () => win.webContents.send('menu:action', 'app:about') },
     ],
   }
 

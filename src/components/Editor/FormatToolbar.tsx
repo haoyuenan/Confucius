@@ -3,6 +3,7 @@ import { undo, redo } from '@codemirror/commands'
 import { getActiveView } from '../../editor/active-view'
 import { useEditorStore } from '../../stores/editor-store'
 import * as fmt from '../../editor/format-helpers'
+import { useI18nStore } from '../../i18n/i18n-store'
 import styles from './FormatToolbar.module.css'
 
 interface ButtonDef {
@@ -34,62 +35,63 @@ function exec(command: string, level?: number): void {
   }
 }
 
-const groups: { label: string; buttons: ButtonDef[] }[] = [
-  {
-    label: '撤销重做',
-    buttons: [
-      { icon: '↩', title: '撤销 (Ctrl+Z)', action: () => { const v = getActiveView(); if (v) { v.focus(); undo(v) } } },
-      { icon: '↪', title: '重做 (Ctrl+Y)', action: () => { const v = getActiveView(); if (v) { v.focus(); redo(v) } } },
-    ],
-  },
-  {
-    label: '标题',
-    buttons: [
-      { icon: 'H₁', title: '一级标题 (Ctrl+1)', action: () => exec('heading', 1) },
-      { icon: 'H₂', title: '二级标题 (Ctrl+2)', action: () => exec('heading', 2) },
-      { icon: 'H₃', title: '三级标题 (Ctrl+3)', action: () => exec('heading', 3) },
-    ],
-  },
-  {
-    label: '行内',
-    buttons: [
-      { icon: 'B', btnStyle: styles.btnBold, title: '加粗 (Ctrl+B)', action: () => exec('bold') },
-      { icon: 'I', btnStyle: styles.btnItalic, title: '斜体 (Ctrl+I)', action: () => exec('italic') },
-      { icon: 'S', btnStyle: styles.btnStrike, title: '删除线', action: () => exec('strike') },
-    ],
-  },
-  {
-    label: '块级',
-    buttons: [
-      { icon: '❝', title: '引用 (Ctrl+Shift+[)', action: () => exec('quote') },
-      { icon: '{ }', btnStyle: styles.btnCode, title: '代码块 (Ctrl+Shift+`)', action: () => exec('codeblock') },
-      { icon: '`', title: '行内代码 (Ctrl+`)', action: () => exec('inlinecode') },
-      { icon: '≡', title: '无序列表 (Ctrl+Shift+L)', action: () => exec('ullist') },
-      { icon: '#', title: '有序列表 (Ctrl+Shift+O)', action: () => exec('ollist') },
-    ],
-  },
-  {
-    label: '插入',
-    buttons: [
-      { icon: '∑', title: '公式块 (Ctrl+Shift+M)', action: () => exec('mathblock') },
-      { icon: '⊞', title: '表格', action: () => exec('table') },
-      { icon: '↗', title: '链接 (Ctrl+K)', action: () => exec('link') },
-      { icon: '□', title: '图片', action: () => exec('image') },
-      { icon: '—', title: '分割线', action: () => exec('hr') },
-    ],
-  },
-  {
-    label: '辅助',
-    buttons: [
-      { icon: '🎯', title: '专注模式 (F11)', action: () => useEditorStore.getState().toggleFocusMode() },
-      { icon: '📝', title: '打字机模式 (F12)', action: () => useEditorStore.getState().toggleTypewriterMode() },
-    ],
-  },
-]
-
 function FormatToolbar() {
+  const t = useI18nStore((s) => s.t)
   const focusMode = useEditorStore((s) => s.focusMode)
   const typewriterMode = useEditorStore((s) => s.typewriterMode)
+
+  const groups: { label: string; buttons: ButtonDef[] }[] = [
+    {
+      label: t('editor.format.groupUndo'),
+      buttons: [
+        { icon: '↩', title: t('editor.format.undo'), action: () => { const v = getActiveView(); if (v) { v.focus(); undo(v) } } },
+        { icon: '↪', title: t('editor.format.redo'), action: () => { const v = getActiveView(); if (v) { v.focus(); redo(v) } } },
+      ],
+    },
+    {
+      label: t('editor.format.groupHeading'),
+      buttons: [
+        { icon: 'H₁', title: t('editor.format.heading1'), action: () => exec('heading', 1) },
+        { icon: 'H₂', title: t('editor.format.heading2'), action: () => exec('heading', 2) },
+        { icon: 'H₃', title: t('editor.format.heading3'), action: () => exec('heading', 3) },
+      ],
+    },
+    {
+      label: t('editor.format.groupInline'),
+      buttons: [
+        { icon: 'B', btnStyle: styles.btnBold, title: t('editor.format.bold'), action: () => exec('bold') },
+        { icon: 'I', btnStyle: styles.btnItalic, title: t('editor.format.italic'), action: () => exec('italic') },
+        { icon: 'S', btnStyle: styles.btnStrike, title: t('editor.format.strikethrough'), action: () => exec('strike') },
+      ],
+    },
+    {
+      label: t('editor.format.groupBlock'),
+      buttons: [
+        { icon: '❝', title: t('editor.format.quote'), action: () => exec('quote') },
+        { icon: '{ }', btnStyle: styles.btnCode, title: t('editor.format.codeBlock'), action: () => exec('codeblock') },
+        { icon: '`', title: t('editor.format.inlineCode'), action: () => exec('inlinecode') },
+        { icon: '≡', title: t('editor.format.unorderedList'), action: () => exec('ullist') },
+        { icon: '#', title: t('editor.format.orderedList'), action: () => exec('ollist') },
+      ],
+    },
+    {
+      label: t('editor.format.groupInsert'),
+      buttons: [
+        { icon: '∑', title: t('editor.format.mathBlock'), action: () => exec('mathblock') },
+        { icon: '⊞', title: t('editor.format.table'), action: () => exec('table') },
+        { icon: '↗', title: t('editor.format.link'), action: () => exec('link') },
+        { icon: '□', title: t('editor.format.image'), action: () => exec('image') },
+        { icon: '—', title: t('editor.format.hr'), action: () => exec('hr') },
+      ],
+    },
+    {
+      label: t('editor.format.groupAux'),
+      buttons: [
+        { icon: '🎯', title: t('editor.format.focus'), action: () => useEditorStore.getState().toggleFocusMode() },
+        { icon: '📝', title: t('editor.format.typewriter'), action: () => useEditorStore.getState().toggleTypewriterMode() },
+      ],
+    },
+  ]
 
   const [showTablePopup, setShowTablePopup] = useState(false)
   const [tableCols, setTableCols] = useState(4)
@@ -123,7 +125,7 @@ function FormatToolbar() {
     <div className={styles.formatToolbar}>
       {groups.map((group, gi) => {
         // 在 "插入" 分组外包裹一层，使表格按钮浮层定位正确
-        const isInsertGroup = group.label === '插入'
+        const isInsertGroup = group.buttons.some((b) => b.icon === '⊞')
         const inner = (
           <span key={group.label} className={styles.toolbarGroup}>
             {gi > 0 && <span className={styles.toolbarDivider} />}
@@ -172,7 +174,7 @@ function FormatToolbar() {
                     {tableRows} 行 × {tableCols} 列
                   </div>
                   <button className={styles.tablePopupInsert} onClick={insertTablePopup}>
-                    插入表格
+                    {t('editor.format.insertTable')}
                   </button>
                 </div>
               )}
