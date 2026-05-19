@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { useEditorStore } from './editor-store'
 import { fileNameFromPath } from '../utils/path'
 import * as bridge from '../services/electron-bridge'
+import { useI18nStore } from '../i18n/i18n-store'
 
 export interface TabData {
   id: string
@@ -72,7 +73,7 @@ export const useTabStore = create<TabState>((set, get) => ({
     const tab: TabData = {
       id: genId(),
       filePath: null,
-      fileName: `未命名-${_nextId - 1}`,
+      fileName: `${useI18nStore.getState().t('editor.tab.untitled')}-${_nextId - 1}`,
       content: '',
       savedContent: '',
       isModified: false,

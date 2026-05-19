@@ -4,6 +4,7 @@ import { FileWatcher } from './services/file-watcher'
 import { ExportService } from './services/export-service'
 import { SearchService } from './services/search-service'
 import { ScannerService } from './services/scanner-service'
+import { setupMenu } from './menu'
 import { spawn } from 'child_process'
 import path from 'path'
 
@@ -272,10 +273,24 @@ export function registerIpcHandlers(): void {
   })
 
   // ---- 国际化 ----
+  let menuVisible = true
   ipcMain.handle('menu:translate', (_event, labels: Record<string, string>) => {
-    const { setupMenu } = require('./menu')
-    const win = BrowserWindow.fromWebContents(_event.sender)
-    if (win) setupMenu(win, labels)
+    const win = BrowserWindow.fromWebContents(_event.sender!)
+    if (win) {
+      setupMenu(win, labels)
+      if (!menuVisible) Menu.setApplicationMenu(null)
+    }
+  })
+
+  // ---- 菜单显示控制 ----
+  ipcMain.handle('menu:set-visible', async (_event, visible: boolean) => {
+    menuVisible = visible
+    if (visible) {
+      const win = BrowserWindow.fromWebContents(_event.sender!)
+      if (win) setupMenu(win)
+    } else {
+      Menu.setApplicationMenu(null)
+    }
   })
 
   // ---- 代码运行 ----
