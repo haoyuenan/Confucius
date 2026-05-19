@@ -18,12 +18,16 @@ Split editing mode: CodeMirror 6 editor on the left, markdown-it live preview on
 - **Preview Mode**: Full-screen reading with centered layout (`Ctrl+Shift+O`)
 
 ### Editor
-- **Format Toolbar**: Undo/redo, headings, bold/italic/strikethrough, quote/code block/list, link/image/hr/formula, focus/typewriter mode
+- **Format Toolbar**: Undo/redo, headings, bold/italic/strikethrough, quote/code block/list, link/image/hr/formula/table, focus/typewriter mode
+- **Table Insertion**: `` ⊞ `` toolbar button with row/column picker, inserts aligned Markdown table template
 - **CodeMirror 6 Core**: High-performance text editing with Markdown syntax highlighting
+- **Find & Replace**: `Ctrl+F` search, `Ctrl+Shift+F` replace, F3 next match, auto-highlight all occurrences
 - **Code Highlighting**: 190+ languages via highlight.js
 - **Math Formulas**: KaTeX rendering for `$...$` inline and `$$...$$` block formulas
 - **Diagram Support**: Mermaid flowcharts, sequence diagrams, Gantt charts, etc.
 - **GFM Compatible**: Task lists, tables, etc.
+- **Paste/Drag Images**: Copy or drag image files from file manager into editor — auto-inserts `![name](path)` Markdown syntax
+- **URL Paste Auto-Link**: Select text then paste a URL — automatically converts to `[text](url)` link
 - **Focus Mode** (F11): Non-active lines semi-transparent
 - **Typewriter Mode** (F12): Active line always centered in viewport
 - **Context Menu**: Right-click for save/save-as/undo/redo/cut/copy/paste
@@ -35,14 +39,14 @@ Split editing mode: CodeMirror 6 editor on the left, markdown-it live preview on
 - **File Tree Sidebar**: Browse and open Markdown files within a folder
 - **Outline Panel**: Auto-extract heading structure, click to jump in editor and preview
 - **Global Search**: Cross-file full-text search, 300ms debounce, parallel reading
-- **File Operations**: New, open, save, save as
+- **File Operations**: New, open, save, save as, **auto-save** (every 5 seconds)
 - **Sidebar Context Menu**: New file/directory, rename, delete
 - **Drag & Drop Open**: Drag `.md` / `.markdown` files to app icon to open directly
 
 ### View & Appearance
-- **Eight Themes**: Light (Plain White, Warm Sun, Cloud, Mint) / Dark (Night Black, Deep Sea, Warm Gray, Ink Bamboo), persisted in localStorage, toolbar one-click toggle
+- **Twelve Themes**: 6 light (Plain White, Warm Sun, Cloud, Mint, Tokyo Night Light, Rose Pine Dawn) / 6 dark (Night Black, Deep Sea, Warm Gray, Ink Bamboo, Tokyo Night, Rose Pine), persisted in localStorage, toolbar one-click toggle + dropdown picker with color swatches
 - **Brand Titlebar**: App name and tagline on the left, toolbar on the right
-- **Unified Settings Panel**: General settings (focus/typewriter/hide menu), theme management with swatches, shortcut reference, about
+- **Unified Settings Panel**: General settings (focus/typewriter/hide menu), theme management with swatches, plugin management, shortcut reference, about
 - **Resizable Split**: Drag to adjust split width freely
 - **Scroll Sync**: Editor and preview scroll percentage synced in split mode
 - **Sidebar Paper Texture**: Subtle CSS-generated grain overlay on warm themes
@@ -52,7 +56,7 @@ Split editing mode: CodeMirror 6 editor on the left, markdown-it live preview on
 - **PDF Export**: Generate A4 document via Electron printToPDF
 
 ### Status Bar & Plugins
-- **Status Bar**: Show editing mode, file encoding/size, cursor position, word count
+- **Status Bar**: Save status (● unsaved / ✓ saved), word count (including selected characters), cursor position (line:col)
 - **Plugin System**: Built-in and external plugin support
   - Sandbox execution + command bus
   - Plugins can register status bar entries, sidebar panels, global commands
@@ -80,11 +84,12 @@ Split editing mode: CodeMirror 6 editor on the left, markdown-it live preview on
 | `Ctrl+O` | Open file |
 | `Ctrl+S` | Save file |
 | `Ctrl+Shift+S` | Save as |
-| `Ctrl+\` | Toggle sidebar |
+| `Ctrl+F` | Find in document |
 | `Ctrl+Shift+F` | Global search |
+| `Ctrl+\` | Toggle sidebar |
 | `Ctrl+Shift+P` | Toggle editing mode (split ↔ wysiwyg) |
 | `Ctrl+Shift+O` | Toggle preview mode |
-| `Ctrl+Shift+I` | Plugin manager |
+| `Ctrl+Shift+I` | Plugin manager (Settings → Plugins) |
 | `F11` | Focus mode |
 | `F12` | Typewriter mode |
 | `Ctrl+B` | Bold `**text**` |
@@ -175,15 +180,19 @@ confucius/
 │   ├── stores/                     # Zustand stores
 │   └── styles/                     # CSS styles
 │
-├── themes/                         # Theme CSS variables (8 themes)
+├── themes/                         # Theme CSS variables (12 themes)
 │   ├── plain-white.css             # Light · Plain White
 │   ├── warm-sun.css                # Light · Warm Sun
 │   ├── cloud.css                   # Light · Cloud
 │   ├── mint.css                    # Light · Mint
+│   ├── tokyo-night-light.css       # Light · Tokyo Night Light
+│   ├── rose-pine-dawn.css          # Light · Rose Pine Dawn
 │   ├── night-black.css             # Dark · Night Black
 │   ├── deep-sea.css                # Dark · Deep Sea
 │   ├── warm-gray.css               # Dark · Warm Gray
-│   └── mo-zhu.css                  # Dark · Ink Bamboo
+│   ├── mo-zhu.css                  # Dark · Ink Bamboo
+│   ├── tokyo-night.css             # Dark · Tokyo Night
+│   └── rose-pine.css               # Dark · Rose Pine
 │
 ├── plugins/                        # Plugin directory
 │   ├── builtins/doc-templates/     # Doc templates plugin
@@ -206,7 +215,7 @@ confucius/
 
 ## Development Status
 
-All core features are stable and complete: three editing modes, plugin system, security hardening, 8-theme system, welcome screen with recent files, custom app icon — with 118 unit/integration tests and 14 E2E tests passing, CI/CD pipelines ready for all three platforms.
+All core features are stable and complete. v0.2.0 adds: find & replace in document, URL paste auto-link, paste/drag images, auto-save, enhanced status bar (word count, cursor position, save status), table insertion helper, 12-theme system, plugin management integrated into settings panel — with 118 unit/integration tests and 14 E2E tests passing, CI/CD pipelines ready for all three platforms.
 
 ## Roadmap
 
