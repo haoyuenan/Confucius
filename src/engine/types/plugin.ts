@@ -37,6 +37,10 @@ export interface CommandDef {
   label: string
   icon?: string
   execute: () => void
+  category?: string
+  description?: string
+  shortcut?: string
+  keywords?: string[]
 }
 
 import type { EventName, EventPayload } from '../EventBus'

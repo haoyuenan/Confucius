@@ -41,6 +41,14 @@ export interface CommandDef {
   label: string
   icon?: string
   execute: () => void
+  /** 命令面板用：分组（默认 "文件"、"编辑"、"视图"、"工具" 等） */
+  category?: string
+  /** 命令面板用：副标题描述 */
+  description?: string
+  /** 命令面板用：显示快捷键文本（仅显示，不绑定） */
+  shortcut?: string
+  /** 命令面板用：额外搜索关键词 */
+  keywords?: string[]
 }
 
 /** 第三方插件上下文（不含 React，适用于外部纯 JS 插件） */
