@@ -45,6 +45,9 @@ Split editing mode: CodeMirror 6 editor on the left, markdown-it live preview on
 
 ### View & Appearance
 - **Twelve Themes**: 6 light (Plain White, Warm Sun, Cloud, Mint, Tokyo Night Light, Rose Pine Dawn) / 6 dark (Night Black, Deep Sea, Warm Gray, Ink Bamboo, Tokyo Night, Rose Pine), persisted in localStorage, toolbar one-click toggle + dropdown picker with color swatches
+- **Command Palette**: `Ctrl+E` opens a fuzzy-search command palette with keyboard navigation, recent command history, and plugin command integration
+- **Workspace Session Recovery**: Automatically saves open tabs, sidebar state, cursor position, and theme on changes; restores everything on next launch
+- **i18n / Internationalization**: Full zh ↔ en language switching via Settings → General → Language; all UI components, Electron menus, and dialogs update in real time
 - **Brand Titlebar**: App name and tagline on the left, toolbar on the right
 - **Unified Settings Panel**: General settings (focus/typewriter/hide menu), theme management with swatches, plugin management, shortcut reference, about
 - **Resizable Split**: Drag to adjust split width freely
@@ -85,6 +88,7 @@ Split editing mode: CodeMirror 6 editor on the left, markdown-it live preview on
 | `Ctrl+S` | Save file |
 | `Ctrl+Shift+S` | Save as |
 | `Ctrl+F` | Find in document |
+| `Ctrl+E` | Command palette |
 | `Ctrl+Shift+F` | Global search |
 | `Ctrl+\` | Toggle sidebar |
 | `Ctrl+Shift+P` | Toggle editing mode (split ↔ wysiwyg) |
@@ -115,10 +119,10 @@ npm run dev
 # Type check
 npm run typecheck
 
-# Run unit/integration tests (118 tests)
+# Run unit/integration tests (141 tests)
 npm test
 
-# Run E2E tests (14 tests, requires build first)
+# Run E2E tests (requires build first)
 npm run build
 npm run test:e2e
 
@@ -163,7 +167,12 @@ confucius/
 ├── src/                            # Renderer process (React)
 │   ├── main.tsx                    # React entry
 │   ├── App.tsx                     # Root component
+│   ├── i18n/                       # Internationalization (zh ↔ en)
+│   │   ├── i18n-store.ts           # Zustand store + useTranslation hook
+│   │   ├── zh.json                 # Chinese translation dict (~200 keys)
+│   │   └── en.json                 # English translation dict (~200 keys)
 │   ├── components/
+│   │   ├── CommandPalette/         # Command palette (Ctrl+E)
 │   │   ├── Editor/                 # Editor components
 │   │   ├── Preview/                # Preview components
 │   │   ├── Sidebar/
@@ -174,10 +183,12 @@ confucius/
 │   │   └── Settings/               # Settings panel
 │   ├── engine/                     # Plugin engine
 │   ├── services/
-│   │   ├── theme-service.ts        # Theme management (8 themes)
+│   │   ├── command-registry.ts     # Built-in commands + fuzzy search + LRU
+│   │   ├── workspace-store.ts      # Session save/restore (localStorage)
+│   │   ├── theme-service.ts        # Theme management (12 themes)
 │   │   ├── recent-files.ts         # Recent files (localStorage)
 │   │   └── electron-bridge.ts      # IPC wrappers
-│   ├── stores/                     # Zustand stores
+│   ├── stores/                     # Zustand stores (6 stores)
 │   └── styles/                     # CSS styles
 │
 ├── themes/                         # Theme CSS variables (12 themes)
@@ -215,7 +226,7 @@ confucius/
 
 ## Development Status
 
-All core features are stable and complete. v0.2.0 adds: find & replace in document, URL paste auto-link, paste/drag images, auto-save, enhanced status bar (word count, cursor position, save status), table insertion helper, 12-theme system, plugin management integrated into settings panel — with 118 unit/integration tests and 14 E2E tests passing, CI/CD pipelines ready for all three platforms.
+All core features are stable and complete. v0.2.0 adds: find & replace in document, URL paste auto-link, paste/drag images, auto-save, enhanced status bar, table insertion helper, 12-theme system, plugin management integrated into settings panel. v0.3.0 adds: command palette (Ctrl+E), workspace session recovery, and full zh ↔ en internationalization with real-time language switching — with 141 unit/integration tests passing, CI/CD pipelines ready for all three platforms.
 
 ## Roadmap
 
@@ -226,6 +237,8 @@ All core features are stable and complete. v0.2.0 adds: find & replace in docume
 - **Mobile**: Explore Tauri v2 or React Native to bring the editing experience to iOS / Android
 - **Plugin Marketplace**: Publish, discover, and one-click install plugins from a central registry
 - **Theme Editor**: Real-time color picker in settings panel with CSS export, lowering the barrier for custom themes
+- **Accessibility**: ARIA attributes, keyboard navigation improvements, high-contrast theme
+- **Spell Check**: Built-in spell checker with nspell / hunspell
 
 ## License
 

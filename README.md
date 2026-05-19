@@ -45,6 +45,9 @@
 
 ### 视图 & 外观
 - **十二套主题**：浅色 6 套（素白纸、暖阳、云白、薄荷、东京夜白、玫瑰黎明）/ 深色 6 套（暗夜黑、深海、暖灰、墨竹、东京夜、玫瑰松），持久化 localStorage，工具栏一键切换浅/深模式 + 下拉选主题（含色条预览）
+- **命令面板**：`Ctrl+E` 打开模糊搜索命令面板，支持键盘导航、最近使用历史、插件命令集成
+- **工作区恢复**：自动保存标签页、侧边栏状态、主题等设置，下次启动一键恢复上次工作状态
+- **国际化（i18n）**：完整的 中文 ↔ English 语言切换，设置 → 通用 → 语言 实时切换，所有 UI 组件、Electron 菜单、对话框即时生效
 - **品牌标题栏**：左侧显示应用名称与副标语，工具栏居右排列
 - **统一设置面板**：通用设置（专注/打字机/隐藏主菜单）、主题管理与预览、插件管理、快捷键速查表、关于信息
 - **可拖拽分栏**：双栏宽度自由调节
@@ -85,6 +88,7 @@
 | `Ctrl+S` | 保存文件 |
 | `Ctrl+Shift+S` | 另存为 |
 | `Ctrl+F` | 文档内查找 |
+| `Ctrl+E` | 命令面板 |
 | `Ctrl+Shift+F` | 全局搜索 |
 | `Ctrl+\` | 切换侧边栏 |
 | `Ctrl+Shift+P` | 切换编辑模式 (split ↔ wysiwyg) |
@@ -115,10 +119,10 @@ npm run dev
 # 类型检查
 npm run typecheck
 
-# 运行单元/集成测试（118 tests）
+# 运行单元/集成测试（141 tests）
 npm test
 
-# 运行 E2E 测试（14 tests，需先构建）
+# 运行 E2E 测试（需先构建）
 npm run build
 npm run test:e2e
 
@@ -169,7 +173,12 @@ confucius/
 ├── src/                            # 渲染进程 (React)
 │   ├── main.tsx                    # React 入口
 │   ├── App.tsx                     # 根组件（菜单动作分发）
+│   ├── i18n/                       # 国际化（中英双语）
+│   │   ├── i18n-store.ts           # Zustand store + useTranslation hook
+│   │   ├── zh.json                 # 中文翻译键值对（~200 键）
+│   │   └── en.json                 # 英文翻译键值对（~200 键）
 │   ├── components/
+│   │   ├── CommandPalette/         # 命令面板 (Ctrl+E)
 │   │   ├── Editor/                 # 编辑器组件
 │   │   ├── Preview/                # 预览组件
 │   │   ├── Sidebar/
@@ -180,10 +189,12 @@ confucius/
 │   │   └── Settings/               # 设置面板
 │   ├── engine/                     # 插件引擎
 │   ├── services/
-│   │   ├── theme-service.ts        # 主题管理（8 套主题）
+│   │   ├── command-registry.ts     # 内置命令 + 模糊搜索 + LRU 最近使用
+│   │   ├── workspace-store.ts      # 工作区会话保存/恢复（localStorage）
+│   │   ├── theme-service.ts        # 主题管理（12 套主题）
 │   │   ├── recent-files.ts         # 最近文件（localStorage）
 │   │   └── electron-bridge.ts      # IPC 调用封装
-│   ├── stores/                     # Zustand 状态
+│   ├── stores/                     # Zustand 状态（6 个 Store）
 │   └── styles/                     # CSS 样式
 │
 ├── themes/                         # 主题 CSS 变量（12 套）
@@ -221,7 +232,7 @@ confucius/
 
 ## 开发状态
 
-核心功能已全部实现并稳定。v0.2.0 新增：文档内查找替换、粘贴 URL 自动转链接、粘贴/拖拽图片、自动保存、状态栏增强（字数/光标/保存状态）、表格插入辅助、主题体系扩展至 12 套、插件管理集成到设置面板。共 118 单元测试 + 14 E2E 测试通过，CI/CD 三平台打包就绪。
+核心功能已全部实现并稳定。v0.2.0 新增：文档内查找替换、粘贴 URL 自动转链接、粘贴/拖拽图片、自动保存、状态栏增强、表格插入辅助、主题体系扩展至 12 套、插件管理集成到设置面板。v0.3.0 新增：命令面板 (Ctrl+E)、工作区会话恢复、完整中英双语国际化（实时切换）。共 141 单元测试通过，CI/CD 三平台打包就绪。
 
 ## 未来展望
 
@@ -232,6 +243,8 @@ confucius/
 - **移动端**：探索 Tauri v2 或 React Native 方案，将编辑体验延伸至 iOS / Android
 - **插件市场**：构建插件发布、搜索、一键安装的生态入口
 - **自定义主题编辑器**：在设置面板内实时调色、导出主题 CSS，降低主题创作门槛
+- **无障碍（a11y）**：ARIA 属性、键盘导航增强、高对比度主题
+- **拼写检查**：集成 nspell / hunspell 本地拼写检查
 
 ## License
 

@@ -12,11 +12,11 @@
 | 代码高亮 | highlight.js | — |
 | 数学公式 | KaTeX | 行内 + 块级 |
 | 图表 | Mermaid | 流程图、时序图等 |
-| 状态管理 | Zustand | 5 个 Store |
+| 状态管理 | Zustand | 6 个 Store + 1 个 i18n Store |
 | 安全防护 | DOMPurify | XSS 过滤 |
 | DOM 更新 | morphdom | 预览区增量更新 |
 | 编码检测 | jschardet + iconv-lite | UTF-8/GBK/Big5 等 |
-| 测试 | Vitest + React Testing Library | 117 测试通过 |
+| 测试 | Vitest + React Testing Library | 141 测试通过 |
 | 打包 | electron-builder | Windows/macOS/Linux |
 
 ## 进程架构
@@ -36,13 +36,18 @@ Electron 主进程 (electron/)
     └── scanner-service.ts # 插件目录扫描
 
 渲染进程 (src/)
-├── App.tsx               # 根组件、菜单 IPC 处理
+├── App.tsx               # 根组件、菜单 IPC 处理、命令面板、工作区恢复
 ├── main.tsx              # 入口 + 主题/样式 CSS 加载
+├── i18n/
+│   ├── i18n-store.ts     # Zustand store + useTranslation hook
+│   ├── zh.json           # 中文翻译
+│   └── en.json           # 英文翻译
 ├── components/
+│   ├── CommandPalette/   # Ctrl+E 命令面板（模糊搜索 + 键盘导航）
 │   ├── Editor/           # 编辑器布局/面板/工具栏/标签栏/状态栏
 │   ├── Preview/          # Markdown 预览
 │   ├── Sidebar/          # 文件树/大纲/搜索
-│   └── Settings/         # 主题选择器/插件管理对话框/关于
+│   └── Settings/         # 主题选择器/插件管理/语言切换/快捷键/关于
 ├── editor/
 │   ├── cm6-setup.ts      # CM6 初始化
 │   ├── keybindings.ts    # 编辑器快捷键
@@ -68,14 +73,16 @@ Electron 主进程 (electron/)
 │       ├── host-api.ts   # HostAPIBridge 接口
 │       └── plugin.ts     # 插件类型定义
 ├── services/
-│   ├── electron-bridge.ts    # IPC 封装层（22 个函数）
-│   └── theme-service.ts      # 主题切换 + hljs/Mermaid 联动
+│   ├── command-registry.ts    # 内置命令定义 + 模糊搜索 + LRU 最近使用
+│   ├── workspace-store.ts     # 工作区会话持久化（localStorage）
+│   ├── electron-bridge.ts     # IPC 封装层（23 个函数）
+│   └── theme-service.ts       # 主题切换 + hljs/Mermaid 联动
 ├── stores/
 │   ├── app-store.ts       # 应用配置（版本/侧边栏）
 │   ├── editor-store.ts    # 编辑器状态
 │   ├── sidebar-store.ts   # 侧边栏状态
 │   ├── tab-store.ts       # 多标签管理
-│   └── plugin-store.ts    # 插件 UI 状态
+│   └── plugin-store.ts    # 插件 UI 状态（状态栏/侧边栏/命令注册）
 ├── utils/
 │   ├── sanitize.ts       # DOMPurify
 │   ├── dom-diff.ts       # morphdom 增量更新
@@ -154,3 +161,5 @@ CM6 updateListener (150ms 防抖)
 | `export:html/pdf` | R→M | 导出 |
 | `scanner:scan/read-entry` | R→M | 插件目录扫描 |
 | `menu:action` | M→R | 菜单操作（统一路由） |
+| `menu:translate` | R→M | 语言切换时发送翻译菜单文本 |
+| `menu:set-visible` | R→M | 显示/隐藏原生菜单 |
