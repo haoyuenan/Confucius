@@ -50,6 +50,7 @@ export interface ElectronAPI {
   // 外部链接
   openExternal: (url: string) => Promise<void>
   setMenuVisible: (visible: boolean) => Promise<void>
+  translateMenu: (labels: Record<string, string>) => Promise<void>
 
   // Phase 2: 插件扫描
   scannerScan: (dirPath: string) => Promise<PluginPackage[]>

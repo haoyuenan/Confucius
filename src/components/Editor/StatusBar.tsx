@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { usePluginStore } from '../../stores/plugin-store'
 import { useTabStore } from '../../stores/tab-store'
+import { useTranslation } from '../../i18n/i18n-store'
 import { getActiveView } from '../../editor/active-view'
 
 function resolveLabel(label: string | (() => string) | undefined): string {
@@ -9,6 +10,7 @@ function resolveLabel(label: string | (() => string) | undefined): string {
 }
 
 function StatusBar() {
+  const { t } = useTranslation()
   const pluginItems = usePluginStore((s) => s.statusBarItems)
   const activeTab = useTabStore((s) => s.activeTab())
   const [, setTick] = useState(0)
@@ -43,14 +45,14 @@ function StatusBar() {
     <div className="status-bar">
       <div className="status-left">
         <span className="status-item status-save">
-          {isModified ? '● 未保存' : (filePath ? '✓ 已保存' : '')}
+          {isModified ? t('editor.status.unsaved') : (filePath ? t('editor.status.saved') : '')}
         </span>
       </div>
       <div className="status-right">
         <span className="status-item">
-          {wordCount.toLocaleString()} 词
-          {charCount > 0 && ` · ${charCount.toLocaleString()} 字`}
-          {selLen > 0 && ` (选中 ${selLen})`}
+          {t('editor.status.words', { count: wordCount })}
+          {charCount > 0 && t('editor.status.chars', { count: charCount })}
+          {selLen > 0 && t('editor.status.selected', { count: selLen })}
         </span>
         {charCount > 0 && (
           <span className="status-item">{cursorLine}:{cursorCol}</span>

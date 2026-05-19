@@ -1,4 +1,5 @@
 import { useEffect, useCallback, useState } from 'react'
+import { useTranslation } from '../../i18n/i18n-store'
 import { useSidebarStore } from '../../stores/sidebar-store'
 import { useTabStore } from '../../stores/tab-store'
 import { flattenTree, type FileTreeNode } from '../../types/file-tree'
@@ -14,6 +15,7 @@ function WelcomePanel({
   onOpenFolder: () => void
   onNewFile: () => void
 }) {
+  const { t } = useTranslation()
   const [recentFiles, setRecentFiles] = useState<RecentFile[]>(() => getRecentFiles())
   const openFile = useTabStore((s) => s.openFile)
 
@@ -49,8 +51,8 @@ function WelcomePanel({
       </div>
 
       <div className="welcome-text">
-        <h2 className="welcome-title">开始你的创作</h2>
-        <p className="welcome-subtitle">知之为知之，不知为不知</p>
+        <h2 className="welcome-title">{t('sidebar.welcome.title')}</h2>
+        <p className="welcome-subtitle">{t('sidebar.welcome.subtitle')}</p>
       </div>
 
       <div className="welcome-actions">
@@ -61,7 +63,7 @@ function WelcomePanel({
                 fill="currentColor" opacity="0.9"/>
             </svg>
           </span>
-          打开文件夹
+          {t('sidebar.welcome.openFolder')}
         </button>
         <button className="welcome-btn welcome-btn-secondary" onClick={onNewFile}>
           <span className="welcome-btn-icon">
@@ -71,13 +73,13 @@ function WelcomePanel({
               <path d="M14 2v6h6M12 12v6M9 15h6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
             </svg>
           </span>
-          新建笔记
+          {t('sidebar.welcome.newNote')}
         </button>
       </div>
 
       {recentFiles.length > 0 && (
         <div className="welcome-recent">
-          <div className="welcome-recent-title">最近打开</div>
+          <div className="welcome-recent-title">{t('sidebar.welcome.recent')}</div>
           <ul className="welcome-recent-list">
             {recentFiles.slice(0, 5).map((f) => (
               <li key={f.filePath}>
@@ -101,6 +103,7 @@ function WelcomePanel({
 
 /* ─── 文件树主面板 ─── */
 function FileTreePanel() {
+  const { t } = useTranslation()
   const rootPath = useSidebarStore((s) => s.rootPath)
   const fileTree = useSidebarStore((s) => s.fileTree)
   const expandedPaths = useSidebarStore((s) => s.expandedPaths)
@@ -185,12 +188,12 @@ function FileTreePanel() {
         <span className="folder-path" title={rootPath}>
           {fileNameFromPath(rootPath)}
         </span>
-        <button className="toolbar-btn" onClick={handleCloseFolder} title="关闭文件夹">✕</button>
+        <button className="toolbar-btn" onClick={handleCloseFolder} title={t('sidebar.fileTree.closeFolder')}>✕</button>
       </div>
 
       <div className="file-tree-list">
         {flatItems.length === 0 ? (
-          <div className="sidebar-empty">文件夹为空</div>
+          <div className="sidebar-empty">{t('sidebar.fileTree.empty')}</div>
         ) : (
           flatItems.map(({ depth, node }) => (
             <div

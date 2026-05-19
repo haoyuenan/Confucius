@@ -271,6 +271,13 @@ export function registerIpcHandlers(): void {
     return await scannerService.readEntry(entryPath)
   })
 
+  // ---- 国际化 ----
+  ipcMain.handle('menu:translate', (_event, labels: Record<string, string>) => {
+    const { setupMenu } = require('./menu')
+    const win = BrowserWindow.fromWebContents(_event.sender)
+    if (win) setupMenu(win, labels)
+  })
+
   // ---- 代码运行 ----
   handle('plugin:run-code', async (_event, { language, code, options }: {
     language: string

@@ -463,10 +463,29 @@
 }
 
 .theme-btn-item.active {
-  border-color: #2ea043;
-  background: #e6f4ea;
-  color: #1a7d36;
-  font-weight: 500;
+  background: var(--accent-color);
+  color: white;
+  border-color: var(--accent-color);
+}
+
+/* ── 语言切换按钮组 ── */
+.lang-toggle-group {
+  display: flex;
+  gap: 8px;
+}
+.lang-btn {
+  padding: 6px 16px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  cursor: pointer;
+  font-size: 13px;
+}
+.lang-btn.active {
+  background: var(--accent-color);
+  color: white;
+  border-color: var(--accent-color);
 }
 
 /* ── 关于页面 ── */

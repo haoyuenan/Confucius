@@ -16,10 +16,12 @@ import CommandPalette from './components/CommandPalette/CommandPalette'
 import { getActiveView } from './editor/active-view'
 import * as bridge from './services/electron-bridge'
 import { loadSession, subscribeAutoSave } from './services/workspace-store'
+import { useTranslation, useI18nStore } from './i18n/i18n-store'
 
 function App() {
   const [settingsTab, setSettingsTab] = useState<SettingsTab | null>(null)
   const [showCommandPalette, setShowCommandPalette] = useState(false)
+  const { t } = useTranslation()
   const sidebarVisible = useAppStore((s) => s.sidebarVisible)
 
   const newUntitledTab = useTabStore((s) => s.newUntitledTab)
@@ -45,6 +47,47 @@ function App() {
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
   }, [])
+
+  // 语言切换时同步 Electron 菜单
+  const appLang = useI18nStore((s) => s.lang)
+  useEffect(() => {
+    const t = useI18nStore.getState().t
+    bridge.translateMenu({
+      'menu.file': t('electron.menu.file'),
+      'menu.edit': t('electron.menu.edit'),
+      'menu.view': t('electron.menu.view'),
+      'menu.help': t('electron.menu.help'),
+      'menu.new': t('electron.menu.new'),
+      'menu.open': t('electron.menu.open'),
+      'menu.save': t('electron.menu.save'),
+      'menu.saveAs': t('electron.menu.saveAs'),
+      'menu.export': t('electron.menu.export'),
+      'menu.exportHtml': t('electron.menu.exportHtml'),
+      'menu.exportPdf': t('electron.menu.exportPdf'),
+      'menu.closeWindow': t('electron.menu.closeWindow'),
+      'menu.quit': t('electron.menu.quit'),
+      'menu.undo': t('electron.menu.undo'),
+      'menu.redo': t('electron.menu.redo'),
+      'menu.cut': t('electron.menu.cut'),
+      'menu.copy': t('electron.menu.copy'),
+      'menu.paste': t('electron.menu.paste'),
+      'menu.selectAll': t('electron.menu.selectAll'),
+      'menu.toggleSidebar': t('electron.menu.toggleSidebar'),
+      'menu.toggleMode': t('electron.menu.toggleMode'),
+      'menu.togglePreview': t('electron.menu.togglePreview'),
+      'menu.focusMode': t('electron.menu.focusMode'),
+      'menu.typewriter': t('electron.menu.typewriter'),
+      'menu.search': t('electron.menu.search'),
+      'menu.themeSettings': t('electron.menu.themeSettings'),
+      'menu.devTools': t('electron.menu.devTools'),
+      'menu.reload': t('electron.menu.reload'),
+      'menu.zoomIn': t('electron.menu.zoomIn'),
+      'menu.zoomOut': t('electron.menu.zoomOut'),
+      'menu.resetZoom': t('electron.menu.resetZoom'),
+      'menu.pluginManager': t('electron.menu.pluginManager'),
+      'menu.about': t('electron.menu.about'),
+    })
+  }, [appLang])
 
   // 启动：恢复工作区 或 建空白标签
   useEffect(() => {
@@ -182,7 +225,7 @@ function App() {
   useEffect(() => {
     const cleanup = bridge.onExportDone((info) => {
       if (window.Notification?.permission === 'granted') {
-        new window.Notification('导出完成', { body: `${info.format} 已导出到: ${info.path}` })
+        new window.Notification(t('app.notification.exportDone'), { body: t('app.notification.exportBody', { format: info.format, path: info.path }) })
       }
     })
     return () => cleanup?.()
@@ -284,48 +327,48 @@ function App() {
       <header className="app-titlebar">
         {/* 品牌区 — 左侧固定 */}
         <div className="titlebar-brand">
-          <span className="titlebar-app-name">Confucius：一个安静的写作/阅读空间</span>
+          <span className="titlebar-app-name">{t('app.title')}</span>
         </div>
         {/* 工具栏 — 占满剩余空间，右对齐 */}
         <div className="titlebar-tools">
-          <button className="toolbar-btn" onClick={handleNewFile} title="新建 (Ctrl+N)">📄 新建</button>
-          <button className="toolbar-btn" onClick={handleOpenFile} title="打开 (Ctrl+O)">📂 打开</button>
-          <button className="toolbar-btn" onClick={() => { toggleSidebar() }} title="切换侧边栏 (Ctrl+\)">📑 侧边</button>
+          <button className="toolbar-btn" onClick={handleNewFile} title={t('app.toolbar.new')}>📄 {t('app.toolbar.newLabel')}</button>
+           <button className="toolbar-btn" onClick={handleOpenFile} title={t('app.toolbar.open')}>📂 {t('app.toolbar.openLabel')}</button>
+          <button className="toolbar-btn" onClick={() => { toggleSidebar() }} title={t('app.toolbar.sidebar')}>📑 {t('app.toolbar.sidebarLabel')}</button>
         </div>
         <div className="toolbar-sep" />
         <div className="toolbar-group">
-          <button className="toolbar-btn" onClick={handleSearch} title="全局搜索 (Ctrl+Shift+F)">🔍 搜索</button>
+          <button className="toolbar-btn" onClick={handleSearch} title={t('app.toolbar.search')}>🔍 {t('app.toolbar.searchLabel')}</button>
         </div>
         <div className="toolbar-sep" />
         <div className="toolbar-group">
-          <button className="toolbar-btn" onClick={handleToggleTheme} title="切换浅色/深色模式">
-            {currentMode === 'light' ? '🌙 深色' : '☀ 浅色'}
+          <button className="toolbar-btn" onClick={handleToggleTheme} title={t('app.toolbar.toggleTheme')}>
+            {currentMode === 'light' ? t('app.toolbar.darkMode') : t('app.toolbar.lightMode')}
           </button>
           <div className="theme-picker-wrapper" ref={themePickerRef}>
             <button
               className="toolbar-btn theme-picker-btn"
               onClick={() => setThemePickerOpen((v) => !v)}
-              title="选择主题"
+              title={t('app.toolbar.pickTheme')}
             >
               🎨
             </button>
             {themePickerOpen && (
               <div className="theme-picker-dropdown">
-                {currentThemes.map((t) => {
-                  const swatch = THEME_SWATCHES[t.id]
-                  const active = currentTheme === t.id
+                {currentThemes.map((theme) => {
+                  const swatch = THEME_SWATCHES[theme.id]
+                  const active = currentTheme === theme.id
                   return (
                     <button
-                      key={t.id}
+                      key={theme.id}
                       className={`theme-picker-card${active ? ' active' : ''}`}
-                      onClick={() => handleThemeSelect(t.id)}
+                      onClick={() => handleThemeSelect(theme.id)}
                     >
                       <div className="theme-picker-card-swatches">
                         <div style={{ background: swatch.bg }} />
                         <div style={{ background: swatch.secondary }} />
                         <div style={{ background: swatch.accent }} />
                       </div>
-                      <span className="theme-picker-card-label">{t.icon} {t.label}</span>
+                      <span className="theme-picker-card-label">{theme.icon} {t('theme.name.' + theme.id)}</span>
                       {active && <span className="theme-picker-card-check">✓</span>}
                     </button>
                   )
@@ -336,21 +379,21 @@ function App() {
         </div>
         <div className="toolbar-sep" />
         <div className="toolbar-group">
-          <button className="toolbar-btn" onClick={handleExport} title="导出 HTML">📤 导出</button>
-          <button className="toolbar-btn" onClick={handlePrint} title="打印 (Ctrl+P)">🖨 打印</button>
+          <button className="toolbar-btn" onClick={handleExport} title={t('app.toolbar.exportHtml')}>📤 {t('app.toolbar.exportHtmlLabel')}</button>
+          <button className="toolbar-btn" onClick={handlePrint} title={t('app.toolbar.print')}>🖨 {t('app.toolbar.printLabel')}</button>
         </div>
         <div className="toolbar-sep" />
         <div className="toolbar-group">
-          <button className={`toolbar-btn${mode !== 'preview' ? ' active' : ''}`} onClick={handleEditToggle} title="切换编辑模式 (split ↔ wysiwyg)">
-            ✏ 编辑
+          <button className={`toolbar-btn${mode !== 'preview' ? ' active' : ''}`} onClick={handleEditToggle} title={t('app.toolbar.editTitle')}>
+            ✏ {t('app.toolbar.edit')}
           </button>
-          <button className={`toolbar-btn${mode === 'preview' ? ' active' : ''}`} onClick={handleViewToggle} title="切换分栏/预览">
-            {mode === 'preview' ? '⊞ 分栏' : '👁 预览'}
+          <button className={`toolbar-btn${mode === 'preview' ? ' active' : ''}`} onClick={handleViewToggle} title={t('app.toolbar.previewTitle')}>
+            {mode === 'preview' ? t('app.toolbar.split') : t('app.toolbar.preview')}
           </button>
         </div>
         <div className="toolbar-sep" />
         <div className="toolbar-group">
-          <button className="toolbar-btn" onClick={handleSettings} title="设置">⚙ 设置</button>
+          <button className="toolbar-btn" onClick={handleSettings} title={t('app.toolbar.settings')}>⚙ {t('app.toolbar.settings')}</button>
         </div>
       </header>
       <div className="app-body">

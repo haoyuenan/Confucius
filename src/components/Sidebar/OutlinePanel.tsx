@@ -1,5 +1,6 @@
 import { useEffect, useCallback } from 'react'
 import { EditorView } from 'codemirror'
+import { useTranslation } from '../../i18n/i18n-store'
 import { useSidebarStore } from '../../stores/sidebar-store'
 import { useEditorStore } from '../../stores/editor-store'
 import { extractOutline, getOutlineIndent } from '../../editor/outline-parser'
@@ -18,6 +19,7 @@ function scrollPreviewToHeading(headingEl: HTMLElement): void {
 }
 
 function OutlinePanel() {
+  const { t } = useTranslation()
   const outlineItems = useSidebarStore((s) => s.outlineItems)
   const setOutlineItems = useSidebarStore((s) => s.setOutlineItems)
   const editorContent = useEditorStore((s) => s.content)
@@ -64,14 +66,14 @@ function OutlinePanel() {
   if (outlineItems.length === 0) {
     return (
       <div className="outline-panel">
-        <div className="sidebar-empty">文档中未检测到标题</div>
+        <div className="sidebar-empty">{t('sidebar.outline.empty')}</div>
       </div>
     )
   }
 
   return (
     <div className="outline-panel">
-      <div className="outline-header">大纲</div>
+      <div className="outline-header">{t('sidebar.outline.header')}</div>
       <div className="outline-list">
         {outlineItems.map((item, idx) => (
           <div

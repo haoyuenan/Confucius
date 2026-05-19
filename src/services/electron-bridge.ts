@@ -114,3 +114,8 @@ export function getEnv(): Promise<{ electron: string; chrome: string; node: stri
 export function setMenuVisible(visible: boolean): Promise<void> {
   return window.electronAPI.setMenuVisible(visible)
 }
+
+// ─── 国际化 ───
+export function translateMenu(labels: Record<string, string>): Promise<void> {
+  return window.electronAPI.translateMenu(labels)
+}

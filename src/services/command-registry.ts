@@ -1,4 +1,5 @@
 import type { CommandDef } from '../types/plugin'
+import { useI18nStore } from '../i18n/i18n-store'
 
 // ── Types ──
 
@@ -51,38 +52,39 @@ export function getRecentCommands(all: PaletteCommand[]): PaletteCommand[] {
 // ── Built-in commands ──
 
 export function getBuiltinCommands(ctx: CommandContext): PaletteCommand[] {
+  const t = useI18nStore.getState().t
   return [
-    { id: 'file:new', label: '新建文件', category: '文件', shortcut: 'Ctrl+N',
+    { id: 'file:new', label: t('commandPalette.cmd.fileNew'), category: t('commandPalette.cat.file'), shortcut: 'Ctrl+N',
       execute: () => ctx.newUntitledTab() },
-    { id: 'file:open', label: '打开文件', category: '文件', shortcut: 'Ctrl+O',
+    { id: 'file:open', label: t('commandPalette.cmd.fileOpen'), category: t('commandPalette.cat.file'), shortcut: 'Ctrl+O',
       execute: () => ctx.openFile() },
-    { id: 'file:save', label: '保存', category: '文件', shortcut: 'Ctrl+S',
+    { id: 'file:save', label: t('commandPalette.cmd.fileSave'), category: t('commandPalette.cat.file'), shortcut: 'Ctrl+S',
       execute: () => ctx.saveFile() },
-    { id: 'file:save-as', label: '另存为', category: '文件', shortcut: 'Ctrl+Shift+S',
+    { id: 'file:save-as', label: t('commandPalette.cmd.fileSaveAs'), category: t('commandPalette.cat.file'), shortcut: 'Ctrl+Shift+S',
       execute: () => ctx.saveAs() },
-    { id: 'edit:find', label: '查找替换', category: '编辑', shortcut: 'Ctrl+F',
+    { id: 'edit:find', label: t('commandPalette.cmd.editFind'), category: t('commandPalette.cat.edit'), shortcut: 'Ctrl+F',
       execute: () => ctx.findInDocument() },
-    { id: 'view:sidebar', label: '切换侧边栏', category: '视图', shortcut: 'Ctrl+\\',
+    { id: 'view:sidebar', label: t('commandPalette.cmd.viewSidebar'), category: t('commandPalette.cat.view'), shortcut: 'Ctrl+\\',
       execute: () => ctx.toggleSidebar() },
-    { id: 'view:toggle-mode', label: '切换编辑模式', category: '视图', shortcut: 'Ctrl+Shift+P',
+    { id: 'view:toggle-mode', label: t('commandPalette.cmd.viewToggleMode'), category: t('commandPalette.cat.view'), shortcut: 'Ctrl+Shift+P',
       execute: () => ctx.toggleMode() },
-    { id: 'view:preview', label: '切换预览模式', category: '视图', shortcut: 'Ctrl+Shift+O',
+    { id: 'view:preview', label: t('commandPalette.cmd.viewPreview'), category: t('commandPalette.cat.view'), shortcut: 'Ctrl+Shift+O',
       execute: () => ctx.togglePreview() },
-    { id: 'view:focus', label: '专注模式', category: '视图', shortcut: 'F11',
+    { id: 'view:focus', label: t('commandPalette.cmd.viewFocus'), category: t('commandPalette.cat.view'), shortcut: 'F11',
       execute: () => ctx.toggleFocus() },
-    { id: 'view:typewriter', label: '打字机模式', category: '视图', shortcut: 'F12',
+    { id: 'view:typewriter', label: t('commandPalette.cmd.viewTypewriter'), category: t('commandPalette.cat.view'), shortcut: 'F12',
       execute: () => ctx.toggleTypewriter() },
-    { id: 'theme:toggle', label: '切换浅色/深色', category: '主题',
+    { id: 'theme:toggle', label: t('commandPalette.cmd.themeToggle'), category: t('commandPalette.cat.theme'),
       execute: () => ctx.toggleTheme() },
-    { id: 'tool:search', label: '全局搜索', category: '工具', shortcut: 'Ctrl+Shift+F',
+    { id: 'tool:search', label: t('commandPalette.cmd.toolSearch'), category: t('commandPalette.cat.tool'), shortcut: 'Ctrl+Shift+F',
       execute: () => ctx.search() },
-    { id: 'export:html', label: '导出 HTML', category: '导出', shortcut: 'Ctrl+Shift+H',
+    { id: 'export:html', label: t('commandPalette.cmd.exportHtml'), category: t('commandPalette.cat.export'), shortcut: 'Ctrl+Shift+H',
       execute: () => ctx.exportHtml() },
-    { id: 'export:pdf', label: '导出 PDF', category: '导出', shortcut: 'Ctrl+Shift+E',
+    { id: 'export:pdf', label: t('commandPalette.cmd.exportPdf'), category: t('commandPalette.cat.export'), shortcut: 'Ctrl+Shift+E',
       execute: () => ctx.exportPdf() },
-    { id: 'settings:open', label: '打开设置', category: '设置',
+    { id: 'settings:open', label: t('commandPalette.cmd.settingsOpen'), category: t('commandPalette.cat.settings'),
       execute: () => ctx.openSettings() },
-    { id: 'settings:plugins', label: '插件管理', category: '设置', shortcut: 'Ctrl+Shift+I',
+    { id: 'settings:plugins', label: t('commandPalette.cmd.settingsPlugins'), category: t('commandPalette.cat.settings'), shortcut: 'Ctrl+Shift+I',
       execute: () => ctx.openSettings('plugin') },
   ]
 }
@@ -130,9 +132,10 @@ export function mergeAllCommands(
   builtins: PaletteCommand[],
   pluginCmds: CommandDef[],
 ): PaletteCommand[] {
+  const t = useI18nStore.getState().t
   const pluginPalette: PaletteCommand[] = pluginCmds.map((c) => ({
     ...c,
-    category: c.category || '插件',
+    category: c.category || t('commandPalette.plugin'),
     keywords: c.keywords ?? [],
   }))
   const merged = new Map<string, PaletteCommand>()

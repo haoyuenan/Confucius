@@ -4,6 +4,7 @@
  * 函数均为纯 CM6 dispatch 操作，不依赖 React
  */
 import { EditorView } from '@codemirror/view'
+import { useI18nStore } from '../i18n/i18n-store'
 
 /** 插入标题：在行首插入 # 标记 */
 export function insertHeading(view: EditorView, level: 1 | 2 | 3): boolean {
@@ -32,7 +33,7 @@ export function toggleBold(view: EditorView): boolean {
     const inner = s.slice(2, -2)
     view.dispatch({ changes: { from, to, insert: inner }, selection: { anchor: from, head: from + inner.length } })
   } else {
-    view.dispatch({ changes: { from, to, insert: `**${s || '粗体'}**` }, selection: { anchor: from + 2, head: from + 2 + s.length } })
+      view.dispatch({ changes: { from, to, insert: `**${s || useI18nStore.getState().t('editor.placeholder.bold')}**` }, selection: { anchor: from + 2, head: from + 2 + s.length } })
   }
   return true
 }
@@ -45,7 +46,7 @@ export function toggleItalic(view: EditorView): boolean {
     const inner = s.slice(1, -1)
     view.dispatch({ changes: { from, to, insert: inner }, selection: { anchor: from, head: from + inner.length } })
   } else {
-    view.dispatch({ changes: { from, to, insert: `*${s || '斜体'}*` }, selection: { anchor: from + 1, head: from + 1 + s.length } })
+      view.dispatch({ changes: { from, to, insert: `*${s || useI18nStore.getState().t('editor.placeholder.italic')}*` }, selection: { anchor: from + 1, head: from + 1 + s.length } })
   }
   return true
 }
@@ -58,7 +59,7 @@ export function toggleStrikethrough(view: EditorView): boolean {
     const inner = s.slice(2, -2)
     view.dispatch({ changes: { from, to, insert: inner }, selection: { anchor: from, head: from + inner.length } })
   } else {
-    view.dispatch({ changes: { from, to, insert: `~~${s || '文本'}~~` }, selection: { anchor: from + 2, head: from + 2 + s.length } })
+      view.dispatch({ changes: { from, to, insert: `~~${s || useI18nStore.getState().t('editor.placeholder.strikethrough')}~~` }, selection: { anchor: from + 2, head: from + 2 + s.length } })
   }
   return true
 }
@@ -67,7 +68,7 @@ export function toggleStrikethrough(view: EditorView): boolean {
 export function toggleBlockquote(view: EditorView): boolean {
   const { from, to } = view.state.selection.main
   const s = view.state.sliceDoc(from, to)
-  const lines = (s || '引用').split('\n')
+  const lines = (s || useI18nStore.getState().t('editor.placeholder.quote')).split('\n')
   const allQuoted = lines.every(l => l.startsWith('> '))
   const result = allQuoted
     ? lines.map(l => l.slice(2)).join('\n')
@@ -100,7 +101,7 @@ export function toggleInlineCode(view: EditorView): boolean {
 export function insertUnorderedList(view: EditorView): boolean {
   const { from, to } = view.state.selection.main
   const s = view.state.sliceDoc(from, to)
-  view.dispatch({ changes: { from, to, insert: (s || '列表项').split('\n').map(l => `- ${l}`).join('\n') } })
+  view.dispatch({ changes: { from, to, insert: (s || useI18nStore.getState().t('editor.placeholder.listItem')).split('\n').map(l => `- ${l}`).join('\n') } })
   return true
 }
 
@@ -108,14 +109,14 @@ export function insertUnorderedList(view: EditorView): boolean {
 export function insertOrderedList(view: EditorView): boolean {
   const { from, to } = view.state.selection.main
   const s = view.state.sliceDoc(from, to)
-  view.dispatch({ changes: { from, to, insert: (s || '列表项').split('\n').map((l, i) => `${i + 1}. ${l}`).join('\n') } })
+  view.dispatch({ changes: { from, to, insert: (s || useI18nStore.getState().t('editor.placeholder.listItem')).split('\n').map((l, i) => `${i + 1}. ${l}`).join('\n') } })
   return true
 }
 
 /** 链接：插入 [text](url) 并选中 url 部分 */
 export function insertLink(view: EditorView): boolean {
   const { from, to } = view.state.selection.main
-  const s = view.state.sliceDoc(from, to) || '链接文本'
+  const s = view.state.sliceDoc(from, to) || useI18nStore.getState().t('editor.placeholder.linkText')
   const inserted = `[${s}](url)`
   // inserted 的字符位置: 0:[  1:s  1+s:]  2+s:(  3+s:u  4+s:r  5+s:l  6+s:)
   const urlStart = from + s.length + 3
@@ -129,9 +130,10 @@ export function insertLink(view: EditorView): boolean {
 
 /** 图片 */
 export function insertImage(view: EditorView): boolean {
+  const t = useI18nStore.getState().t
   const { from } = view.state.selection.main
   view.dispatch({
-    changes: { from, insert: '![图片描述](url)' },
+    changes: { from, insert: `![${t('editor.placeholder.imageDesc')}](url)` },
     selection: { anchor: from + 7, head: from + 10 },
   })
   return true

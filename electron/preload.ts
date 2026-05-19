@@ -115,6 +115,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // 菜单显示控制
   setMenuVisible: (visible: boolean): Promise<void> => ipcRenderer.invoke('menu:set-visible', visible),
 
+  // 国际化：更新菜单标签
+  translateMenu: (labels: Record<string, string>): Promise<void> =>
+    ipcRenderer.invoke('menu:translate', labels),
+
   // Phase 2: 插件系统
   scannerScan: (dirPath: string): Promise<PluginPackage[]> => ipcRenderer.invoke('scanner:scan', dirPath),
   scannerReadEntry: (entryPath: string): Promise<{ code: string }> =>

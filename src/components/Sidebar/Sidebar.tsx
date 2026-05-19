@@ -1,17 +1,11 @@
 import { useRef, useEffect } from 'react'
 import { useSidebarStore } from '../../stores/sidebar-store'
 import { usePluginStore } from '../../stores/plugin-store'
+import { useI18nStore } from '../../i18n/i18n-store'
 import type { SidebarTabDef } from '../../types/plugin'
 import FileTreePanel from './FileTreePanel'
 import OutlinePanel from './OutlinePanel'
 import SearchPanel from './SearchPanel'
-
-/** 内置标签页（icon 使用 SVG path） */
-const BUILTIN_TABS: { id: string; label: string; icon: string }[] = [
-  { id: 'file-tree', label: '文件', icon: 'files' },
-  { id: 'outline', label: '大纲', icon: 'outline' },
-  { id: 'search', label: '搜索', icon: 'search' },
-]
 
 /** SVG 图标集 */
 function TabIcon({ name, size = 20 }: { name: string; size?: number }) {
@@ -59,10 +53,23 @@ function Sidebar() {
   const activeTab = useSidebarStore((s) => s.activeTab)
   const setActiveTab = useSidebarStore((s) => s.setActiveTab)
   const pluginTabs = usePluginStore((s) => s.sidebarTabs)
+  const t = useI18nStore((s) => s.t)
+
+  const builtinTabs: { id: string; label: string; icon: string }[] = [
+    { id: 'file-tree', label: t('sidebar.tab.files'), icon: 'files' },
+    { id: 'outline', label: t('sidebar.tab.outline'), icon: 'outline' },
+    { id: 'search', label: t('sidebar.tab.search'), icon: 'search' },
+  ]
 
   const allTabs = [
-    ...BUILTIN_TABS,
-    ...pluginTabs.map((pt) => ({ id: pt.id, label: pt.label, icon: pt.icon || '🧩' })),
+    ...builtinTabs,
+    ...pluginTabs.map((pt) => ({
+      id: pt.id,
+      label: pt.id === 'doc-templates' ? t('plugin.name.docTemplates')
+        : pt.id === 'code-runner' ? t('plugin.name.codeRunner')
+        : pt.label,
+      icon: pt.icon || '🧩',
+    })),
   ]
 
   const activePluginTab = pluginTabs.find((pt) => pt.id === activeTab)

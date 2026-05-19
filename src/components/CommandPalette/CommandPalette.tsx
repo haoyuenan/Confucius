@@ -5,6 +5,7 @@ import {
   mergeAllCommands, saveRecent,
 } from '../../services/command-registry'
 import { usePluginStore } from '../../stores/plugin-store'
+import { useTranslation } from '../../i18n/i18n-store'
 import styles from './CommandPalette.module.css'
 
 export interface CommandPaletteContext {
@@ -35,6 +36,7 @@ export default function CommandPalette({ context, onClose }: Props) {
   const [selectedIndex, setSelectedIndex] = useState(0)
   const inputRef = useRef<HTMLInputElement>(null)
   const listRef = useRef<HTMLDivElement>(null)
+  const { t } = useTranslation()
   const pluginCommands = usePluginStore((s) => s.commands)
 
   useEffect(() => { inputRef.current?.focus() }, [])
@@ -54,11 +56,11 @@ export default function CommandPalette({ context, onClose }: Props) {
   // Build grouped list
   const grouped: { category: string; commands: PaletteCommand[] }[] = []
   if (recentInResults.length > 0) {
-    grouped.push({ category: '最近使用', commands: recentInResults })
+    grouped.push({ category: t('commandPalette.recent'), commands: recentInResults })
   }
   const byCat = new Map<string, PaletteCommand[]>()
   for (const cmd of otherResults) {
-    const cat = cmd.category || '其他'
+    const cat = cmd.category || t('commandPalette.other')
     if (!byCat.has(cat)) byCat.set(cat, [])
     byCat.get(cat)!.push(cmd)
   }
@@ -115,7 +117,7 @@ export default function CommandPalette({ context, onClose }: Props) {
             ref={inputRef}
             className={styles.searchInput}
             type="text"
-            placeholder="搜索命令…"
+            placeholder={t('commandPalette.placeholder')}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
@@ -124,7 +126,7 @@ export default function CommandPalette({ context, onClose }: Props) {
         <div className={styles.results} ref={listRef}>
           {grouped.length === 0 ? (
             <div className={styles.emptyState}>
-              {query.trim() ? `没有匹配「${query}」的命令` : '暂无可用命令'}
+              {query.trim() ? t('commandPalette.noMatch', { query }) : t('commandPalette.empty')}
             </div>
           ) : (
             grouped.map((g) => (
@@ -144,7 +146,7 @@ export default function CommandPalette({ context, onClose }: Props) {
                     >
                       <span className={styles.commandLabel}>{cmd.label}</span>
                       {recentIds.has(cmd.id) && (
-                        <span className={styles.recentBadge}>最近</span>
+                        <span className={styles.recentBadge}>{t('commandPalette.recentBadge')}</span>
                       )}
                       {cmd.shortcut && (
                         <span className={styles.commandShortcut}>{cmd.shortcut}</span>
@@ -157,10 +159,10 @@ export default function CommandPalette({ context, onClose }: Props) {
           )}
         </div>
         <div className={styles.footer}>
-          <span><kbd>↑↓</kbd> 导航</span>
-          <span><kbd>Enter</kbd> 执行</span>
-          <span><kbd>Esc</kbd> 关闭</span>
-          <span style={{ marginLeft: 'auto' }}><kbd>@</kbd> 插件过滤</span>
+          <span><kbd>↑↓</kbd> {t('commandPalette.footer.nav')}</span>
+          <span><kbd>Enter</kbd> {t('commandPalette.footer.exec')}</span>
+          <span><kbd>Esc</kbd> {t('commandPalette.footer.close')}</span>
+          <span style={{ marginLeft: 'auto' }}><kbd>@</kbd> {t('commandPalette.footer.filter')}</span>
         </div>
       </div>
     </div>
