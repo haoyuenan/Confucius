@@ -350,7 +350,7 @@ function App() {
               onClick={() => setThemePickerOpen((v) => !v)}
               title={t('app.toolbar.pickTheme')}
             >
-              🎨
+              🎨 {t('app.toolbar.pickTheme')}
             </button>
             {themePickerOpen && (
               <div className="theme-picker-dropdown">

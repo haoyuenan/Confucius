@@ -157,22 +157,22 @@ function FormatToolbar() {
             <span key={group.label} className={styles.insertGroupWrapper}>
               {inner}
               {showTablePopup && (
-                <div className={styles.tablePopup} ref={tablePopupRef}>
-                  <div className={styles.tablePopupRow}>
-                    <span>列:</span>
-                    <button onClick={() => setTableCols(Math.max(1, tableCols - 1))}>−</button>
-                    <span className={styles.tablePopupVal}>{tableCols}</span>
-                    <button onClick={() => setTableCols(Math.min(8, tableCols + 1))}>+</button>
-                  </div>
-                  <div className={styles.tablePopupRow}>
-                    <span>行:</span>
-                    <button onClick={() => setTableRows(Math.max(1, tableRows - 1))}>−</button>
-                    <span className={styles.tablePopupVal}>{tableRows}</span>
-                    <button onClick={() => setTableRows(Math.min(10, tableRows + 1))}>+</button>
-                  </div>
-                  <div className={styles.tablePopupPreview}>
-                    {tableRows} 行 × {tableCols} 列
-                  </div>
+                  <div className={styles.tablePopup} ref={tablePopupRef}>
+                    <div className={styles.tablePopupRow}>
+                      <span>{t('editor.table.cols')}</span>
+                      <button onClick={() => setTableCols(Math.max(1, tableCols - 1))}>−</button>
+                      <span className={styles.tablePopupVal}>{tableCols}</span>
+                      <button onClick={() => setTableCols(Math.min(8, tableCols + 1))}>+</button>
+                    </div>
+                    <div className={styles.tablePopupRow}>
+                      <span>{t('editor.table.rows')}</span>
+                      <button onClick={() => setTableRows(Math.max(1, tableRows - 1))}>−</button>
+                      <span className={styles.tablePopupVal}>{tableRows}</span>
+                      <button onClick={() => setTableRows(Math.min(10, tableRows + 1))}>+</button>
+                    </div>
+                    <div className={styles.tablePopupPreview}>
+                      {t('editor.table.preview', { rows: tableRows, cols: tableCols })}
+                    </div>
                   <button className={styles.tablePopupInsert} onClick={insertTablePopup}>
                     {t('editor.format.insertTable')}
                   </button>

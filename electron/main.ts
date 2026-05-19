@@ -1,4 +1,4 @@
-import { app, BrowserWindow, protocol, net, Menu, ipcMain } from 'electron'
+import { app, BrowserWindow, protocol, net, Menu } from 'electron'
 import path from 'path'
 import { setupMenu } from './menu'
 import { registerIpcHandlers, currentWorkspacePath } from './ipc-handlers'
@@ -180,15 +180,6 @@ app.whenReady().then(() => {
   createMainWindow()
   setupMenu(mainWindow!)
   registerIpcHandlers()
-
-  // 菜单显示控制（renderer 发来请求时切换）
-  ipcMain.handle('menu:set-visible', async (_event, visible: boolean) => {
-    if (visible) {
-      setupMenu(mainWindow!)
-    } else {
-      Menu.setApplicationMenu(null)
-    }
-  })
 
   // macOS：点击 dock 图标时重新创建窗口
   app.on('activate', () => {
