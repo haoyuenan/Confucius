@@ -22,6 +22,7 @@ interface SidebarState {
   setFileTree: (tree: FileTreeNode | null) => void
   toggleExpand: (path: string) => void
   selectFile: (path: string | null) => void
+  setExpandedPaths: (paths: string[]) => void
   setOutlineItems: (items: { level: number; text: string; from: number; to: number }[]) => void
   setSearchQuery: (q: string) => void
   setSearchResults: (results: SearchResult[]) => void
@@ -53,6 +54,7 @@ export const useSidebarStore = create<SidebarState>((set) => ({
     return { expandedPaths: next }
   }),
   selectFile: (path) => set({ selectedPath: path }),
+  setExpandedPaths: (paths) => set({ expandedPaths: new Set(paths) }),
   setOutlineItems: (items) => set({ outlineItems: items }),
   setSearchQuery: (q) => set({ searchQuery: q }),
   setSearchResults: (results) => set({ searchResults: results }),

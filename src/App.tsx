@@ -12,10 +12,14 @@ import { PluginEngine } from './engine/PluginEngine'
 import { HostAPIBridgeImpl } from './engine/HostAPIBridge'
 import { StatusBarPlugin } from './plugins/builtins/status-bar-info'
 import SettingsDialog, { type SettingsTab, THEME_SWATCHES } from './components/Settings/SettingsDialog'
+import CommandPalette from './components/CommandPalette/CommandPalette'
+import { getActiveView } from './editor/active-view'
 import * as bridge from './services/electron-bridge'
+import { loadSession, subscribeAutoSave } from './services/workspace-store'
 
 function App() {
   const [settingsTab, setSettingsTab] = useState<SettingsTab | null>(null)
+  const [showCommandPalette, setShowCommandPalette] = useState(false)
   const sidebarVisible = useAppStore((s) => s.sidebarVisible)
 
   const newUntitledTab = useTabStore((s) => s.newUntitledTab)
@@ -30,12 +34,58 @@ function App() {
 
   const setActiveTab = useSidebarStore((s) => s.setActiveTab)
 
-  // 首次启动自动建一个空标签
+  // Ctrl+E 打开命令面板
   useEffect(() => {
-    if (useTabStore.getState().tabs.length === 0) {
-      newUntitledTab()
+    const handler = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'e') {
+        e.preventDefault()
+        setShowCommandPalette((v) => !v)
+      }
     }
-  }, [newUntitledTab])
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [])
+
+  // 启动：恢复工作区 或 建空白标签
+  useEffect(() => {
+    const session = loadSession()
+    if (session) {
+      // 同步恢复：主题 + 侧边栏
+      themeService.switchTheme(session.theme as ThemeId)
+      setCurrentTheme(session.theme as ThemeId)
+      useAppStore.getState().setSidebarWidth(session.sidebar.width)
+      if (!session.sidebar.visible) {
+        useAppStore.getState().toggleSidebar()
+      }
+      useSidebarStore.getState().setActiveTab(session.sidebar.activeTab)
+      useSidebarStore.getState().setExpandedPaths(session.sidebar.expandedPaths)
+
+      // 异步恢复标签页（串行读文件，避免 IPC 竞争）
+      ;(async () => {
+        for (const t of session.tabs) {
+          if (t.filePath) {
+            try {
+              const data = await bridge.readFile(t.filePath)
+              useTabStore.getState().openFile(t.filePath, data.content)
+            } catch { continue }
+          } else {
+            useTabStore.getState().newUntitledTab()
+          }
+        }
+        const tabs = useTabStore.getState().tabs
+        const idx = Math.min(session.activeTabIndex, tabs.length - 1)
+        if (tabs[idx]) useTabStore.getState().activateTab(tabs[idx].id)
+      })()
+    } else {
+      if (useTabStore.getState().tabs.length === 0) {
+        newUntitledTab()
+      }
+    }
+
+    // 订阅自动保存 + beforeunload
+    const unsub = subscribeAutoSave()
+    return () => unsub()
+  }, [newUntitledTab]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // 启动时同步菜单显示状态
   useEffect(() => {
@@ -312,6 +362,30 @@ function App() {
       </div>
       <StatusBar />
       {settingsTab && <SettingsDialog initialTab={settingsTab} onClose={() => setSettingsTab(null)} />}
+      {showCommandPalette && (
+        <CommandPalette
+          context={{
+            newUntitledTab: handleNewFile,
+            openFile: handleOpenFile,
+            saveFile: handleSaveFile,
+            saveAs: handleSaveAs,
+            toggleSidebar: () => toggleSidebar(),
+            toggleMode: () => useEditorStore.getState().toggleMode(),
+            togglePreview: () => setMode(
+              useEditorStore.getState().mode === 'preview' ? 'split' : 'preview',
+            ),
+            toggleFocus: () => toggleFocusMode(),
+            toggleTypewriter: () => toggleTypewriterMode(),
+            toggleTheme: () => handleToggleTheme(),
+            openSettings: (tab) => setSettingsTab((tab ?? 'general') as any),
+            exportHtml: () => bridge.exportHtml(),
+            exportPdf: () => bridge.printPreview(),
+            search: () => handleSearch(),
+            findInDocument: () => getActiveView()?.focus(),
+          }}
+          onClose={() => setShowCommandPalette(false)}
+        />
+      )}
     </div>
   )
 }
