@@ -115,7 +115,8 @@
 }
 
 .preview-full-layout .preview-pane {
-  max-width: 840px;
+  max-width: 100%;
+  padding: 24px 64px;
   margin: 0 auto;
 }
 
