@@ -21,6 +21,7 @@ import { useTranslation, useI18nStore } from './i18n/i18n-store'
 function App() {
   const [settingsTab, setSettingsTab] = useState<SettingsTab | null>(null)
   const [showCommandPalette, setShowCommandPalette] = useState(false)
+  const [commandPaletteMode, setCommandPaletteMode] = useState<'command' | 'file'>('command')
   const { t } = useTranslation()
   const sidebarVisible = useAppStore((s) => s.sidebarVisible)
 
@@ -36,12 +37,17 @@ function App() {
 
   const setActiveTab = useSidebarStore((s) => s.setActiveTab)
 
-  // Ctrl+E 打开命令面板
+  // Ctrl+E 打开命令面板 / Ctrl+O 快速打开
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key === 'e') {
         e.preventDefault()
+        setCommandPaletteMode('command')
         setShowCommandPalette((v) => !v)
+      } else if ((e.ctrlKey || e.metaKey) && e.key === 'o') {
+        e.preventDefault()
+        setCommandPaletteMode('file')
+        setShowCommandPalette(true)
       }
     }
     window.addEventListener('keydown', handler)
@@ -407,6 +413,7 @@ function App() {
       {settingsTab && <SettingsDialog initialTab={settingsTab} onClose={() => setSettingsTab(null)} />}
       {showCommandPalette && (
         <CommandPalette
+          initialMode={commandPaletteMode}
           context={{
             newUntitledTab: handleNewFile,
             openFile: handleOpenFile,

@@ -2,6 +2,7 @@ import { useEffect, useCallback, useState } from 'react'
 import { useTranslation } from '../../i18n/i18n-store'
 import { useSidebarStore } from '../../stores/sidebar-store'
 import { useTabStore } from '../../stores/tab-store'
+import { useKnowledgeStore } from '../../stores/knowledge-store'
 import { flattenTree, type FileTreeNode } from '../../types/file-tree'
 import { fileNameFromPath } from '../../utils/path'
 import * as bridge from '../../services/electron-bridge'
@@ -137,6 +138,8 @@ function FileTreePanel() {
     const tree = await bridge.buildFileTree(folderPath)
     setFileTree(tree)
     await bridge.startFileWatcher(folderPath)
+    // 初始化知识库索引
+    useKnowledgeStore.getState().initialize(folderPath)
   }, [setRootPath, setFileTree])
 
   /** 关闭文件夹 */
