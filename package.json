@@ -1,6 +1,6 @@
 {
   "name": "confucius",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "description": "本地 Markdown 编辑器，支持插件扩展",
   "author": "renfy",
   "license": "MIT",
@@ -70,5 +70,9 @@
     "vite-plugin-electron-renderer": "^0.14.0",
     "vitest": "^4.1.5",
     "zustand": "^4.5.2"
+  },
+  "dependencies": {
+    "@types/d3": "^7.4.3",
+    "d3": "^7.9.0"
   }
 }

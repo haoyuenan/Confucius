@@ -1,6 +1,6 @@
 # Confucius
 
-> A local Markdown editor built with Electron + React + CodeMirror 6, with plugin support
+> A local Markdown knowledge base editor built with Electron + React + CodeMirror 6, with bidirectional links, knowledge graph, and plugin support
 
 [中文文档](./README.md)
 
@@ -17,12 +17,20 @@ Split editing mode: CodeMirror 6 editor on the left, markdown-it live preview on
 - **WYSIWYG Mode**: Hide syntax markers for headings, bold/italic/strikethrough, inline code, unordered lists, and blockquotes; restore display near cursor
 - **Preview Mode**: Full-screen reading with centered layout (`Ctrl+Shift+O`)
 
+### Knowledge Base
+- **Bidirectional Links**: `[[note title]]` autocomplete and syntax highlighting, Ctrl+click to navigate
+- **Backlinks Panel**: View all notes that reference the current document, including unlinked mentions
+- **Tags System**: Inline `#tag` + YAML frontmatter tags, hierarchical tag panel browsing
+- **Global Knowledge Graph**: D3.js force-directed graph with global/local modes, drag, zoom, and click-to-navigate
+- **Quick Open**: `Ctrl+O` fuzzy search across filenames and titles
+- **Daily Notes**: One-click create today's note, auto-archived to `journal/YYYY/MM/YYYY-MM-DD.md` with frontmatter
+
 ### Editor
 - **Format Toolbar**: Undo/redo, headings, bold/italic/strikethrough, quote/code block/list, link/image/hr/formula/table, focus/typewriter mode
 - **Table Insertion**: `` ⊞ `` toolbar button with row/column picker, inserts aligned Markdown table template
 - **CodeMirror 6 Core**: High-performance text editing with Markdown syntax highlighting
 - **Find & Replace**: `Ctrl+F` search, `Ctrl+Shift+F` replace, F3 next match, auto-highlight all occurrences
-- **Code Highlighting**: 190+ languages via highlight.js
+- **Code Highlighting**: 33 commonly used languages via highlight.js; unknown languages fall back to auto-detection
 - **Math Formulas**: KaTeX rendering for `$...$` inline and `$$...$$` block formulas
 - **Diagram Support**: Mermaid flowcharts, sequence diagrams, Gantt charts, etc.
 - **GFM Compatible**: Task lists, tables, etc.
@@ -35,9 +43,9 @@ Split editing mode: CodeMirror 6 editor on the left, markdown-it live preview on
 ### File Management
 - **Welcome Screen**: Rich zero-state panel with cultural brush-stroke decoration, "Open Folder" and "New Note" quick actions
 - **Recent Files**: Auto-tracks last 10 opened files, one-click reopen from welcome screen
-- **Quick Toolbar**: New, open, toggle sidebar, search, theme toggle, export, edit/preview mode, settings
+- **Quick Toolbar**: New, open, daily note, toggle sidebar, search, theme toggle, export, edit/preview mode, settings
 - **File Tree Sidebar**: Browse and open Markdown files within a folder
-- **Outline Panel**: Auto-extract heading structure, click to jump in editor and preview
+- **Outline Panel**: Auto-extract heading structure, click to jump in editor and preview (slug-based precision targeting)
 - **Global Search**: Cross-file full-text search, 300ms debounce, parallel reading
 - **File Operations**: New, open, save, save as, **auto-save** (every 5 seconds)
 - **Sidebar Context Menu**: New file/directory, rename, delete
@@ -55,7 +63,7 @@ Split editing mode: CodeMirror 6 editor on the left, markdown-it live preview on
 - **Sidebar Paper Texture**: Subtle CSS-generated grain overlay on warm themes
 
 ### Export
-- **HTML Export**: Generate standalone HTML file
+- **HTML Export**: Generate standalone HTML file with `[[links]]` resolved to hyperlinks
 - **PDF Export**: Generate A4 document via Electron printToPDF
 
 ### Status Bar & Plugins
@@ -84,7 +92,7 @@ Split editing mode: CodeMirror 6 editor on the left, markdown-it live preview on
 | Shortcut | Action |
 |----------|--------|
 | `Ctrl+N` | New file |
-| `Ctrl+O` | Open file |
+| `Ctrl+O` | Quick open / search notes |
 | `Ctrl+S` | Save file |
 | `Ctrl+Shift+S` | Save as |
 | `Ctrl+F` | Find in document |
@@ -93,6 +101,8 @@ Split editing mode: CodeMirror 6 editor on the left, markdown-it live preview on
 | `Ctrl+\` | Toggle sidebar |
 | `Ctrl+Shift+P` | Toggle editing mode (split ↔ wysiwyg) |
 | `Ctrl+Shift+O` | Toggle preview mode |
+| `Ctrl+Shift+D` | Create/open today's daily note |
+| `Ctrl+Shift+G` | Open knowledge graph |
 | `Ctrl+Shift+I` | Plugin manager (Settings → Plugins) |
 | `F11` | Focus mode |
 | `F12` | Typewriter mode |
@@ -119,7 +129,7 @@ npm run dev
 # Type check
 npm run typecheck
 
-# Run unit/integration tests (141 tests)
+# Run unit/integration tests (159 tests)
 npm test
 
 # Run E2E tests (requires build first)
@@ -144,9 +154,10 @@ npm run pack:linux  # Linux .AppImage
 | Build Tool | Vite 5 + vite-plugin-electron |
 | Editor Core | CodeMirror 6 |
 | Markdown Parser | markdown-it + markdown-it-texmath |
-| Code Highlighting | highlight.js |
+| Code Highlighting | highlight.js (33 languages) |
 | Math Formulas | KaTeX |
 | Diagram Rendering | Mermaid |
+| Knowledge Graph | D3.js (d3-force) |
 | State Management | Zustand |
 | XSS Security | DOMPurify |
 | DOM Diffing | morphdom |
@@ -162,7 +173,14 @@ confucius/
 │   ├── menu.ts                     # Native menu
 │   ├── preload.ts                  # contextBridge secure API
 │   ├── ipc-handlers.ts             # IPC channel registration
-│   └── services/                   # File, export, search, scanner, encoding
+│   └── services/
+│       ├── file-service.ts         # File read/write (path sanitization)
+│       ├── file-watcher.ts         # File change watcher
+│       ├── export-service.ts       # HTML/PDF export (wikilink resolution)
+│       ├── search-service.ts       # Parallel full-text search
+│       ├── knowledge-service.ts    # Knowledge base indexing engine
+│       ├── scanner-service.ts      # Plugin directory scanner
+│       └── encoding-detector.ts    # Encoding detection
 │
 ├── src/                            # Renderer process (React)
 │   ├── main.tsx                    # React entry
@@ -172,14 +190,17 @@ confucius/
 │   │   ├── zh.json                 # Chinese translation dict (~200 keys)
 │   │   └── en.json                 # English translation dict (~200 keys)
 │   ├── components/
-│   │   ├── CommandPalette/         # Command palette (Ctrl+E)
+│   │   ├── CommandPalette/         # Command palette (Ctrl+E) + Quick open (Ctrl+O)
 │   │   ├── Editor/                 # Editor components
 │   │   ├── Preview/                # Preview components
 │   │   ├── Sidebar/
 │   │   │   ├── Sidebar.tsx         # VS Code-style icon bar container
 │   │   │   ├── FileTreePanel.tsx   # File tree (welcome screen + recent files)
-│   │   │   ├── OutlinePanel.tsx    # Outline
-│   │   │   └── SearchPanel.tsx     # Global search
+│   │   │   ├── OutlinePanel.tsx    # Outline (slug-based heading targeting)
+│   │   │   ├── SearchPanel.tsx     # Global search
+│   │   │   ├── BacklinksPanel.tsx  # Backlinks panel (knowledge base)
+│   │   │   ├── TagPanel.tsx        # Tags panel (knowledge base)
+│   │   │   └── GraphView.tsx       # Knowledge graph (knowledge base)
 │   │   └── Settings/               # Settings panel
 │   ├── engine/                     # Plugin engine
 │   ├── services/
@@ -189,36 +210,24 @@ confucius/
 │   │   ├── recent-files.ts         # Recent files (localStorage)
 │   │   └── electron-bridge.ts      # IPC wrappers
 │   ├── stores/                     # Zustand stores (6 stores)
+│   │   ├── app-store.ts            # App info, sidebar state
+│   │   ├── editor-store.ts         # Editor mode, content, loading state
+│   │   ├── sidebar-store.ts        # Sidebar panels, file tree, outline, search
+│   │   ├── tab-store.ts            # Tab management
+│   │   ├── knowledge-store.ts      # Knowledge base data (backlinks, graph, tags, search)
+│   │   └── plugin-store.ts         # Plugin state
+│   ├── editor/
+│   │   ├── cm6-setup.ts            # CM6 extension composition
+│   │   ├── wikilinks-plugin.ts     # [[ autocomplete + syntax highlight + Ctrl+click
+│   │   ├── tags-plugin.ts          # # autocomplete
+│   │   └── ...                     # Other editor utilities
 │   └── styles/                     # CSS styles
 │
 ├── themes/                         # Theme CSS variables (12 themes)
-│   ├── plain-white.css             # Light · Plain White
-│   ├── warm-sun.css                # Light · Warm Sun
-│   ├── cloud.css                   # Light · Cloud
-│   ├── mint.css                    # Light · Mint
-│   ├── tokyo-night-light.css       # Light · Tokyo Night Light
-│   ├── rose-pine-dawn.css          # Light · Rose Pine Dawn
-│   ├── night-black.css             # Dark · Night Black
-│   ├── deep-sea.css                # Dark · Deep Sea
-│   ├── warm-gray.css               # Dark · Warm Gray
-│   ├── mo-zhu.css                  # Dark · Ink Bamboo
-│   ├── tokyo-night.css             # Dark · Tokyo Night
-│   └── rose-pine.css               # Dark · Rose Pine
-│
 ├── plugins/                        # Plugin directory
-│   ├── builtins/doc-templates/     # Doc templates plugin
-│   ├── builtins/code-runner/       # Code runner plugin
-│   ├── doc-stats/                  # Doc stats (example)
-│   └── writing-aid/                # Writing aid (example)
-│
-├── build/icons/                    # App icons
-│   ├── icon.svg                    # Vector source (M↓ design)
-│   ├── png/                        # Multi-size PNG (16~1024px)
-│   └── win/icon.ico                # Windows icon
-│
-├── test/                           # Tests (118 unit/integration + 14 E2E)
+├── test/                           # Tests (159 unit/integration + E2E)
 ├── docs/                           # Design docs & screenshots
-├── scripts/generate-icons.js       # Icon generation script
+├── build/                          # App icons
 ├── package.json
 ├── vite.config.mts
 └── electron-builder.yml
@@ -226,21 +235,8 @@ confucius/
 
 ## Development Status
 
-All core features are stable and complete. v0.2.0 adds: find & replace in document, URL paste auto-link, paste/drag images, auto-save, enhanced status bar, table insertion helper, 12-theme system, plugin management integrated into settings panel. v0.3.0 adds: command palette (Ctrl+E), workspace session recovery, and full zh ↔ en internationalization with real-time language switching — with 141 unit/integration tests passing, CI/CD pipelines ready for all three platforms.
-
-## Roadmap
-
-- **AI Writing Assistant**: Integrate local or cloud LLM for autocomplete, polish, and summarization via plugin — zero core coupling
-- **Real-time Collaboration**: CRDT-based (e.g. Yjs) multi-user editing with shared document state
-- **Version History**: Local Git-style snapshots per file, with diff view and one-click rollback
-- **Cloud Sync**: Optional WebDAV / S3 / iCloud backend for multi-device document sync
-- **Mobile**: Explore Tauri v2 or React Native to bring the editing experience to iOS / Android
-- **Plugin Marketplace**: Publish, discover, and one-click install plugins from a central registry
-- **Theme Editor**: Real-time color picker in settings panel with CSS export, lowering the barrier for custom themes
-- **Accessibility**: ARIA attributes, keyboard navigation improvements, high-contrast theme
-- **Spell Check**: Built-in spell checker with nspell / hunspell
+All core features are stable and complete. v0.4.0 introduces the **Knowledge Base System**: bidirectional links (`[[wikilinks]]`) with autocomplete and syntax highlighting, backlinks panel, tag system (inline + frontmatter), daily notes, knowledge graph (D3.js force layout), and quick open (Ctrl+O). 159 unit/integration tests passing, CI/CD ready for all three platforms.
 
 ## License
 
 MIT
-

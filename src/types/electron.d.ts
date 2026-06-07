@@ -61,6 +61,16 @@ export interface ElectronAPI {
     pythonPath?: string
     timeout?: number
   }) => Promise<{ stdout: string; stderr: string; exitCode: number; error?: string }>
+
+  // Phase 5: 知识库
+  knowledgeInitialize: (workspacePath: string) => Promise<boolean>
+  knowledgeGetBacklinks: (filePath: string) => Promise<{ linked: Array<{ source: string; target: string; resolved: boolean; targetPath?: string }>; unlinked: string[] }>
+  knowledgeGetGraph: (filePath?: string) => Promise<{ nodes: string[]; links: Array<{ source: string; target: string; resolved: boolean; targetPath?: string }> }>
+  knowledgeGetTags: () => Promise<Record<string, string[]>>
+  knowledgeSearchFiles: (query: string) => Promise<Array<{ path: string; title: string; mtime: string }>>
+  knowledgeCreateDailyNote: () => Promise<string>
+  knowledgeResolveLink: (linkTitle: string) => Promise<string | null>
+  knowledgeReindex: (filePath: string) => Promise<boolean>
 }
 
 /** 导出预览 HTML 的函数签名 */

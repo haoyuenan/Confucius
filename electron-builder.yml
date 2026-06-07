@@ -1,5 +1,6 @@
 appId: com.confucius.editor
 productName: Confucius
+compression: maximum
 directories:
   output: dist-release
   buildResources: build

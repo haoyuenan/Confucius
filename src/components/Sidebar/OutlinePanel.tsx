@@ -29,37 +29,26 @@ function OutlinePanel() {
     setOutlineItems(items)
   }, [editorContent, setOutlineItems])
 
-  const handleJump = useCallback((from: number, text: string, idx: number) => {
+  const handleJump = useCallback((from: number, _text: string, _idx: number, slug: string) => {
     const view = getActiveView()
+
+    // 预览区跳转（在编辑器跳转之前执行，且不依赖 view）
+    const previewEl = document.querySelector('.preview-pane')
+    if (previewEl) {
+      const target = previewEl.querySelector(`[id="${CSS.escape(slug)}"]`) as HTMLElement | null
+      if (target) scrollPreviewToHeading(target)
+    }
+
+    // 编辑器跳转（仅在非纯预览模式时有 editorView）
     if (!view) return
     const pos = Math.min(from, view.state.doc.length)
-
-    // 编辑器跳转（光标 + 滚动）
     view.dispatch({
       effects: EditorView.scrollIntoView(pos, { y: 'start' }),
       selection: { anchor: pos },
     })
-
-    // 预览区跳转
-    const previewEl = document.querySelector('.preview-pane')
-    if (previewEl) {
-      const headings = previewEl.querySelectorAll('h1, h2, h3, h4, h5, h6')
-      let target = headings[idx] as HTMLElement | undefined
-      // 索引匹配失败时回退到文本匹配
-      if (!target) {
-        for (const h of headings) {
-          if (h.textContent?.trim() === text.trim()) { target = h as HTMLElement; break }
-        }
-      }
-      if (target) scrollPreviewToHeading(target)
-    }
-
-    // 等 sync-scroll 可能干扰后重新确认编辑器位置
     requestAnimationFrame(() => {
-      if (view) {
-        view.dispatch({ effects: EditorView.scrollIntoView(pos, { y: 'start' }) })
-        view.focus()
-      }
+      view.dispatch({ effects: EditorView.scrollIntoView(pos, { y: 'start' }) })
+      view.focus()
     })
   }, [])
 
@@ -80,7 +69,7 @@ function OutlinePanel() {
             key={`${item.from}-${idx}`}
             className="outline-item"
             style={{ paddingLeft: getOutlineIndent(item.level) + 12 }}
-            onClick={() => handleJump(item.from, item.text, idx)}
+            onClick={() => handleJump(item.from, item.text, idx, item.slug)}
           >
             <span className={`outline-level h-${item.level}`}>H{item.level}</span>
             <span className="outline-text">{item.text}</span>

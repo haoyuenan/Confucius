@@ -72,18 +72,18 @@ function PreviewPane({ content }: PreviewPaneProps) {
         return
       }
 
-      // 处理标题点击
+      // 处理标题点击 → 通过 slug 匹配 outline 条目
       const heading = (e.target as HTMLElement).closest('h1, h2, h3, h4, h5, h6') as HTMLElement | null
       if (!heading) return
 
       const view = getActiveView()
       if (!view) return
 
-      const headings = Array.from(el.querySelectorAll('h1, h2, h3, h4, h5, h6'))
-      const idx = headings.indexOf(heading)
-      if (idx < 0 || idx >= outlineItems.length) return
-
-      const pos = Math.min(outlineItems[idx].from, view.state.doc.length)
+      const slug = heading.id
+      const match = slug ? outlineItems.find((o) => o.slug === slug) : null
+      const pos = match
+        ? Math.min(match.from, view.state.doc.length)
+        : Math.min(outlineItems[0]?.from ?? 0, view.state.doc.length)
       view.dispatch({
         effects: EditorView.scrollIntoView(pos, { y: 'start' }),
         selection: { anchor: pos },
