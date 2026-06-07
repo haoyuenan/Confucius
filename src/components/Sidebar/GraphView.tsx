@@ -83,7 +83,7 @@ export function GraphView() {
       .style('pointer-events', 'none')
       .style('fill', 'var(--text-color, #333)')
 
-    nodeElements.on('click', async (_event: any, d: GraphNode) => {
+    nodeElements.on('click', async (_event: unknown, d: GraphNode) => {
       try {
         const file = await bridge.readFile(d.id)
         openFile(file.filePath, file.content)
@@ -99,8 +99,8 @@ export function GraphView() {
     svg.call(d3.zoom<SVGSVGElement, unknown>()
       .extent([[0, 0], [width, height]])
       .scaleExtent([0.3, 4])
-      .on('zoom', (event) => {
-        g.attr('transform', event.transform)
+      .on('zoom', (event: d3.D3ZoomEvent<SVGSVGElement, unknown>) => {
+        g.attr('transform', event.transform.toString())
       }))
 
     simulation.on('tick', () => {

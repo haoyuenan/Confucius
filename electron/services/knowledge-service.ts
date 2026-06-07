@@ -38,7 +38,7 @@ export function parseWikiLinks(content: string): string[] {
 
 export function parseTags(content: string): string[] {
   const cleaned = content.replace(/```[\s\S]*?```/g, '').replace(/`[^`]*`/g, '')
-  const regex = /(?:^|\s)#([\w\u4e00-\u9fff\/\-]+)/g
+  const regex = /(?:^|\s)#([\w\u4e00-\u9fff/-]+)/g
   const tags: string[] = []
   let match
   while ((match = regex.exec(cleaned)) !== null) {

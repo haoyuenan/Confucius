@@ -2,7 +2,7 @@ import { CompletionContext, CompletionResult, autocompletion } from '@codemirror
 import { useKnowledgeStore } from '../stores/knowledge-store'
 
 async function tagCompletion(context: CompletionContext): Promise<CompletionResult | null> {
-  const word = context.matchBefore(/(?:^|\s)#([\w\u4e00-\u9fff\/\-]*)$/)
+  const word = context.matchBefore(/(?:^|\s)#([\w\u4e00-\u9fff/-]*)$/)
   if (!word) return null
   const query = word.text.replace(/^.*#/, '')
   const tags = useKnowledgeStore.getState().tags
