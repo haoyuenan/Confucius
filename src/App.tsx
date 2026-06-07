@@ -364,9 +364,9 @@ function App() {
                       onClick={() => handleThemeSelect(theme.id)}
                     >
                       <div className="theme-picker-card-swatches">
-                        <div style={{ background: swatch.bg }} />
-                        <div style={{ background: swatch.secondary }} />
-                        <div style={{ background: swatch.accent }} />
+                        <span className="theme-picker-card-swatch" style={{ backgroundColor: swatch.bg }} />
+                        <span className="theme-picker-card-swatch" style={{ backgroundColor: swatch.secondary }} />
+                        <span className="theme-picker-card-swatch" style={{ backgroundColor: swatch.accent }} />
                       </div>
                       <span className="theme-picker-card-label">{theme.icon} {t('theme.name.' + theme.id)}</span>
                       {active && <span className="theme-picker-card-check">✓</span>}
