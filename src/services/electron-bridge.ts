@@ -119,3 +119,29 @@ export function setMenuVisible(visible: boolean): Promise<void> {
 export function translateMenu(labels: Record<string, string>): Promise<void> {
   return window.electronAPI.translateMenu(labels)
 }
+
+// ─── 知识库 ───
+export function knowledgeInitialize(workspacePath: string): Promise<boolean> {
+  return window.electronAPI.knowledgeInitialize(workspacePath)
+}
+export function knowledgeGetBacklinks(filePath: string): Promise<{ linked: Array<{ source: string; target: string; resolved: boolean; targetPath?: string }>; unlinked: string[] }> {
+  return window.electronAPI.knowledgeGetBacklinks(filePath)
+}
+export function knowledgeGetGraph(filePath?: string): Promise<{ nodes: string[]; links: Array<{ source: string; target: string; resolved: boolean; targetPath?: string }> }> {
+  return window.electronAPI.knowledgeGetGraph(filePath)
+}
+export function knowledgeGetTags(): Promise<Record<string, string[]>> {
+  return window.electronAPI.knowledgeGetTags()
+}
+export function knowledgeSearchFiles(query: string): Promise<Array<{ path: string; title: string; mtime: string }>> {
+  return window.electronAPI.knowledgeSearchFiles(query)
+}
+export function knowledgeCreateDailyNote(): Promise<string> {
+  return window.electronAPI.knowledgeCreateDailyNote()
+}
+export function knowledgeResolveLink(linkTitle: string): Promise<string | null> {
+  return window.electronAPI.knowledgeResolveLink(linkTitle)
+}
+export function knowledgeReindex(filePath: string): Promise<boolean> {
+  return window.electronAPI.knowledgeReindex(filePath)
+}
