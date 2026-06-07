@@ -205,20 +205,13 @@ body,
 
 .theme-picker-card-swatches {
   display: flex;
-  height: 24px;
+  height: 32px;
   border-radius: 6px;
   overflow: hidden;
+  position: relative;
 }
-.theme-picker-card-swatches > div {
+.theme-picker-card-swatch {
   flex: 1;
-  height: 100%;
-  min-height: 24px;
-}
-.theme-picker-card-swatches > div:first-child {
-  border-radius: 6px 0 0 6px;
-}
-.theme-picker-card-swatches > div:last-child {
-  border-radius: 0 6px 6px 0;
 }
 
 .theme-picker-card-label {
