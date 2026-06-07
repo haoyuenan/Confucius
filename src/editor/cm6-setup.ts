@@ -8,6 +8,7 @@ import { editorKeyBindings } from './keybindings'
 import { wrapSelectionAsLink, insertImageFromPath } from './format-helpers'
 import { wysiwygMode } from './wysiwyg-plugin'
 import { typewriterScrollListener } from './typewriter-mode'
+import { wikiLinkExtensions } from './wikilinks-plugin'
 
 export function createEditorView(
   container: HTMLElement,
@@ -89,6 +90,7 @@ export function createEditorView(
     }),
   ]
 
+  extensions.push(...wikiLinkExtensions())
   if (enableWysiwyg) extensions.push(wysiwygMode())
   if (enableTypewriter) extensions.push(typewriterScrollListener())
 
