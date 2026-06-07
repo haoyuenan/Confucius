@@ -1,10 +1,10 @@
-import { CompletionContext, CompletionResult, autocompletion } from '@codemirror/autocomplete'
+import { CompletionContext, CompletionResult } from '@codemirror/autocomplete'
 import { Decoration, DecorationSet, EditorView, ViewPlugin, ViewUpdate } from '@codemirror/view'
 import { RangeSetBuilder } from '@codemirror/state'
 import { knowledgeSearchFiles, knowledgeResolveLink, readFile } from '../services/electron-bridge'
 import { useTabStore } from '../stores/tab-store'
 
-async function wikiLinkCompletion(context: CompletionContext): Promise<CompletionResult | null> {
+export async function wikiLinkCompletion(context: CompletionContext): Promise<CompletionResult | null> {
   const word = context.matchBefore(/\[\[([^\]|]*)$/)
   if (!word) return null
   const query = word.text.replace('[[', '')
@@ -18,12 +18,6 @@ async function wikiLinkCompletion(context: CompletionContext): Promise<Completio
     })),
   }
 }
-
-export const wikiLinkAutocomplete = autocompletion({
-  override: [wikiLinkCompletion],
-  activateOnTyping: true,
-  closeOnBlur: true,
-})
 
 const wikiLinkDeco = Decoration.mark({ class: 'cm-wikilink' })
 
@@ -54,7 +48,6 @@ export const wikiLinkHighlighter = ViewPlugin.fromClass(class {
 
 export function wikiLinkExtensions() {
   return [
-    wikiLinkAutocomplete,
     wikiLinkHighlighter,
     EditorView.domEventHandlers({
       mousedown: (event, view) => {

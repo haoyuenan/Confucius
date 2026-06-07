@@ -1,7 +1,7 @@
-import { CompletionContext, CompletionResult, autocompletion } from '@codemirror/autocomplete'
+import { CompletionContext, CompletionResult } from '@codemirror/autocomplete'
 import { useKnowledgeStore } from '../stores/knowledge-store'
 
-async function tagCompletion(context: CompletionContext): Promise<CompletionResult | null> {
+export async function tagCompletion(context: CompletionContext): Promise<CompletionResult | null> {
   const word = context.matchBefore(/(?:^|\s)#([\w\u4e00-\u9fff/-]*)$/)
   if (!word) return null
   const query = word.text.replace(/^.*#/, '')
@@ -14,9 +14,3 @@ async function tagCompletion(context: CompletionContext): Promise<CompletionResu
     options: filtered.map(t => ({ label: t, type: 'keyword' })),
   }
 }
-
-export const tagAutocomplete = autocompletion({
-  override: [tagCompletion],
-  activateOnTyping: true,
-  closeOnBlur: true,
-})

@@ -1,5 +1,6 @@
 import { EditorView, basicSetup } from 'codemirror'
 import { keymap } from '@codemirror/view'
+import { autocompletion } from '@codemirror/autocomplete'
 import { defaultKeymap, historyKeymap } from '@codemirror/commands'
 import { searchKeymap, highlightSelectionMatches } from '@codemirror/search'
 import { markdown, markdownLanguage } from '@codemirror/lang-markdown'
@@ -8,8 +9,8 @@ import { editorKeyBindings } from './keybindings'
 import { wrapSelectionAsLink, insertImageFromPath } from './format-helpers'
 import { wysiwygMode } from './wysiwyg-plugin'
 import { typewriterScrollListener } from './typewriter-mode'
-import { wikiLinkExtensions } from './wikilinks-plugin'
-import { tagAutocomplete } from './tags-plugin'
+import { wikiLinkExtensions, wikiLinkCompletion } from './wikilinks-plugin'
+import { tagCompletion } from './tags-plugin'
 
 export function createEditorView(
   container: HTMLElement,
@@ -91,7 +92,14 @@ export function createEditorView(
     }),
   ]
 
-  extensions.push(...wikiLinkExtensions(), tagAutocomplete)
+  extensions.push(
+    ...wikiLinkExtensions(),
+    autocompletion({
+      override: [wikiLinkCompletion, tagCompletion],
+      activateOnTyping: true,
+      closeOnBlur: true,
+    }),
+  )
   if (enableWysiwyg) extensions.push(wysiwygMode())
   if (enableTypewriter) extensions.push(typewriterScrollListener())
 

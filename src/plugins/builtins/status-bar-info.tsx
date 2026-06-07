@@ -77,6 +77,7 @@ export class StatusBarPlugin implements Plugin {
     version: '1.1.0',
     apiVersion: '^1.0.0',
     description: '显示字数、光标位置、文件信息、编辑模式等',
+    permissions: ['ui'],
   }
 
   private cleanups: (() => void)[] = []
