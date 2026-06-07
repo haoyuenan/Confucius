@@ -7,6 +7,7 @@ import FileTreePanel from './FileTreePanel'
 import OutlinePanel from './OutlinePanel'
 import SearchPanel from './SearchPanel'
 import { BacklinksPanel } from './BacklinksPanel'
+import { TagPanel } from './TagPanel'
 
 /** SVG 图标集 */
 function TabIcon({ name, size = 20 }: { name: string; size?: number }) {
@@ -106,7 +107,7 @@ function Sidebar() {
           {activeTab === 'outline' && <OutlinePanel />}
           {activeTab === 'search' && <SearchPanel />}
           {activeTab === 'backlinks' && <BacklinksPanel />}
-          {activeTab === 'tags' && <span className="sidebar-hint">标签面板即将到来</span>}
+          {activeTab === 'tags' && <TagPanel />}
           {activeTab === 'graph' && <span className="sidebar-hint">图谱即将到来</span>}
           {activePluginTab && <PluginTabPanel tab={activePluginTab} />}
         </div>

@@ -9,6 +9,7 @@ import { wrapSelectionAsLink, insertImageFromPath } from './format-helpers'
 import { wysiwygMode } from './wysiwyg-plugin'
 import { typewriterScrollListener } from './typewriter-mode'
 import { wikiLinkExtensions } from './wikilinks-plugin'
+import { tagAutocomplete } from './tags-plugin'
 
 export function createEditorView(
   container: HTMLElement,
@@ -90,7 +91,7 @@ export function createEditorView(
     }),
   ]
 
-  extensions.push(...wikiLinkExtensions())
+  extensions.push(...wikiLinkExtensions(), tagAutocomplete)
   if (enableWysiwyg) extensions.push(wysiwygMode())
   if (enableTypewriter) extensions.push(typewriterScrollListener())
 
