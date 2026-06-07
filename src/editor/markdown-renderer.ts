@@ -37,7 +37,7 @@ function slugify(text: string): string {
     .toLowerCase()
     .trim()
     .replace(/\s+/g, '-')
-    .replace(/[^\w\u4e00-\u9fff\u3400-\u4dbf\u{20000}-\u{2a6df}\-]/gu, '')
+    .replace(/[^\w\u4e00-\u9fff\u3400-\u4dbf\u{20000}-\u{2a6df}-]/gu, '')
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -61,7 +61,16 @@ md.use(texmath, {
   katexOptions: { throwOnError: false },
 })
 
+function preprocessWikiLinks(text: string): string {
+  return text.replace(/\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/g, (_match: string, title: string, display: string) => {
+    const label = md.utils.escapeHtml(display || title)
+    const dataTitle = md.utils.escapeHtml(title)
+    return `<wiki-link data-title="${dataTitle}">${label}</wiki-link>`
+  })
+}
+
 export function renderMarkdown(text: string): string {
-  const raw = md.render(text)
+  const processed = preprocessWikiLinks(text)
+  const raw = md.render(processed)
   return sanitizeHtml(raw)
 }

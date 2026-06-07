@@ -582,3 +582,107 @@
 .theme-label {
   line-height: 1;
 }
+
+/* ---- 知识库面板通用样式 ---- */
+.sidebar-hint {
+  padding: 16px;
+  color: var(--text-muted);
+  font-size: 13px;
+  text-align: center;
+}
+
+.sidebar-section {
+  padding: 8px 12px;
+  border-top: 1px solid var(--border-color);
+}
+
+.sidebar-section-title {
+  font-size: 11px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+
+.sidebar-count {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-left: 4px;
+}
+
+.sidebar-file-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.sidebar-file-item {
+  padding: 4px 8px;
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sidebar-file-item:hover {
+  background: var(--bg-hover, rgba(0,0,0,0.05));
+}
+
+.sidebar-file-name {
+  color: var(--text-secondary);
+}
+
+/* 标签面板 */
+.sidebar-tag-list {
+  padding: 4px 8px;
+}
+
+.sidebar-tag-item {
+  display: flex;
+  align-items: center;
+  padding: 4px 8px;
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 13px;
+}
+
+.sidebar-tag-item:hover {
+  background: var(--bg-hover, rgba(0,0,0,0.05));
+}
+
+.sidebar-tag-item.active {
+  background: var(--accent-color, #0969da);
+  color: #fff;
+}
+
+.sidebar-tag-name {
+  flex: 1;
+}
+
+/* 图谱面板 */
+.graph-panel svg {
+  display: block;
+}
+
+.sidebar-graph-toggle {
+  flex: 1;
+  padding: 4px 8px;
+  border: 1px solid var(--border-color);
+  background: transparent;
+  cursor: pointer;
+  font-size: 12px;
+  border-radius: 4px;
+  color: var(--text-secondary);
+}
+
+.sidebar-graph-toggle.active {
+  background: var(--accent-color, #0969da);
+  color: #fff;
+  border-color: var(--accent-color, #0969da);
+}
+
+.sidebar-graph-toggle + .sidebar-graph-toggle {
+  margin-left: 4px;
+}
