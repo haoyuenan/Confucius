@@ -3,6 +3,16 @@
    使用 CSS 变量支持亮色/暗色/护眼主题
    ============================================ */
 
+wiki-link {
+  color: var(--fgColor-accent, #0969da);
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+}
+
+wiki-link::before { content: '[['; opacity: 0.5; }
+wiki-link::after { content: ']]'; opacity: 0.5; }
+
 .markdown-body {
   box-sizing: border-box;
   min-width: 200px;

@@ -120,6 +120,14 @@
   margin: 0 auto;
 }
 
+/* WikiLink 语法高亮 */
+.cm-wikilink {
+  color: var(--accent-color, #0969da) !important;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  cursor: pointer;
+}
+
 /* 纯预览时标题栏高亮指示 */
 .app-root.preview-mode .app-titlebar {
   border-bottom-color: var(--accent-color);

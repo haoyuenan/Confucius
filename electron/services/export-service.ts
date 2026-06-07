@@ -1,5 +1,6 @@
 import { dialog, BrowserWindow } from 'electron'
 import { writeFile } from 'fs/promises'
+import { knowledgeService } from './knowledge-service'
 
 export class ExportService {
   async exportHtml(win: BrowserWindow): Promise<void> {
@@ -17,7 +18,7 @@ export class ExportService {
     if (typeof rawHtml !== 'string') {
       throw new Error('exportHtml: 获取预览内容失败，返回值类型无效')
     }
-    const bodyHtml = rawHtml
+    const bodyHtml = this.resolveWikiLinks(rawHtml)
 
     const fullHtml = this.wrapHtmlDocument(bodyHtml)
     await writeFile(result.filePath, fullHtml, 'utf-8')
@@ -36,7 +37,8 @@ export class ExportService {
       `window.__exportPreviewHTML__()`,
     )
 
-    const fullHtml = this.wrapHtmlDocument(bodyHtml)
+    const resolvedHtml = this.resolveWikiLinks(bodyHtml)
+    const fullHtml = this.wrapHtmlDocument(resolvedHtml)
     const printWindow = new BrowserWindow({
       show: false,
       webPreferences: {
@@ -74,7 +76,8 @@ export class ExportService {
     if (typeof bodyHtml !== 'string') {
       throw new Error('printPreview: 获取预览内容失败')
     }
-    const fullHtml = this.wrapHtmlDocument(bodyHtml)
+    const resolvedHtml = this.resolveWikiLinks(bodyHtml)
+    const fullHtml = this.wrapHtmlDocument(resolvedHtml)
     const printWindow = new BrowserWindow({
       show: false,
       webPreferences: {
@@ -114,6 +117,21 @@ ${exportCss}
   ${bodyHtml}
 </body>
 </html>`
+  }
+
+  private resolveWikiLinks(html: string): string {
+    return html.replace(
+      /<wiki-link data-title="([^"]*)">([\s\S]*?)<\/wiki-link>/g,
+      (_match, title, display) => {
+        const text = display || title
+        const targetPath = knowledgeService.isReady() ? knowledgeService.resolveLink(title) : null
+        if (targetPath) {
+          const href = targetPath.replace(/\.md$/i, '.html')
+          return `<a href="${href}">${text}</a>`
+        }
+        return `<span class="broken-link">${text}</span>`
+      },
+    )
   }
 
   private getExportCss(): string {
@@ -186,6 +204,7 @@ ${exportCss}
 .markdown-body img { max-width: 100%; }
 .markdown-body a { color: var(--fgColor-accent); text-decoration: none; }
 .markdown-body a:hover { text-decoration: underline; }
+.markdown-body .broken-link { color: #999; text-decoration: line-through; }
 .markdown-body hr { height: 0.25em; padding: 0; margin: 24px 0; background: var(--borderColor-default); border: 0; }
 
 .hljs{display:block;overflow-x:auto;padding:0.5em;color:#333;background:#f8f8f8}
