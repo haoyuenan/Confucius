@@ -31,28 +31,24 @@ function OutlinePanel() {
 
   const handleJump = useCallback((from: number, _text: string, _idx: number, slug: string) => {
     const view = getActiveView()
-    if (!view) return
-    const pos = Math.min(from, view.state.doc.length)
 
-    // 编辑器跳转（光标 + 滚动）
-    view.dispatch({
-      effects: EditorView.scrollIntoView(pos, { y: 'start' }),
-      selection: { anchor: pos },
-    })
-
-    // 预览区跳转：通过 slug/id 精准定位
+    // 预览区跳转（在编辑器跳转之前执行，且不依赖 view）
     const previewEl = document.querySelector('.preview-pane')
     if (previewEl) {
       const target = previewEl.querySelector(`[id="${CSS.escape(slug)}"]`) as HTMLElement | null
       if (target) scrollPreviewToHeading(target)
     }
 
-    // 等 sync-scroll 可能干扰后重新确认编辑器位置
+    // 编辑器跳转（仅在非纯预览模式时有 editorView）
+    if (!view) return
+    const pos = Math.min(from, view.state.doc.length)
+    view.dispatch({
+      effects: EditorView.scrollIntoView(pos, { y: 'start' }),
+      selection: { anchor: pos },
+    })
     requestAnimationFrame(() => {
-      if (view) {
-        view.dispatch({ effects: EditorView.scrollIntoView(pos, { y: 'start' }) })
-        view.focus()
-      }
+      view.dispatch({ effects: EditorView.scrollIntoView(pos, { y: 'start' }) })
+      view.focus()
     })
   }, [])
 
