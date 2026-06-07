@@ -1,6 +1,7 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import type { FileTreeNode } from './services/file-service'
 import type { PluginPackage } from './services/scanner-service'
+import type { Link } from './services/knowledge-service'
 
 interface SearchResult {
   filePath: string
@@ -129,4 +130,29 @@ contextBridge.exposeInMainWorld('electronAPI', {
     timeout?: number
   }): Promise<{ stdout: string; stderr: string; exitCode: number; error?: string }> =>
     ipcRenderer.invoke('plugin:run-code', { language, code, options }),
+
+  // ---- Phase 5：知识库 ----
+  knowledgeInitialize: (workspacePath: string): Promise<boolean> =>
+    ipcRenderer.invoke('knowledge:initialize', workspacePath),
+
+  knowledgeGetBacklinks: (filePath: string): Promise<{ linked: Link[]; unlinked: string[] }> =>
+    ipcRenderer.invoke('knowledge:get-backlinks', filePath),
+
+  knowledgeGetGraph: (filePath?: string): Promise<{ nodes: string[]; links: Link[] }> =>
+    ipcRenderer.invoke('knowledge:get-graph', filePath),
+
+  knowledgeGetTags: (): Promise<Record<string, string[]>> =>
+    ipcRenderer.invoke('knowledge:get-tags'),
+
+  knowledgeSearchFiles: (query: string): Promise<{ path: string; title: string; mtime: string }[]> =>
+    ipcRenderer.invoke('knowledge:search-files', query),
+
+  knowledgeCreateDailyNote: (): Promise<string> =>
+    ipcRenderer.invoke('knowledge:create-daily-note'),
+
+  knowledgeResolveLink: (linkTitle: string): Promise<string | null> =>
+    ipcRenderer.invoke('knowledge:resolve-link', linkTitle),
+
+  knowledgeReindex: (filePath: string): Promise<boolean> =>
+    ipcRenderer.invoke('knowledge:reindex', filePath),
 })

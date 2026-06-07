@@ -4,6 +4,7 @@ import { FileWatcher } from './services/file-watcher'
 import { ExportService } from './services/export-service'
 import { SearchService } from './services/search-service'
 import { ScannerService } from './services/scanner-service'
+import { knowledgeService } from './services/knowledge-service'
 import { setupMenu } from './menu'
 import { spawn } from 'child_process'
 import path from 'path'
@@ -291,6 +292,46 @@ export function registerIpcHandlers(): void {
     } else {
       Menu.setApplicationMenu(null)
     }
+  })
+
+  // ---- 知识库 ----
+  handle('knowledge:initialize', async (_event, workspacePath: string) => {
+    await knowledgeService.initialize(workspacePath)
+    return true
+  })
+
+  handle('knowledge:get-backlinks', async (_event, filePath: string) => {
+    return knowledgeService.getBacklinks(filePath)
+  })
+
+  handle('knowledge:get-graph', async (_event, filePath?: string) => {
+    return knowledgeService.getGraphData(filePath)
+  })
+
+  handle('knowledge:get-tags', async () => {
+    return knowledgeService.getTags()
+  })
+
+  handle('knowledge:search-files', async (_event, query: string) => {
+    return knowledgeService.searchFiles(query)
+  })
+
+  handle('knowledge:create-daily-note', async () => {
+    return knowledgeService.createDailyNote()
+  })
+
+  handle('knowledge:resolve-link', async (_event, linkTitle: string) => {
+    return knowledgeService.resolveLink(linkTitle)
+  })
+
+  // 文件树变更时触发知识库增量索引
+  handle('knowledge:reindex', async (_event, filePath: string) => {
+    if (filePath.endsWith('.md')) {
+      await knowledgeService.updateFile(filePath)
+    } else {
+      await knowledgeService.fullScan()
+    }
+    return true
   })
 
   // ---- 代码运行 ----
