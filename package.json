@@ -70,5 +70,9 @@
     "vite-plugin-electron-renderer": "^0.14.0",
     "vitest": "^4.1.5",
     "zustand": "^4.5.2"
+  },
+  "dependencies": {
+    "@types/d3": "^7.4.3",
+    "d3": "^7.9.0"
   }
 }
