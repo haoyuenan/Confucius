@@ -32,7 +32,7 @@ const md = new MarkdownIt({
 md.use(taskLists, { enabled: true, label: true, labelAfter: true })
 
 // 为标题生成 id 属性，支持文档内锚点跳转
-function slugify(text: string): string {
+export function slugify(text: string): string {
   return text
     .toLowerCase()
     .trim()

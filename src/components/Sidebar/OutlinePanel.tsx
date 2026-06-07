@@ -29,7 +29,7 @@ function OutlinePanel() {
     setOutlineItems(items)
   }, [editorContent, setOutlineItems])
 
-  const handleJump = useCallback((from: number, text: string, idx: number) => {
+  const handleJump = useCallback((from: number, _text: string, _idx: number, slug: string) => {
     const view = getActiveView()
     if (!view) return
     const pos = Math.min(from, view.state.doc.length)
@@ -40,17 +40,10 @@ function OutlinePanel() {
       selection: { anchor: pos },
     })
 
-    // 预览区跳转
+    // 预览区跳转：通过 slug/id 精准定位
     const previewEl = document.querySelector('.preview-pane')
     if (previewEl) {
-      const headings = previewEl.querySelectorAll('h1, h2, h3, h4, h5, h6')
-      let target = headings[idx] as HTMLElement | undefined
-      // 索引匹配失败时回退到文本匹配
-      if (!target) {
-        for (const h of headings) {
-          if (h.textContent?.trim() === text.trim()) { target = h as HTMLElement; break }
-        }
-      }
+      const target = previewEl.querySelector(`[id="${CSS.escape(slug)}"]`) as HTMLElement | null
       if (target) scrollPreviewToHeading(target)
     }
 
@@ -80,7 +73,7 @@ function OutlinePanel() {
             key={`${item.from}-${idx}`}
             className="outline-item"
             style={{ paddingLeft: getOutlineIndent(item.level) + 12 }}
-            onClick={() => handleJump(item.from, item.text, idx)}
+            onClick={() => handleJump(item.from, item.text, idx, item.slug)}
           >
             <span className={`outline-level h-${item.level}`}>H{item.level}</span>
             <span className="outline-text">{item.text}</span>

@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import type { FileTreeNode } from '../types/file-tree'
 import type { SearchResult } from '../types/search'
+import type { OutlineItem } from '../editor/outline-parser'
 
 export type SidebarTab = string
 
@@ -12,7 +13,7 @@ interface SidebarState {
   fileTree: FileTreeNode | null
   expandedPaths: Set<string>
   selectedPath: string | null
-  outlineItems: { level: number; text: string; from: number; to: number }[]
+  outlineItems: OutlineItem[]
   searchQuery: string
   searchResults: SearchResult[]
   isSearching: boolean
@@ -23,7 +24,7 @@ interface SidebarState {
   toggleExpand: (path: string) => void
   selectFile: (path: string | null) => void
   setExpandedPaths: (paths: string[]) => void
-  setOutlineItems: (items: { level: number; text: string; from: number; to: number }[]) => void
+  setOutlineItems: (items: OutlineItem[]) => void
   setSearchQuery: (q: string) => void
   setSearchResults: (results: SearchResult[]) => void
   setIsSearching: (v: boolean) => void
