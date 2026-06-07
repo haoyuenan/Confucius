@@ -17,11 +17,13 @@ import { getActiveView } from './editor/active-view'
 import * as bridge from './services/electron-bridge'
 import { loadSession, subscribeAutoSave } from './services/workspace-store'
 import { useTranslation, useI18nStore } from './i18n/i18n-store'
+import { DailyNoteButton } from './components/DailyNoteButton'
 
 function App() {
   const [settingsTab, setSettingsTab] = useState<SettingsTab | null>(null)
   const [showCommandPalette, setShowCommandPalette] = useState(false)
   const [commandPaletteMode, setCommandPaletteMode] = useState<'command' | 'file'>('command')
+
   const { t } = useTranslation()
   const sidebarVisible = useAppStore((s) => s.sidebarVisible)
 
@@ -29,6 +31,11 @@ function App() {
   const markTabSaved = useTabStore((s) => s.markTabSaved)
   const openFile = useTabStore((s) => s.openFile)
 
+  const handleDailyNote = useCallback(async () => {
+    const filePath = await bridge.knowledgeCreateDailyNote()
+    const file = await bridge.readFile(filePath)
+    openFile(file.filePath, file.content)
+  }, [openFile])
   const toggleSidebar = useAppStore((s) => s.toggleSidebar)
   const setMode = useEditorStore((s) => s.setMode)
   const toggleFocusMode = useEditorStore((s) => s.toggleFocusMode)
@@ -37,7 +44,7 @@ function App() {
 
   const setActiveTab = useSidebarStore((s) => s.setActiveTab)
 
-  // Ctrl+E 打开命令面板 / Ctrl+O 快速打开
+  // Ctrl+E 命令面板 / Ctrl+O 快速打开 / Ctrl+Shift+D 今日笔记
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key === 'e') {
@@ -48,6 +55,9 @@ function App() {
         e.preventDefault()
         setCommandPaletteMode('file')
         setShowCommandPalette(true)
+      } else if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'D') {
+        e.preventDefault()
+        handleDailyNote()
       }
     }
     window.addEventListener('keydown', handler)
@@ -337,6 +347,7 @@ function App() {
         </div>
         {/* 工具栏 — 占满剩余空间，右对齐 */}
         <div className="titlebar-tools">
+          <DailyNoteButton />
           <button className="toolbar-btn" onClick={handleNewFile} title={t('app.toolbar.new')}>📄 {t('app.toolbar.newLabel')}</button>
            <button className="toolbar-btn" onClick={handleOpenFile} title={t('app.toolbar.open')}>📂 {t('app.toolbar.openLabel')}</button>
           <button className="toolbar-btn" onClick={() => { toggleSidebar() }} title={t('app.toolbar.sidebar')}>📑 {t('app.toolbar.sidebarLabel')}</button>
