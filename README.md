@@ -1,6 +1,6 @@
 # Confucius
 
-> 本地 Markdown 编辑器 — Electron + React + CodeMirror 6 构建，支持插件扩展
+> 本地 Markdown 知识库编辑器 — Electron + React + CodeMirror 6 构建，支持双向链接、知识图谱与插件扩展
 
 [English](./README_EN.md)
 
@@ -17,12 +17,20 @@
 - **即时渲染模式** (WYSIWYG)：对标题、加粗/斜体/删除线、行内代码、无序列表、引用隐藏语法标记，光标附近恢复显示
 - **纯预览模式**：全屏阅读，居中布局（`Ctrl+Shift+O`）
 
+### 知识库
+- **双向链接**：`[[笔记标题]]` 自动补全与语法高亮，Ctrl+点击跳转
+- **反链面板**：侧边栏查看当前笔记的被引用列表，含未提及的潜在引用
+- **标签系统**：行内 `#tag` + YAML frontmatter 标签，层级标签面板浏览
+- **全局知识图谱**：D3.js 力导向图，支持全局/局部模式、拖拽、缩放、点击跳转
+- **快速打开**：`Ctrl+O` 模糊搜索文件名和标题
+- **Daily Notes**：一键创建今日笔记，按 `日记/YYYY/MM/YYYY-MM-DD.md` 归档，自动填充 frontmatter
+
 ### 编辑器
 - **格式化工具栏**：撤销/重做、标题、加粗/斜体/删除线、引用/代码块/列表、链接/图片/分割线/公式/表格、专注/打字机模式
 - **表格插入**：工具栏「⊞ 表格」按钮，弹窗选择行列数，自动生成对齐的 Markdown 表格模板
 - **CodeMirror 6 内核**：高性能文本编辑，Markdown 语法高亮
 - **查找替换**：`Ctrl+F` 搜索，`Ctrl+Shift+F` 替换，F3 跳转下一处，选中词自动高亮所有匹配
-- **代码高亮**：支持 190+ 语言（highlight.js）
+- **代码高亮**：支持 33 种常用语言（highlight.js），未注册语言自动降级检测
 - **数学公式**：KaTeX 渲染 `$...$` 行内公式和 `$$...$$` 块级公式
 - **图表支持**：Mermaid 流程图、时序图、甘特图等
 - **GFM 兼容**：任务列表、表格等
@@ -35,9 +43,9 @@
 ### 文件管理
 - **欢迎屏（零状态）**：首次启动时显示带文化气质的欢迎画面，含「打开文件夹」和「新建笔记」快捷入口
 - **最近文件**：自动记录最近打开的文件（最多 10 条），欢迎屏一键重新打开
-- **快捷工具栏**：新建、打开、切换侧边栏、搜索、主题切换、导出、编辑/预览模式、设置
+- **快捷工具栏**：新建、打开、今日笔记、切换侧边栏、搜索、主题切换、导出、编辑/预览模式、设置
 - **文件树侧边栏**：浏览和打开文件夹内的 Markdown 文件
-- **大纲面板**：自动提取标题结构，点击跳转编辑器和预览区
+- **大纲面板**：自动提取标题结构，点击跳转编辑器和预览区（通过标题 slug 精准定位）
 - **全局搜索**：跨文件全文搜索，防抖 300ms，并行读取
 - **文件操作**：新建、打开、保存、另存为、**自动保存**（每 5 秒自动保存未保存的修改）
 - **侧边栏右键菜单**：新建文件/目录、重命名、删除
@@ -55,7 +63,7 @@
 - **侧边栏纸张纹理**：暖色主题下侧边栏叠加 CSS 生成的细腻颗粒感
 
 ### 导出
-- **HTML 导出**：生成独立 HTML 文件
+- **HTML 导出**：生成独立 HTML 文件，`[[链接]]` 转为超链接
 - **PDF 导出**：通过 Electron printToPDF 生成 A4 文档
 
 ### 状态栏 & 插件
@@ -84,7 +92,7 @@
 | 快捷键 | 功能 |
 |--------|------|
 | `Ctrl+N` | 新建文件 |
-| `Ctrl+O` | 打开文件 |
+| `Ctrl+O` | 快速打开/搜索笔记 |
 | `Ctrl+S` | 保存文件 |
 | `Ctrl+Shift+S` | 另存为 |
 | `Ctrl+F` | 文档内查找 |
@@ -93,6 +101,8 @@
 | `Ctrl+\` | 切换侧边栏 |
 | `Ctrl+Shift+P` | 切换编辑模式 (split ↔ wysiwyg) |
 | `Ctrl+Shift+O` | 切换预览模式 |
+| `Ctrl+Shift+D` | 创建/打开今日笔记 |
+| `Ctrl+Shift+G` | 打开知识图谱 |
 | `Ctrl+Shift+I` | 插件管理（设置 → 插件） |
 | `F11` | 专注模式 |
 | `F12` | 打字机模式 |
@@ -119,7 +129,7 @@ npm run dev
 # 类型检查
 npm run typecheck
 
-# 运行单元/集成测试（141 tests）
+# 运行单元/集成测试（159 tests）
 npm test
 
 # 运行 E2E 测试（需先构建）
@@ -144,9 +154,10 @@ npm run pack:linux  # Linux .AppImage
 | 构建工具 | Vite 5 + vite-plugin-electron |
 | 编辑器内核 | CodeMirror 6 |
 | Markdown 解析 | markdown-it + markdown-it-texmath |
-| 代码高亮 | highlight.js |
+| 代码高亮 | highlight.js（33 种常用语言） |
 | 数学公式 | KaTeX |
 | 图表渲染 | Mermaid |
+| 知识图谱 | D3.js (d3-force) |
 | 状态管理 | Zustand |
 | 沙箱安全 | DOMPurify |
 | DOM 增量 | morphdom |
@@ -165,8 +176,9 @@ confucius/
 │   └── services/
 │       ├── file-service.ts         # 文件读写（路径安全校验）
 │       ├── file-watcher.ts         # 文件变更监听
-│       ├── export-service.ts       # HTML/PDF 导出
+│       ├── export-service.ts       # HTML/PDF 导出（含 wikilink 解析）
 │       ├── search-service.ts       # 并行全文搜索
+│       ├── knowledge-service.ts    # 知识库索引引擎（链接/标签/文件名索引）
 │       ├── scanner-service.ts      # 插件目录扫描
 │       └── encoding-detector.ts    # 编码自动检测
 │
@@ -178,14 +190,17 @@ confucius/
 │   │   ├── zh.json                 # 中文翻译键值对（~200 键）
 │   │   └── en.json                 # 英文翻译键值对（~200 键）
 │   ├── components/
-│   │   ├── CommandPalette/         # 命令面板 (Ctrl+E)
+│   │   ├── CommandPalette/         # 命令面板 (Ctrl+E) + 快速打开 (Ctrl+O)
 │   │   ├── Editor/                 # 编辑器组件
 │   │   ├── Preview/                # 预览组件
 │   │   ├── Sidebar/
 │   │   │   ├── Sidebar.tsx         # VS Code 风格图标栏容器
 │   │   │   ├── FileTreePanel.tsx   # 文件树（含欢迎屏 + 最近文件）
-│   │   │   ├── OutlinePanel.tsx    # 大纲
-│   │   │   └── SearchPanel.tsx     # 全局搜索
+│   │   │   ├── OutlinePanel.tsx    # 大纲（通过 slug 定位预览标题）
+│   │   │   ├── SearchPanel.tsx     # 全局搜索
+│   │   │   ├── BacklinksPanel.tsx  # 反链面板（知识库）
+│   │   │   ├── TagPanel.tsx        # 标签面板（知识库）
+│   │   │   └── GraphView.tsx       # 知识图谱（知识库）
 │   │   └── Settings/               # 设置面板
 │   ├── engine/                     # 插件引擎
 │   ├── services/
@@ -195,21 +210,20 @@ confucius/
 │   │   ├── recent-files.ts         # 最近文件（localStorage）
 │   │   └── electron-bridge.ts      # IPC 调用封装
 │   ├── stores/                     # Zustand 状态（6 个 Store）
+│   │   ├── app-store.ts            # 应用信息、侧边栏状态
+│   │   ├── editor-store.ts         # 编辑器模式、内容、加载状态
+│   │   ├── sidebar-store.ts        # 侧边栏面板、文件树、大纲、搜索结果
+│   │   ├── tab-store.ts            # 标签页管理
+│   │   ├── knowledge-store.ts      # 知识库数据（反链、图谱、标签、搜索）
+│   │   └── plugin-store.ts         # 插件状态
+│   ├── editor/
+│   │   ├── cm6-setup.ts            # CM6 扩展组合
+│   │   ├── wikilinks-plugin.ts     # [[ 自动补全 + 语法高亮 + Ctrl+点击跳转
+│   │   ├── tags-plugin.ts          # # 自动补全
+│   │   └── ...                     # 其他编辑器工具
 │   └── styles/                     # CSS 样式
 │
 ├── themes/                         # 主题 CSS 变量（12 套）
-│   ├── plain-white.css             # 浅色·素白纸
-│   ├── warm-sun.css                # 浅色·暖阳
-│   ├── cloud.css                   # 浅色·云白
-│   ├── mint.css                    # 浅色·薄荷
-│   ├── tokyo-night-light.css       # 浅色·东京夜白
-│   ├── rose-pine-dawn.css          # 浅色·玫瑰黎明
-│   ├── night-black.css             # 深色·暗夜黑
-│   ├── deep-sea.css                # 深色·深海
-│   ├── warm-gray.css               # 深色·暖灰
-│   ├── mo-zhu.css                  # 深色·墨竹
-│   ├── tokyo-night.css             # 深色·东京夜
-│   └── rose-pine.css               # 深色·玫瑰松
 │
 ├── plugins/                        # 插件目录
 │   ├── builtins/doc-templates/     # 文档模板插件
@@ -217,14 +231,9 @@ confucius/
 │   ├── doc-stats/                  # 文档统计（示例）
 │   └── writing-aid/                # 写作辅助（示例）
 │
-├── build/icons/                    # 应用图标
-│   ├── icon.svg                    # 矢量源文件（M↓ 设计）
-│   ├── png/                        # 多尺寸 PNG（16~1024px）
-│   └── win/icon.ico                # Windows 图标
-│
-├── test/                           # 测试（118 单元/集成 + 14 E2E）
+├── test/                           # 测试（159 单元/集成 + E2E）
 ├── docs/                           # 设计文档 & 截图
-├── scripts/generate-icons.js       # 图标生成脚本
+├── build/                          # 应用图标
 ├── package.json
 ├── vite.config.mts
 └── electron-builder.yml
@@ -232,21 +241,8 @@ confucius/
 
 ## 开发状态
 
-核心功能已全部实现并稳定。v0.2.0 新增：文档内查找替换、粘贴 URL 自动转链接、粘贴/拖拽图片、自动保存、状态栏增强、表格插入辅助、主题体系扩展至 12 套、插件管理集成到设置面板。v0.3.0 新增：命令面板 (Ctrl+E)、工作区会话恢复、完整中英双语国际化（实时切换）。共 141 单元测试通过，CI/CD 三平台打包就绪。
-
-## 未来展望
-
-- **AI 写作助手**：接入本地或云端 LLM，提供续写、润色、摘要等能力，以插件形式集成，不侵入核心
-- **协同编辑**：基于 CRDT（如 Yjs）实现多人实时协作，共享同一文档的编辑状态
-- **版本历史**：为每个文件维护本地 Git 式快照，支持对比差异和一键回滚
-- **云同步**：可选对接 WebDAV / S3 / iCloud，实现多设备文档同步
-- **移动端**：探索 Tauri v2 或 React Native 方案，将编辑体验延伸至 iOS / Android
-- **插件市场**：构建插件发布、搜索、一键安装的生态入口
-- **自定义主题编辑器**：在设置面板内实时调色、导出主题 CSS，降低主题创作门槛
-- **无障碍（a11y）**：ARIA 属性、键盘导航增强、高对比度主题
-- **拼写检查**：集成 nspell / hunspell 本地拼写检查
+核心功能已全部实现并稳定。v0.4.0 新增**知识库系统**：双向链接 (`[[wikilinks]]`) 自动补全与语法高亮、反链面板、标签系统（行内 + frontmatter）、每日笔记快速创建、全局知识图谱图谱（D3.js force layout）、快速打开 (Ctrl+O)。共 159 单元测试通过，CI/CD 三平台打包就绪。
 
 ## License
 
 MIT
-
