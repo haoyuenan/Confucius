@@ -8,6 +8,7 @@ import OutlinePanel from './OutlinePanel'
 import SearchPanel from './SearchPanel'
 import { BacklinksPanel } from './BacklinksPanel'
 import { TagPanel } from './TagPanel'
+import { GraphView } from './GraphView'
 
 /** SVG 图标集 */
 function TabIcon({ name, size = 20 }: { name: string; size?: number }) {
@@ -108,7 +109,7 @@ function Sidebar() {
           {activeTab === 'search' && <SearchPanel />}
           {activeTab === 'backlinks' && <BacklinksPanel />}
           {activeTab === 'tags' && <TagPanel />}
-          {activeTab === 'graph' && <span className="sidebar-hint">图谱即将到来</span>}
+          {activeTab === 'graph' && <GraphView />}
           {activePluginTab && <PluginTabPanel tab={activePluginTab} />}
         </div>
       </div>
