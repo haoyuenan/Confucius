@@ -25,6 +25,7 @@ mac:
 linux:
   target: AppImage
   icon: build/icons/png
+afterPack: scripts/cleanup-locales.js
 nsis:
   oneClick: false
   allowToChangeInstallationDirectory: true
