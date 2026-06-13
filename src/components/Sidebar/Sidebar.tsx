@@ -1,8 +1,5 @@
-import { useRef, useEffect } from 'react'
 import { useSidebarStore } from '../../stores/sidebar-store'
-import { usePluginStore } from '../../stores/plugin-store'
 import { useI18nStore } from '../../i18n/i18n-store'
-import type { SidebarTabDef } from '../../types/plugin'
 import FileTreePanel from './FileTreePanel'
 import OutlinePanel from './OutlinePanel'
 import SearchPanel from './SearchPanel'
@@ -21,10 +18,7 @@ function TabIcon({ name, size = 20 }: { name: string; size?: number }) {
     graph: 'M12 2l9 5v10l-9 5-9-5V7l9-5z',
   }
   const d = icons[name]
-  if (!d) {
-    // 插件自定义 icon（emoji 或文字）
-    return <span className="sidebar-icon-emoji">{name}</span>
-  }
+  if (!d) return null
   const isStroke = name === 'outline' || name === 'search' || name === 'backlinks' || name === 'tags' || name === 'graph'
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -35,33 +29,12 @@ function TabIcon({ name, size = 20 }: { name: string; size?: number }) {
   )
 }
 
-/** 将插件 render() 返回的 HTMLElement 挂载到 React 容器 */
-function PluginTabPanel({ tab }: { tab: SidebarTabDef }) {
-  const containerRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    const container = containerRef.current
-    if (!container) return
-    if (tab.render) {
-      const el = tab.render()
-      container.appendChild(el)
-      return () => { container.innerHTML = '' }
-    }
-  }, [tab])
-
-  if (tab.component) {
-    return <>{tab.component}</>
-  }
-  return <div ref={containerRef} className="plugin-tab-panel" />
-}
-
 function Sidebar() {
   const activeTab = useSidebarStore((s) => s.activeTab)
   const setActiveTab = useSidebarStore((s) => s.setActiveTab)
-  const pluginTabs = usePluginStore((s) => s.sidebarTabs)
   const t = useI18nStore((s) => s.t)
 
-  const builtinTabs: { id: string; label: string; icon: string }[] = [
+  const allTabs = [
     { id: 'file-tree', label: t('sidebar.tab.files'), icon: 'files' },
     { id: 'outline', label: t('sidebar.tab.outline'), icon: 'outline' },
     { id: 'search', label: t('sidebar.tab.search'), icon: 'search' },
@@ -69,19 +42,6 @@ function Sidebar() {
     { id: 'tags', label: '标签', icon: 'tags' },
     { id: 'graph', label: '图谱', icon: 'graph' },
   ]
-
-  const allTabs = [
-    ...builtinTabs,
-    ...pluginTabs.map((pt) => ({
-      id: pt.id,
-      label: pt.id === 'doc-templates' ? t('plugin.name.docTemplates')
-        : pt.id === 'code-runner' ? t('plugin.name.codeRunner')
-        : pt.label,
-      icon: pt.icon || '🧩',
-    })),
-  ]
-
-  const activePluginTab = pluginTabs.find((pt) => pt.id === activeTab)
 
   return (
     <div className="sidebar-container">
@@ -110,7 +70,6 @@ function Sidebar() {
           {activeTab === 'backlinks' && <BacklinksPanel />}
           {activeTab === 'tags' && <TagPanel />}
           {activeTab === 'graph' && <GraphView />}
-          {activePluginTab && <PluginTabPanel tab={activePluginTab} />}
         </div>
       </div>
     </div>

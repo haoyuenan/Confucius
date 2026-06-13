@@ -197,6 +197,7 @@
   "settings.plugin.permissions": "Permissions",
   "settings.plugin.path": "Path",
   "settings.plugin.dependencies": "Dependencies",
+  "settings.plugin.removed": "Plugin system has been removed",
   "settings.about.title": "About Confucius",
   "settings.about.tagline": "Local Markdown Editor — Clean, Fast, Extensible",
   "settings.about.features": "Features",

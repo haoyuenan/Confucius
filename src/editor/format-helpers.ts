@@ -176,8 +176,8 @@ export function wrapSelectionAsLink(view: EditorView, url: string): boolean {
 export function insertImageFromPath(view: EditorView, filePath: string, fileName: string): void {
   const { from } = view.state.selection.main
   const alt = fileName.replace(/\.[^.]+$/, '')
-  const encodedPath = filePath.replace(/\\/g, '/').split('/').map(seg => encodeURIComponent(seg)).join('/')
-  const markdown = `![${alt}](local-asset:///${encodedPath})`
+  const normalizedPath = filePath.replace(/\\/g, '/')
+  const markdown = `![${alt}](${normalizedPath})`
   view.dispatch({
     changes: { from, insert: markdown },
     selection: { anchor: from + markdown.length },

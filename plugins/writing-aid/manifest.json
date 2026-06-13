@@ -1,8 +1,0 @@
-{
-  "id": "writing-aid",
-  "name": "写作助手",
-  "version": "1.0.0",
-  "description": "显示当前章节定位、待办进度、本次写作增量",
-  "author": "Confucius Plugins",
-  "entry": "index.js"
-}

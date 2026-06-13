@@ -1,21 +1,14 @@
 import { useEffect, useState } from 'react'
-import { usePluginStore } from '../../stores/plugin-store'
 import { useTabStore } from '../../stores/tab-store'
 import { useTranslation } from '../../i18n/i18n-store'
 import { getActiveView } from '../../editor/active-view'
 
-function resolveLabel(label: string | (() => string) | undefined): string {
-  if (typeof label === 'function') return label()
-  return label ?? ''
-}
-
 function StatusBar() {
   const { t } = useTranslation()
-  const pluginItems = usePluginStore((s) => s.statusBarItems)
   const activeTab = useTabStore((s) => s.activeTab())
   const [, setTick] = useState(0)
 
-  // 每 500ms 刷新光标位置和插件动态标签
+  // 每 500ms 刷新光标位置
   useEffect(() => {
     const id = setInterval(() => setTick((t) => t + 1), 500)
     return () => clearInterval(id)
@@ -39,8 +32,6 @@ function StatusBar() {
   const sel = view?.state.selection.main
   const selLen = sel && !sel.empty ? view!.state.sliceDoc(sel.from, sel.to).length : 0
 
-  const sorted = pluginItems.slice().sort((a, b) => b.priority - a.priority)
-
   return (
     <div className="status-bar">
       <div className="status-left">
@@ -57,11 +48,6 @@ function StatusBar() {
         {charCount > 0 && (
           <span className="status-item">{cursorLine}:{cursorCol}</span>
         )}
-        {sorted.map((item) => (
-          <span key={item.id} className="status-item">
-            {item.component ?? resolveLabel(item.label)}
-          </span>
-        ))}
       </div>
     </div>
   )

@@ -4,7 +4,6 @@ import {
   getBuiltinCommands, getRecentCommands, searchCommands,
   mergeAllCommands, saveRecent,
 } from '../../services/command-registry'
-import { usePluginStore } from '../../stores/plugin-store'
 import { useKnowledgeStore } from '../../stores/knowledge-store'
 import { useTabStore } from '../../stores/tab-store'
 import { useTranslation } from '../../i18n/i18n-store'
@@ -42,13 +41,12 @@ export default function CommandPalette({ context, onClose, initialMode = 'comman
   const inputRef = useRef<HTMLInputElement>(null)
   const listRef = useRef<HTMLDivElement>(null)
   const { t } = useTranslation()
-  const pluginCommands = usePluginStore((s) => s.commands)
   const { searchResults, searchFiles } = useKnowledgeStore()
   const openFile = useTabStore((s) => s.openFile)
 
   useEffect(() => { inputRef.current?.focus() }, [])
 
-  const all = mergeAllCommands(getBuiltinCommands(context), pluginCommands)
+  const all = mergeAllCommands(getBuiltinCommands(context))
   const recent = getRecentCommands(all)
   const recentIds = new Set(recent.map((c) => c.id))
   const filtered = searchCommands(all, query)

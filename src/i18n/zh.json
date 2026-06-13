@@ -197,6 +197,7 @@
   "settings.plugin.permissions": "权限",
   "settings.plugin.path": "路径",
   "settings.plugin.dependencies": "依赖",
+  "settings.plugin.removed": "插件系统已移除",
   "settings.about.title": "关于 Confucius",
   "settings.about.tagline": "本地 Markdown 编辑器 — 简洁、快速、可扩展",
   "settings.about.features": "功能特性",

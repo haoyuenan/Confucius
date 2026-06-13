@@ -10,6 +10,7 @@ test-results/
 .superpowers/
 .codegraph/
 .reasonix/
+target/
 *.log
 .DS_Store
 Thumbs.db

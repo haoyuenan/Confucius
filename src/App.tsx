@@ -8,9 +8,6 @@ import EditorLayout from './components/Editor/EditorLayout'
 import StatusBar from './components/Editor/StatusBar'
 import { themeService, getThemeDef, getThemesByMode, type ThemeId } from './services/theme-service'
 import { checkLargeFile } from './editor/large-file-handler'
-import { PluginEngine } from './engine/PluginEngine'
-import { HostAPIBridgeImpl } from './engine/HostAPIBridge'
-import { StatusBarPlugin } from './plugins/builtins/status-bar-info'
 import SettingsDialog, { type SettingsTab, THEME_SWATCHES } from './components/Settings/SettingsDialog'
 import CommandPalette from './components/CommandPalette/CommandPalette'
 import { getActiveView } from './editor/active-view'
@@ -150,24 +147,6 @@ function App() {
   useEffect(() => {
     const hidden = localStorage.getItem('confucius-hide-menu') !== 'false'
     bridge.setMenuVisible(!hidden).catch(() => {})
-  }, [])
-
-  // 初始化插件引擎（防止 StrictMode / HMR 重复初始化）
-  useEffect(() => {
-    const w = window as { __pluginEngine?: PluginEngine }
-    if (w.__pluginEngine) return
-
-    const engine = new PluginEngine({
-      bridge: new HostAPIBridgeImpl(),
-      builtinDir: 'plugins/builtins',
-      builtinPlugins: {
-        'builtin:status-bar': new StatusBarPlugin(),
-      },
-    })
-    engine.start().catch((err) => {
-      console.error('[App] Plugin engine start failed:', err)
-    })
-    w.__pluginEngine = engine
   }, [])
 
   const handleSaveFile = useCallback(async () => {

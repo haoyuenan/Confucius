@@ -3,6 +3,8 @@ import { EditorView } from 'codemirror'
 import { renderMarkdown } from '../../editor/markdown-renderer'
 import { initMermaid, renderMermaidDiagrams } from '../../editor/mermaid-renderer'
 import { themeService } from '../../services/theme-service'
+import { open as shellOpen } from '@tauri-apps/plugin-shell'
+import { convertFileSrc } from '@tauri-apps/api/core'
 import { updatePreviewContent } from '../../utils/dom-diff'
 import { useSidebarStore } from '../../stores/sidebar-store'
 import { useEditorStore } from '../../stores/editor-store'
@@ -62,7 +64,7 @@ function PreviewPane({ content }: PreviewPaneProps) {
         const href = anchor.getAttribute('href')
         if (!href) return
         if (/^https?:\/\//i.test(href)) {
-          window.electronAPI.openExternal(href)
+          shellOpen(href)
         } else if (href.startsWith('#')) {
           // 锚点跳转：滚动到预览区内对应 id 元素
           const targetId = decodeURIComponent(href.slice(1))
@@ -132,17 +134,13 @@ function PreviewPane({ content }: PreviewPaneProps) {
       imgs.forEach((img) => {
         const src = img.getAttribute('src')
         if (!src) return
-        // 跳过已有协议的 URL（http/https/data/local-asset）
-        if (/^(?:https?|data|local-asset):/.test(src)) return
-        // 相对路径 → 绝对路径
+        // 相对路径 → 绝对路径 → convertFileSrc 转换
         const normalized = src.replace(/\\/g, '/')
         const dirNorm = dirPath.replace(/\\/g, '/')
         const absPath = normalized.startsWith('/')
           ? normalized
           : dirNorm + '/' + normalized
-        // 编码路径中的空格等特殊字符，但保留 / 和 :
-        const encoded = absPath.split('/').map((seg) => encodeURIComponent(seg)).join('/')
-        img.setAttribute('src', 'local-asset:///' + encoded.replace(/^\/*/, ''))
+        img.setAttribute('src', convertFileSrc(absPath))
       })
     }
 
