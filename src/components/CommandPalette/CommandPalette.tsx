@@ -148,7 +148,7 @@ export default function CommandPalette({ context, onClose, initialMode = 'comman
             ref={inputRef}
             className={styles.searchInput}
             type="text"
-            placeholder={mode === 'file' ? '搜索笔记...' : t('commandPalette.placeholder')}
+            placeholder={mode === 'file' ? t('commandPalette.placeholderFile') : t('commandPalette.placeholder')}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
@@ -158,7 +158,7 @@ export default function CommandPalette({ context, onClose, initialMode = 'comman
           {mode === 'file' ? (
             searchResults.length === 0 ? (
               <div className={styles.emptyState}>
-                {query.trim() ? `未找到 "${query}"` : '输入文件名搜索'}
+                {query.trim() ? t('commandPalette.noMatchFile', { query }) : t('commandPalette.emptyFile')}
               </div>
             ) : (
               <div>
@@ -217,7 +217,7 @@ export default function CommandPalette({ context, onClose, initialMode = 'comman
           <span><kbd>↑↓</kbd> {t('commandPalette.footer.nav')}</span>
           <span><kbd>Enter</kbd> {t('commandPalette.footer.exec')}</span>
           <span><kbd>Esc</kbd> {t('commandPalette.footer.close')}</span>
-          <span style={{ marginLeft: 'auto' }}>{mode === 'file' ? '📄 文件模式' : '@ 命令筛选'}</span>
+          <span style={{ marginLeft: 'auto' }}>{mode === 'file' ? t('commandPalette.modeFile') : t('commandPalette.modeFilter')}</span>
         </div>
       </div>
     </div>

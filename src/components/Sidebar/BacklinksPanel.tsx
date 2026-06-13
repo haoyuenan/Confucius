@@ -2,8 +2,10 @@ import { useEffect, useCallback } from 'react'
 import { useKnowledgeStore } from '../../stores/knowledge-store'
 import { useTabStore } from '../../stores/tab-store'
 import * as bridge from '../../services/electron-bridge'
+import { useTranslation } from '../../i18n/i18n-store'
 
 export function BacklinksPanel() {
+  const { t } = useTranslation()
   const activeTab = useTabStore(s => s.activeTab())
   const openFile = useTabStore(s => s.openFile)
   const { backlinks, unlinkedMentions, loadBacklinks } = useKnowledgeStore()
@@ -24,19 +26,19 @@ export function BacklinksPanel() {
   }, [openFile])
 
   if (!activeTab?.filePath) {
-    return <div className="sidebar-panel-empty sidebar-hint">打开笔记查看反链</div>
+    return <div className="sidebar-panel-empty sidebar-hint">{t('sidebar.backlinks.emptyNoFile')}</div>
   }
 
   return (
     <div className="sidebar-panel backlinks-panel">
       {backlinks.length === 0 && unlinkedMentions.length === 0 ? (
-        <div className="sidebar-hint">无反向链接</div>
+        <div className="sidebar-hint">{t('sidebar.backlinks.empty')}</div>
       ) : (
         <>
           {backlinks.length > 0 && (
             <div className="sidebar-section">
               <div className="sidebar-section-title">
-                被引用 <span className="sidebar-count">{backlinks.length}</span>
+                {t('sidebar.backlinks.refBy')} <span className="sidebar-count">{backlinks.length}</span>
               </div>
               <ul className="sidebar-file-list">
                 {backlinks.map((link, i) => (
@@ -50,7 +52,7 @@ export function BacklinksPanel() {
           {unlinkedMentions.length > 0 && (
             <div className="sidebar-section">
               <div className="sidebar-section-title">
-                潜在引用 <span className="sidebar-count">{unlinkedMentions.length}</span>
+                {t('sidebar.backlinks.potential')} <span className="sidebar-count">{unlinkedMentions.length}</span>
               </div>
               <ul className="sidebar-file-list">
                 {unlinkedMentions.map((mention, i) => (

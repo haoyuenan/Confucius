@@ -48,11 +48,13 @@ export function saveFileDialog(): Promise<string | null> {
 /** 确认保存对话框 */
 export async function confirmSave(): Promise<0 | 1 | 2> {
   const { ask } = await import('@tauri-apps/plugin-dialog')
-  const result = await ask('当前文件尚未保存，是否保存？', {
-    title: '确认保存',
+  const { useI18nStore } = await import('../i18n/i18n-store')
+  const t = useI18nStore.getState().t
+  const result = await ask(t('dialog.confirmSave.message'), {
+    title: t('dialog.confirmSave.title'),
     kind: 'warning',
-    okLabel: '保存',
-    cancelLabel: '不保存',
+    okLabel: t('dialog.confirmSave.ok'),
+    cancelLabel: t('dialog.confirmSave.cancel'),
   })
   return result ? 0 : 1
 }

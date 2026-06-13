@@ -301,7 +301,7 @@ function SettingsDialog({ onClose, initialTab = 'general' }: Props) {
                   { keys: ['Ctrl', 'Y'], desc: t('settings.shortcuts.desc.redo') },
                   { keys: ['Ctrl', 'Shift', 'I'], desc: t('settings.shortcuts.desc.pluginManager') },
                   { keys: ['Esc'], desc: t('settings.shortcuts.desc.closeDialog') },
-                  { keys: ['Ctrl', '滚轮'], desc: t('settings.shortcuts.desc.previewZoom') },
+                  { keys: ['Ctrl', t('settings.shortcuts.key.scroll')], desc: t('settings.shortcuts.desc.previewZoom') },
                 ]} />
               </div>
             )}

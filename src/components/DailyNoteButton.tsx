@@ -1,8 +1,10 @@
 import { useCallback } from 'react'
 import { knowledgeCreateDailyNote, readFile } from '../services/electron-bridge'
 import { useTabStore } from '../stores/tab-store'
+import { useTranslation } from '../i18n/i18n-store'
 
 export function DailyNoteButton() {
+  const { t } = useTranslation()
   const openFile = useTabStore(s => s.openFile)
 
   const handleClick = useCallback(async () => {
@@ -12,8 +14,8 @@ export function DailyNoteButton() {
   }, [openFile])
 
   return (
-    <button className="toolbar-btn" onClick={handleClick} title="今日笔记 (Ctrl+Shift+D)">
-      📅 今日
+    <button className="toolbar-btn" onClick={handleClick} title={t('app.toolbar.dailyNoteTitle')}>
+      {t('app.toolbar.dailyNote')}
     </button>
   )
 }

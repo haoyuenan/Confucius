@@ -38,9 +38,9 @@ function Sidebar() {
     { id: 'file-tree', label: t('sidebar.tab.files'), icon: 'files' },
     { id: 'outline', label: t('sidebar.tab.outline'), icon: 'outline' },
     { id: 'search', label: t('sidebar.tab.search'), icon: 'search' },
-    { id: 'backlinks', label: '反链', icon: 'backlinks' },
-    { id: 'tags', label: '标签', icon: 'tags' },
-    { id: 'graph', label: '图谱', icon: 'graph' },
+    { id: 'backlinks', label: t('sidebar.tab.backlinks'), icon: 'backlinks' },
+    { id: 'tags', label: t('sidebar.tab.tags'), icon: 'tags' },
+    { id: 'graph', label: t('sidebar.tab.graph'), icon: 'graph' },
   ]
 
   return (
