@@ -1,37 +1,55 @@
 import '@testing-library/jest-dom'
+import { vi } from 'vitest'
 
-const createNoop = () => () => {}
-const createPromiseNoop = () => Promise.resolve()
+// Mock @tauri-apps/api/core's invoke() for all tests
+vi.mock('@tauri-apps/api/core', () => ({
+  invoke: vi.fn(async (cmd: string, _args?: Record<string, unknown>) => {
+    switch (cmd) {
+      case 'get_app_version':
+        return '0.5.1'
+      case 'read_file_utf8':
+        return '# Mock file content'
+      case 'write_file_utf8':
+        return undefined
+      case 'build_file_tree':
+        return { name: 'root', path: '/root', type: 'directory', children: [] }
+      case 'stat_file':
+        return { size: 0, modified: '0', is_dir: false }
+      case 'read_dir_entries':
+        return []
+      case 'search_text':
+        return []
+      case 'create_file':
+        return '/mock/file.md'
+      case 'create_dir':
+        return '/mock/dir'
+      case 'rename_item':
+        return undefined
+      case 'delete_item':
+        return undefined
+      case 'start_file_watcher':
+        return undefined
+      case 'stop_file_watcher':
+        return undefined
+      default:
+        throw new Error(`unmocked invoke: ${cmd}`)
+    }
+  }),
+}))
 
-const mockElectronAPI = {
-  getVersion: () => Promise.resolve('1.0.0'),
-  getEnv: () => Promise.resolve({ electron: '30.0.0', chrome: '120.0.0', node: '20.0.0', platform: 'win32', arch: 'x64' }),
-  openFileDialog: () => Promise.resolve(null),
-  saveFileDialog: () => Promise.resolve(null),
-  readFile: (_path: string) => Promise.resolve({ content: `# File: ${_path}`, filePath: _path }),
-  writeFile: createPromiseNoop,
-  confirmSave: () => Promise.resolve(1 as 0 | 1 | 2),
-  onMenuAction: () => createNoop() as () => void,
-  openFolderDialog: () => Promise.resolve(null),
-  buildFileTree: () => Promise.resolve({ name: 'root', path: '/root', type: 'directory' as const, children: [] }),
-  startFileWatcher: createPromiseNoop,
-  stopFileWatcher: createPromiseNoop,
-  onFileTreeChanged: () => createNoop() as () => void,
-  showSidebarContextMenu: createPromiseNoop,
-  onSidebarAction: () => createNoop() as () => void,
-  createFile: () => Promise.resolve(true),
-  createDir: () => Promise.resolve(true),
-  renameItem: createPromiseNoop,
-  deleteItem: createPromiseNoop,
-  revealInExplorer: createPromiseNoop,
-  searchQuery: () => Promise.resolve([]),
-  exportHtml: createPromiseNoop,
-  exportPdf: createPromiseNoop,
-  onExportDone: () => createNoop() as () => void,
-}
+// Mock @tauri-apps/api/event
+vi.mock('@tauri-apps/api/event', () => ({
+  listen: vi.fn(() => Promise.resolve(() => {})),
+}))
 
-// 保护 Node 环境（encoding-detector 等测试用 @vitest-environment node）
+// Mock @tauri-apps/plugin-dialog
+vi.mock('@tauri-apps/plugin-dialog', () => ({
+  open: vi.fn(() => Promise.resolve(null)),
+  save: vi.fn(() => Promise.resolve(null)),
+  ask: vi.fn(() => Promise.resolve(true)),
+}))
+
+// Export preview helper
 if (typeof window !== 'undefined') {
-  ;(window as any).electronAPI = mockElectronAPI
   ;(window as any).__exportPreviewHTML__ = () => ''
 }

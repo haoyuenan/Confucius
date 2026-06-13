@@ -8,9 +8,7 @@ import { useTranslation, useI18nStore } from '../../i18n/i18n-store'
 // ─── Types ───
 
 interface EnvInfo {
-  electron: string
-  chrome: string
-  node: string
+  tauri: string
   platform: string
   arch: string
 }
@@ -350,9 +348,7 @@ function SettingsDialog({ onClose, initialTab = 'general' }: Props) {
                     <h4 className="settings-section-subtitle">{t('settings.about.env')}</h4>
                     <div className="about-env-table">
                       <div className="env-row"><span className="env-label">{t('settings.about.platform')}</span><span className="env-value">{PLATFORM_LABELS[env.platform] ?? env.platform} ({env.arch})</span></div>
-                      <div className="env-row"><span className="env-label">Electron</span><span className="env-value">{env.electron}</span></div>
-                      <div className="env-row"><span className="env-label">Chrome</span><span className="env-value">{env.chrome}</span></div>
-                      <div className="env-row"><span className="env-label">Node.js</span><span className="env-value">{env.node}</span></div>
+                      <div className="env-row"><span className="env-label">Runtime</span><span className="env-value">Tauri v{env.tauri}</span></div>
                     </div>
                   </div>
                 )}

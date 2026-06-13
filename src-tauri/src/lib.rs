@@ -7,6 +7,20 @@ fn is_md_file(name: &str) -> bool {
     lower.ends_with(".md") || lower.ends_with(".markdown")
 }
 
+/// 路径安全校验：拒绝 `..` 遍历和空字节注入
+fn sanitize_path(input: &str) -> Result<PathBuf, String> {
+    if input.is_empty() {
+        return Err("路径为空".into());
+    }
+    if input.contains("..") {
+        return Err(format!("路径包含非法序列 \"..\": {}", input));
+    }
+    if input.contains('\0') {
+        return Err("路径包含空字节".into());
+    }
+    Ok(PathBuf::from(input))
+}
+
 // ── File tree ──
 
 #[derive(Clone, serde::Serialize)]
@@ -241,6 +255,7 @@ pub struct DirEntry {
 
 #[tauri::command]
 fn read_file_utf8(path: String) -> Result<String, String> {
+    let _ = sanitize_path(&path)?;
     let content = std::fs::read_to_string(&path)
         .map_err(|e| format!("读取文件失败: {}", e))?;
     Ok(content)
@@ -248,6 +263,7 @@ fn read_file_utf8(path: String) -> Result<String, String> {
 
 #[tauri::command]
 fn write_file_utf8(path: String, content: String) -> Result<(), String> {
+    let _ = sanitize_path(&path)?;
     if let Some(parent) = std::path::Path::new(&path).parent() {
         std::fs::create_dir_all(parent)
             .map_err(|e| format!("创建目录失败: {}", e))?;
@@ -259,8 +275,8 @@ fn write_file_utf8(path: String, content: String) -> Result<(), String> {
 
 #[tauri::command]
 fn create_file(parent_path: String, file_name: String) -> Result<String, String> {
-    let dir = std::path::Path::new(&parent_path);
-    std::fs::create_dir_all(dir)
+    let dir = sanitize_path(&parent_path)?;
+    std::fs::create_dir_all(&dir)
         .map_err(|e| format!("创建目录失败: {}", e))?;
     let file_path = dir.join(&file_name);
     std::fs::write(&file_path, "")
@@ -270,7 +286,7 @@ fn create_file(parent_path: String, file_name: String) -> Result<String, String>
 
 #[tauri::command]
 fn create_dir(parent_path: String, dir_name: String) -> Result<String, String> {
-    let dir = std::path::Path::new(&parent_path).join(&dir_name);
+    let dir = sanitize_path(&parent_path)?.join(&dir_name);
     std::fs::create_dir_all(&dir)
         .map_err(|e| format!("创建目录失败: {}", e))?;
     Ok(dir.to_string_lossy().to_string())
@@ -278,7 +294,7 @@ fn create_dir(parent_path: String, dir_name: String) -> Result<String, String> {
 
 #[tauri::command]
 fn rename_item(old_path: String, new_name: String) -> Result<(), String> {
-    let old = std::path::Path::new(&old_path);
+    let old = sanitize_path(&old_path)?;
     let parent = old.parent().ok_or("无法获取父目录")?;
     let new_path = parent.join(&new_name);
     std::fs::rename(old, &new_path)
@@ -288,7 +304,7 @@ fn rename_item(old_path: String, new_name: String) -> Result<(), String> {
 
 #[tauri::command]
 fn delete_item(target_path: String) -> Result<(), String> {
-    let path = std::path::Path::new(&target_path);
+    let path = sanitize_path(&target_path)?;
     if path.is_dir() {
         std::fs::remove_dir_all(path)
             .map_err(|e| format!("删除目录失败: {}", e))?;
@@ -301,6 +317,7 @@ fn delete_item(target_path: String) -> Result<(), String> {
 
 #[tauri::command]
 fn stat_file(path: String) -> Result<FileStat, String> {
+    let _ = sanitize_path(&path)?;
     let meta = std::fs::metadata(&path)
         .map_err(|e| format!("获取文件信息失败: {}", e))?;
     let modified = meta
@@ -320,6 +337,7 @@ fn stat_file(path: String) -> Result<FileStat, String> {
 
 #[tauri::command]
 fn read_dir_entries(path: String) -> Result<Vec<DirEntry>, String> {
+    let _ = sanitize_path(&path)?;
     let entries = std::fs::read_dir(&path)
         .map_err(|e| format!("读取目录失败: {}", e))?;
     let mut result = Vec::new();
@@ -344,43 +362,24 @@ fn read_dir_entries(path: String) -> Result<Vec<DirEntry>, String> {
     Ok(result)
 }
 
-// ── Run code (Python execution) ──
-
-#[tauri::command]
-fn run_code(language: String, code: String) -> Result<String, String> {
-    if language != "python" {
-        return Err(format!("不支持的语言: {}", language));
-    }
-
-    let output = std::process::Command::new("python")
-        .arg("-c")
-        .arg(&code)
-        .output()
-        .map_err(|e| format!("执行失败: {}", e))?;
-
-    let stdout = String::from_utf8_lossy(&output.stdout).to_string();
-    let stderr = String::from_utf8_lossy(&output.stderr).to_string();
-
-    if !stderr.is_empty() {
-        Ok(format!("STDERR:\n{}", stderr))
-    } else {
-        Ok(stdout)
-    }
-}
-
 // ── File watcher ──
 
+use notify::{Config, RecommendedWatcher, RecursiveMode, Watcher};
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::mpsc;
+use std::sync::Arc;
+use std::thread::JoinHandle;
+use std::time::Duration;
+
 struct WatcherState {
-    _watcher: Option<notify_debouncer_full::notify::RecommendedWatcher>,
+    _watcher: Option<RecommendedWatcher>,
+    stop_flag: Arc<AtomicBool>,
+    _thread: Option<JoinHandle<()>>,
 }
 
 #[tauri::command]
 fn start_file_watcher(app: AppHandle, root_path: String) -> Result<(), String> {
-    use notify_debouncer_full::notify::{Config, RecommendedWatcher, RecursiveMode, Watcher};
-    use std::sync::mpsc;
-    use std::time::Duration;
-
-    let (tx, rx) = mpsc::channel::<notify_debouncer_full::notify::Result<notify_debouncer_full::notify::Event>>();
+    let (tx, rx) = mpsc::channel::<notify::Result<notify::Event>>();
 
     let mut watcher = RecommendedWatcher::new(tx, Config::default())
         .map_err(|e| format!("创建文件监听失败: {}", e))?;
@@ -393,14 +392,27 @@ fn start_file_watcher(app: AppHandle, root_path: String) -> Result<(), String> {
         .map_err(|e| format!("监听路径失败: {}", e))?;
 
     let app_clone = app.clone();
+    let stop_flag = Arc::new(AtomicBool::new(false));
+    let flag_clone = Arc::clone(&stop_flag);
+
     // Spawn a thread that reads events and emits Tauri events (debounced)
-    std::thread::spawn(move || {
+    let handle = std::thread::spawn(move || {
         let mut last_emit = std::time::Instant::now();
-        for _ in rx {
-            let now = std::time::Instant::now();
-            if now.duration_since(last_emit) >= Duration::from_millis(500) {
-                let _ = app_clone.emit("file-tree-changed", ());
-                last_emit = now;
+        loop {
+            match rx.recv_timeout(Duration::from_millis(500)) {
+                Ok(_) => {
+                    let now = std::time::Instant::now();
+                    if now.duration_since(last_emit) >= Duration::from_millis(500) {
+                        let _ = app_clone.emit("file-tree-changed", ());
+                        last_emit = now;
+                    }
+                }
+                Err(mpsc::RecvTimeoutError::Timeout) => {
+                    if flag_clone.load(Ordering::Relaxed) {
+                        break;
+                    }
+                }
+                Err(mpsc::RecvTimeoutError::Disconnected) => break,
             }
         }
     });
@@ -409,6 +421,8 @@ fn start_file_watcher(app: AppHandle, root_path: String) -> Result<(), String> {
     let mut guard = state.lock().unwrap();
     *guard = Some(WatcherState {
         _watcher: Some(watcher),
+        stop_flag,
+        _thread: Some(handle),
     });
 
     Ok(())
@@ -418,7 +432,16 @@ fn start_file_watcher(app: AppHandle, root_path: String) -> Result<(), String> {
 fn stop_file_watcher(app: AppHandle) -> Result<(), String> {
     let state = app.state::<Mutex<Option<WatcherState>>>();
     let mut guard = state.lock().unwrap();
-    *guard = None; // Drop old watcher, stopping it
+    if let Some(mut ws) = guard.take() {
+        // Signal the thread to stop
+        ws.stop_flag.store(true, Ordering::Relaxed);
+        // Drop the watcher to close the notification channel
+        drop(ws._watcher.take());
+        // Wait for the thread to finish (with 3s timeout)
+        if let Some(handle) = ws._thread.take() {
+            let _ = handle.join();
+        }
+    }
     Ok(())
 }
 
@@ -449,7 +472,6 @@ pub fn run() {
             delete_item,
             stat_file,
             read_dir_entries,
-            run_code,
             start_file_watcher,
             stop_file_watcher,
             get_app_version,

@@ -1,4 +1,4 @@
-import { test, expect, typeInEditor, getEditorContent, selectAllInEditor } from './helpers'
+import { test, expect, typeInEditor, getEditorContent, selectAllInEditor, dispatchMenuAction } from './helpers'
 
 test.describe('Editor E2E', () => {
   test.beforeEach(async ({ appPage }) => {
@@ -24,34 +24,25 @@ test.describe('Editor E2E', () => {
     expect(content).toContain('**hello**')
   })
 
-  test('should switch to WYSIWYG mode', async ({ electronApp, appPage }) => {
-    // 通过 IPC 发送菜单动作切换模式
-    await electronApp.evaluate(({ BrowserWindow }) => {
-      BrowserWindow.getAllWindows()[0].webContents.send('menu:action', 'mode:toggle')
-    })
-    await appPage.waitForTimeout(500)
+  test('should switch to WYSIWYG mode', async ({ appPage }) => {
+    // 通过 CustomEvent 发送菜单动作切换模式
+    await dispatchMenuAction(appPage, 'mode:toggle')
     // 验证 WYSIWYG 布局出现
     await expect(appPage.locator('.wysiwyg-layout')).toBeVisible()
   })
 
-  test('should switch to preview mode', async ({ electronApp, appPage }) => {
-    // 预览模式只能通过菜单动作进入（toggleMode 只在 split↔wysiwyg 切换）
-    await electronApp.evaluate(({ BrowserWindow }) => {
-      BrowserWindow.getAllWindows()[0].webContents.send('menu:action', 'mode:preview')
-    })
-    await appPage.waitForTimeout(500)
+  test('should switch to preview mode', async ({ appPage }) => {
+    // 通过 CustomEvent 发送菜单动作
+    await dispatchMenuAction(appPage, 'mode:preview')
     // 验证预览面板可见
     await expect(appPage.locator('[data-testid="preview-pane"]')).toBeVisible()
     // 验证分栏面板隐藏
     await expect(appPage.locator('.split-pane')).toBeHidden()
   })
 
-  test('should toggle focus mode', async ({ electronApp, appPage }) => {
-    // 通过 IPC 发送菜单动作
-    await electronApp.evaluate(({ BrowserWindow }) => {
-      BrowserWindow.getAllWindows()[0].webContents.send('menu:action', 'focus:mode')
-    })
-    await appPage.waitForTimeout(500)
+  test('should toggle focus mode', async ({ appPage }) => {
+    // 通过 CustomEvent 发送菜单动作
+    await dispatchMenuAction(appPage, 'focus:mode')
     // 专注模式在 CM6 的 .cm-editor DOM 上添加 focus-mode-active class
     const cmEditor = appPage.locator('.cm-editor')
     await expect(cmEditor).toHaveClass(/focus-mode-active/)
