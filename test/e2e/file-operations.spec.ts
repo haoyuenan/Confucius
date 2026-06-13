@@ -1,4 +1,4 @@
-import { test, expect, typeInEditor } from './helpers'
+import { test, expect, typeInEditor, dispatchMenuAction } from './helpers'
 
 test.describe('File Operations E2E', () => {
   test('should create new untitled tab', async ({ appPage }) => {
@@ -46,14 +46,12 @@ test.describe('File Operations E2E', () => {
     expect(newTabCount).toBe(1)
   })
 
-  test('should create tab via menu action', async ({ electronApp, appPage }) => {
+  test('should create tab via menu action', async ({ appPage }) => {
     // 获取初始标签数量
     const initialTabCount = await appPage.locator('[data-testid="tab-item"]').count()
 
-    // 通过 IPC 发送 file:new 菜单动作
-    await electronApp.evaluate(({ BrowserWindow }) => {
-      BrowserWindow.getAllWindows()[0].webContents.send('menu:action', 'file:new')
-    })
+    // 通过 CustomEvent 发送 file:new 菜单动作
+    await dispatchMenuAction(appPage, 'file:new')
     await appPage.waitForTimeout(200)
 
     // 验证创建了新标签

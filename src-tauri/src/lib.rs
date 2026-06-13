@@ -364,17 +364,22 @@ fn read_dir_entries(path: String) -> Result<Vec<DirEntry>, String> {
 
 // ── File watcher ──
 
+use notify::{Config, RecommendedWatcher, RecursiveMode, Watcher};
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::mpsc;
+use std::sync::Arc;
+use std::thread::JoinHandle;
+use std::time::Duration;
+
 struct WatcherState {
-    _watcher: Option<notify_debouncer_full::notify::RecommendedWatcher>,
+    _watcher: Option<RecommendedWatcher>,
+    stop_flag: Arc<AtomicBool>,
+    _thread: Option<JoinHandle<()>>,
 }
 
 #[tauri::command]
 fn start_file_watcher(app: AppHandle, root_path: String) -> Result<(), String> {
-    use notify_debouncer_full::notify::{Config, RecommendedWatcher, RecursiveMode, Watcher};
-    use std::sync::mpsc;
-    use std::time::Duration;
-
-    let (tx, rx) = mpsc::channel::<notify_debouncer_full::notify::Result<notify_debouncer_full::notify::Event>>();
+    let (tx, rx) = mpsc::channel::<notify::Result<notify::Event>>();
 
     let mut watcher = RecommendedWatcher::new(tx, Config::default())
         .map_err(|e| format!("创建文件监听失败: {}", e))?;
@@ -387,14 +392,27 @@ fn start_file_watcher(app: AppHandle, root_path: String) -> Result<(), String> {
         .map_err(|e| format!("监听路径失败: {}", e))?;
 
     let app_clone = app.clone();
+    let stop_flag = Arc::new(AtomicBool::new(false));
+    let flag_clone = Arc::clone(&stop_flag);
+
     // Spawn a thread that reads events and emits Tauri events (debounced)
-    std::thread::spawn(move || {
+    let handle = std::thread::spawn(move || {
         let mut last_emit = std::time::Instant::now();
-        for _ in rx {
-            let now = std::time::Instant::now();
-            if now.duration_since(last_emit) >= Duration::from_millis(500) {
-                let _ = app_clone.emit("file-tree-changed", ());
-                last_emit = now;
+        loop {
+            match rx.recv_timeout(Duration::from_millis(500)) {
+                Ok(_) => {
+                    let now = std::time::Instant::now();
+                    if now.duration_since(last_emit) >= Duration::from_millis(500) {
+                        let _ = app_clone.emit("file-tree-changed", ());
+                        last_emit = now;
+                    }
+                }
+                Err(mpsc::RecvTimeoutError::Timeout) => {
+                    if flag_clone.load(Ordering::Relaxed) {
+                        break;
+                    }
+                }
+                Err(mpsc::RecvTimeoutError::Disconnected) => break,
             }
         }
     });
@@ -403,6 +421,8 @@ fn start_file_watcher(app: AppHandle, root_path: String) -> Result<(), String> {
     let mut guard = state.lock().unwrap();
     *guard = Some(WatcherState {
         _watcher: Some(watcher),
+        stop_flag,
+        _thread: Some(handle),
     });
 
     Ok(())
@@ -412,7 +432,16 @@ fn start_file_watcher(app: AppHandle, root_path: String) -> Result<(), String> {
 fn stop_file_watcher(app: AppHandle) -> Result<(), String> {
     let state = app.state::<Mutex<Option<WatcherState>>>();
     let mut guard = state.lock().unwrap();
-    *guard = None; // Drop old watcher, stopping it
+    if let Some(mut ws) = guard.take() {
+        // Signal the thread to stop
+        ws.stop_flag.store(true, Ordering::Relaxed);
+        // Drop the watcher to close the notification channel
+        drop(ws._watcher.take());
+        // Wait for the thread to finish (with 3s timeout)
+        if let Some(handle) = ws._thread.take() {
+            let _ = handle.join();
+        }
+    }
     Ok(())
 }
 

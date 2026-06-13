@@ -1,4 +1,4 @@
-import { test, expect } from './helpers'
+import { test, expect, dispatchMenuAction } from './helpers'
 
 test.describe('Sidebar E2E', () => {
   test('should switch sidebar tabs', async ({ appPage }) => {
@@ -23,7 +23,7 @@ test.describe('Sidebar E2E', () => {
     await expect(fileTreeTab).toHaveClass(/active/)
   })
 
-  test('should toggle sidebar visibility', async ({ electronApp, appPage }) => {
+  test('should toggle sidebar visibility', async ({ appPage }) => {
     const sidebar = appPage.locator('.app-sidebar')
 
     // 初始状态：侧边栏可见
@@ -31,16 +31,12 @@ test.describe('Sidebar E2E', () => {
     await expect(sidebar).not.toHaveClass(/collapsed/)
 
     // 发送 view:toggle-sidebar 菜单动作
-    await electronApp.evaluate(({ BrowserWindow }) => {
-      BrowserWindow.getAllWindows()[0].webContents.send('menu:action', 'view:toggle-sidebar')
-    })
+    await dispatchMenuAction(appPage, 'view:toggle-sidebar')
     // 验证侧边栏折叠
     await expect(sidebar).toHaveClass(/collapsed/)
 
     // 再次发送切换动作
-    await electronApp.evaluate(({ BrowserWindow }) => {
-      BrowserWindow.getAllWindows()[0].webContents.send('menu:action', 'view:toggle-sidebar')
-    })
+    await dispatchMenuAction(appPage, 'view:toggle-sidebar')
     // 验证侧边栏展开
     await expect(sidebar).not.toHaveClass(/collapsed/)
   })

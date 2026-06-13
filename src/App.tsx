@@ -13,7 +13,7 @@ import CommandPalette from './components/CommandPalette/CommandPalette'
 import { getActiveView } from './editor/active-view'
 import * as bridge from './services/electron-bridge'
 import { loadSession, subscribeAutoSave } from './services/workspace-store'
-import { useTranslation, useI18nStore } from './i18n/i18n-store'
+import { useTranslation } from './i18n/i18n-store'
 import { DailyNoteButton } from './components/DailyNoteButton'
 
 function App() {
@@ -61,47 +61,6 @@ function App() {
     return () => window.removeEventListener('keydown', handler)
   }, [])
 
-  // 语言切换时同步 Electron 菜单
-  const appLang = useI18nStore((s) => s.lang)
-  useEffect(() => {
-    const t = useI18nStore.getState().t
-    bridge.translateMenu({
-      'menu.file': t('electron.menu.file'),
-      'menu.edit': t('electron.menu.edit'),
-      'menu.view': t('electron.menu.view'),
-      'menu.help': t('electron.menu.help'),
-      'menu.new': t('electron.menu.new'),
-      'menu.open': t('electron.menu.open'),
-      'menu.save': t('electron.menu.save'),
-      'menu.saveAs': t('electron.menu.saveAs'),
-      'menu.export': t('electron.menu.export'),
-      'menu.exportHtml': t('electron.menu.exportHtml'),
-      'menu.exportPdf': t('electron.menu.exportPdf'),
-      'menu.closeWindow': t('electron.menu.closeWindow'),
-      'menu.quit': t('electron.menu.quit'),
-      'menu.undo': t('electron.menu.undo'),
-      'menu.redo': t('electron.menu.redo'),
-      'menu.cut': t('electron.menu.cut'),
-      'menu.copy': t('electron.menu.copy'),
-      'menu.paste': t('electron.menu.paste'),
-      'menu.selectAll': t('electron.menu.selectAll'),
-      'menu.toggleSidebar': t('electron.menu.toggleSidebar'),
-      'menu.toggleMode': t('electron.menu.toggleMode'),
-      'menu.togglePreview': t('electron.menu.togglePreview'),
-      'menu.focusMode': t('electron.menu.focusMode'),
-      'menu.typewriter': t('electron.menu.typewriter'),
-      'menu.search': t('electron.menu.search'),
-      'menu.themeSettings': t('electron.menu.themeSettings'),
-      'menu.devTools': t('electron.menu.devTools'),
-      'menu.reload': t('electron.menu.reload'),
-      'menu.zoomIn': t('electron.menu.zoomIn'),
-      'menu.zoomOut': t('electron.menu.zoomOut'),
-      'menu.resetZoom': t('electron.menu.resetZoom'),
-      'menu.pluginManager': t('electron.menu.pluginManager'),
-      'menu.about': t('electron.menu.about'),
-    })
-  }, [appLang])
-
   // 启动：恢复工作区 或 建空白标签
   useEffect(() => {
     const session = loadSession()
@@ -143,12 +102,6 @@ function App() {
     return () => unsub()
   }, [newUntitledTab]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // 启动时同步菜单显示状态
-  useEffect(() => {
-    const hidden = localStorage.getItem('confucius-hide-menu') !== 'false'
-    bridge.setMenuVisible(!hidden).catch(() => {})
-  }, [])
-
   const handleSaveFile = useCallback(async () => {
     const tab = useTabStore.getState().activeTab()
     if (!tab || !tab.filePath) return
@@ -187,7 +140,7 @@ function App() {
     }
   }, [openFile])
 
-  const handleNewFile = useCallback(async () => {
+  const handleNewFile = useCallback(() => {
     newUntitledTab()
   }, [newUntitledTab])
 
@@ -262,9 +215,11 @@ function App() {
   const [currentTheme, setCurrentTheme] = useState<ThemeId>(themeService.getCurrentTheme())
 
   const handleSearch = useCallback(() => {
-    toggleSidebar()
+    if (!sidebarVisible) {
+      toggleSidebar()
+    }
     setActiveTab('search')
-  }, [toggleSidebar, setActiveTab])
+  }, [sidebarVisible, toggleSidebar, setActiveTab])
 
   const currentMode = getThemeDef(currentTheme).mode
 

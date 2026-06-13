@@ -5,21 +5,22 @@ export default defineConfig({
   testMatch: '*.spec.ts',
   timeout: 30_000,
   expect: { timeout: 10_000 },
-  fullyParallel: false, // Electron 单实例，不可并行
+  fullyParallel: true,
   retries: 1,
-  workers: 1,
+  workers: 2,
   reporter: [['list'], ['html', { open: 'never' }]],
   use: {
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
+    headless: true,
   },
   projects: [
     {
-      name: 'electron',
+      name: 'tauri-web',
       use: {
-        // Electron 应用路径，由 helpers.ts 中的 fixture 使用
-        _appPath: require('path').resolve(__dirname, 'dist-electron/main.js'),
+        browserName: 'chromium',
       },
     },
   ],
+  // Vite dev server is managed by the test fixture (helpers.ts)
 })
