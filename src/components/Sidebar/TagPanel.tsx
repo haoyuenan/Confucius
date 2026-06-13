@@ -2,8 +2,10 @@ import { useEffect, useState, useCallback } from 'react'
 import { useKnowledgeStore } from '../../stores/knowledge-store'
 import { useTabStore } from '../../stores/tab-store'
 import * as bridge from '../../services/electron-bridge'
+import { useTranslation } from '../../i18n/i18n-store'
 
 export function TagPanel() {
+  const { t } = useTranslation()
   const { tags, loadTags } = useKnowledgeStore()
   const openFile = useTabStore(s => s.openFile)
   const [selectedTag, setSelectedTag] = useState<string | null>(null)
@@ -24,7 +26,7 @@ export function TagPanel() {
   return (
     <div className="sidebar-panel tag-panel">
       {sorted.length === 0 ? (
-        <div className="sidebar-hint">暂无标签</div>
+        <div className="sidebar-hint">{t('sidebar.tags.empty')}</div>
       ) : (
         <>
           <div className="sidebar-tag-list">

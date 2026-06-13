@@ -65,8 +65,7 @@ export function createEditorView(
             const pos = view.posAtCoords({ x: event.clientX, y: event.clientY })
             if (pos === null) continue
             const alt = file.name.replace(/\.[^.]+$/, '')
-            const encodedPath = filePath.replace(/\\/g, '/').split('/').map(seg => encodeURIComponent(seg)).join('/')
-            const markdown = `![${alt}](local-asset:///${encodedPath})`
+            const markdown = `![${alt}](${filePath.replace(/\\/g, '/')})`
             view.dispatch({
               changes: { from: pos, insert: markdown },
               selection: { anchor: pos + markdown.length },

@@ -3,28 +3,38 @@
 ## Commands
 
 ```bash
-npm run dev        # Start Vite dev server with Electron (HMR + main process hot-restart)
-npm run build      # TypeScript check + Vite production build
-npm run typecheck  # Run tsc --noEmit for type errors
-npm run lint       # ESLint on src/ and electron/
-npm run pack:win   # electron-builder → Windows .exe installer (NSIS, compression: maximum)
-npm run pack:mac   # electron-builder → macOS .dmg
-npm run pack:linux # electron-builder → Linux .AppImage
+npm run dev            # Start Tauri dev mode (Vite HMR + WebView hot-reload)
+npm run build          # TypeScript check + Vite production build
+npm run dev:vite       # Start Vite dev server only (no Tauri)
+npm run build:tauri    # Full Tauri production build (frontend + Rust)
+npm run typecheck      # Run tsc --noEmit for type errors
+npm run lint           # ESLint on src/
+npm test               # Run Vitest unit/integration tests
+npm run tauri -- help  # Tauri CLI help
 ```
 
 ## Architecture
 
-**Electron dual-process**. Code is strictly separated into `electron/` (main process) and `src/` (renderer process). The main process handles window management, native menus, and all file system operations. The renderer process runs the React UI.
+**Tauri dual-process**. The frontend runs as a webview (React + TypeScript) in `src/`. The backend consists of Rust commands in `src-tauri/src/lib.rs`. Communication uses `@tauri-apps/api/core`'s `invoke()` (request-response pattern). There is no Electron/Node.js main process.
 
-**IPC bridge**. `electron/preload.ts` uses `contextBridge.exposeInMainWorld()` to expose a typed `window.electronAPI` object. All communication uses `ipcMain.handle()` / `ipcRenderer.invoke()` (request-response pattern). Channel naming convention: `<domain>:<action>` (e.g. `file:read`, `search:query`, `export:html`, `knowledge:get-backlinks`). The preload defines the full API shape — if you add a new IPC channel, update both `electron/ipc-handlers.ts` and `electron/preload.ts` together.
+**Rust backend** (`src-tauri/src/lib.rs`). All system-level operations are implemented as `#[tauri::command]` functions:
+- `build_file_tree` — recursive directory walk, returns sorted tree of `.md` files
+- `search_text` — parallel full-text regex search (8 threads)
+- `read_file_utf8` / `write_file_utf8` — file I/O (bypasses Tauri fs scope)
+- `create_file` / `create_dir` / `rename_item` / `delete_item` — file management
+- `stat_file` / `read_dir_entries` — file metadata and directory listing
+- `start_file_watcher` / `stop_file_watcher` — filesystem change watcher (via `notify` crate)
+- `run_code` — Python code execution via `child_process`
+- `get_app_version` — returns package version
 
-**State management**. Six Zustand stores in `src/stores/`:
+**IPC bridge**. `src/services/electron-bridge.ts` wraps all Tauri `invoke()` calls and plugin APIs into a single module — the frontend's sole entry point for system operations. Channel naming convention follows the original Electron IPC: `<domain>:<action>` (e.g. `file:read`, `search:query`). If you add a new Rust command, update both `lib.rs` (the command function + `generate_handler![]`) and `electron-bridge.ts` (the wrapper function).
+
+**State management**. Five Zustand stores in `src/stores/`:
 - `app-store.ts` — app info, sidebar toggle/width
 - `editor-store.ts` — editor mode (split/wysiwyg/preview), content, loading state, focus/typewriter mode
 - `sidebar-store.ts` — active tab, root path, file tree, expanded paths, outline items, search results
 - `tab-store.ts` — tab management (open/close/active/modification state)
 - `knowledge-store.ts` — knowledge base data (backlinks, graph data, tags, file search results)
-- `plugin-store.ts` — plugin commands, sidebar tabs, state
 
 Stores are the single source of truth — React components read via hooks and write via store actions.
 
@@ -39,15 +49,15 @@ Stores are the single source of truth — React components read via hooks and wr
 
 **Theme system**. Twelve theme CSS files in `themes/` define light/dark mode variables. ThemeService manages switching via `document.documentElement.dataset.theme`. Themes also control highlight.js `<style>` elements and Mermaid theme. Toolbar toggles light/dark; settings panel offers per-mode theme selection.
 
-**File operations**. Always flow: React component → `window.electronAPI.method()` → IPC invoke → `ipc-handlers.ts` → Node.js `fs` module. File tree is built recursively in the main process (async, directory-first sort). File changes are watched via `fs.watch` (recursive) with a 500ms debounce. Note: chokidar must not be used — it is ESM-only and Electron 28 compiles main process to CommonJS.
+**File operations**. Always flow: React component → `bridge.method()` → `invoke('command_name', args)` → Rust command → direct `std::fs` operations. File tree is built recursively in Rust (async, directory-first sort). File changes are watched via the `notify` Rust crate (recursive, 500ms debounce in the event thread).
 
-**Knowledge base index**. `electron/services/knowledge-service.ts` provides a complete knowledge base engine:
+**Knowledge base index**. `src/services/knowledge-service.ts` provides a complete knowledge base engine running entirely in the frontend:
 - Parses `[[wikilinks]]`, `#tags`, and YAML frontmatter from all `.md` files in the workspace
 - Stores index in `.confucius/index.json` (hidden workspace directory)
 - Full scan on workspace open, incremental update on file changes
-- Exposes backlinks, graph data, tags, file search, and wikilink resolution via IPC
+- Exposes backlinks, graph data, tags, file search, and wikilink resolution via bridge APIs
 
-**Preview HTML is also used for export**. `PreviewPane` registers `window.__exportPreviewHTML__` which returns the rendered innerHTML. The `ExportService` in the main process calls `win.webContents.executeJavaScript('window.__exportPreviewHTML__()')` to get rendered content, resolves `[[wikilinks]]` to HTML anchors, then wraps it in a full HTML document (for HTML export) or feeds it into a hidden `BrowserWindow` → `printToPDF` (for PDF export).
+**Preview HTML export**. `PreviewPane` registers `window.__exportPreviewHTML__` which returns the rendered innerHTML. The HTML export generates a standalone HTML document with embedded CSS. PDF export uses the browser's native `window.print()` (system print dialog).
 
 **Heading slug system**. The outline panel and preview use a shared `slugify()` function (exported from `src/editor/markdown-renderer.ts`) to generate heading IDs. Outline items include a `slug` field for precise preview targeting — clicking an outline heading finds the preview element by `id` attribute rather than by index or text matching.
 
@@ -55,4 +65,10 @@ Stores are the single source of truth — React components read via hooks and wr
 - `d3` (v7) — force-directed graph layout for knowledge graph visualization
 - highlight.js configured with 33 commonly used languages (core + selective registration) instead of all 384 languages
 
-**Electron-builder**: configured with `compression: maximum` for NSIS installer. The `electron-builder.yml` excludes `node_modules` from the asar and bundles `plugins/builtins` as extra resources.
+**Tauri plugins**:
+- `@tauri-apps/plugin-dialog` — file/folder dialogs
+- `@tauri-apps/plugin-shell` — open external URLs
+- `@tauri-apps/plugin-process` — process info
+- Rust crate `notify-debouncer-full` (v0.3) — filesystem watching
+
+**Build/packaging**: `tauri.conf.json` configures the Tauri builder. Icon resources live in `src-tauri/icons/`. Output is configured in `dist-release/` via `npm run build:tauri`.

@@ -1,10 +1,15 @@
-import type { CommandDef } from '../types/plugin'
 import { useI18nStore } from '../i18n/i18n-store'
 
 // ── Types ──
 
-export interface PaletteCommand extends CommandDef {
+export interface PaletteCommand {
+  id: string
+  label: string
   category: string
+  shortcut?: string
+  keywords?: string[]
+  description?: string
+  execute: () => void
 }
 
 export interface CommandContext {
@@ -110,12 +115,9 @@ export function searchCommands(
   const trimmed = query.trim()
 
   if (trimmed.startsWith('@')) {
-    const pluginQuery = trimmed.slice(1).trim().toLowerCase()
     return all.filter(
       (c) =>
-        (c.id.startsWith('plugin:') || c.id.startsWith('builtin:')) &&
-        (c.label.toLowerCase().includes(pluginQuery) ||
-          c.id.toLowerCase().includes(pluginQuery)),
+        c.id.startsWith('plugin:') || c.id.startsWith('builtin:'),
     )
   }
 
@@ -130,16 +132,8 @@ export function searchCommands(
 
 export function mergeAllCommands(
   builtins: PaletteCommand[],
-  pluginCmds: CommandDef[],
 ): PaletteCommand[] {
-  const t = useI18nStore.getState().t
-  const pluginPalette: PaletteCommand[] = pluginCmds.map((c) => ({
-    ...c,
-    category: c.category || t('commandPalette.plugin'),
-    keywords: c.keywords ?? [],
-  }))
   const merged = new Map<string, PaletteCommand>()
   for (const c of builtins) merged.set(c.id, c)
-  for (const c of pluginPalette) merged.set(c.id, c)
   return Array.from(merged.values())
 }
