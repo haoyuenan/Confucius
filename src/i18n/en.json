@@ -129,6 +129,7 @@
   "sidebar.welcome.newNote": "New Note",
   "sidebar.welcome.recent": "Recent",
   "sidebar.fileTree.empty": "Folder is empty",
+  "sidebar.fileTree.scanning": "Scanning folder…",
   "sidebar.fileTree.closeFolder": "Close Folder",
   "sidebar.backlinks.empty": "No backlinks",
   "sidebar.backlinks.emptyNoFile": "Open a note to see backlinks",

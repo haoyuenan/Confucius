@@ -52,8 +52,8 @@ fn build_file_tree(root_path: String) -> Result<FileTreeNode, String> {
         children: Some(vec![]),
     };
 
-    // Use walkdir with max depth 0 to get immediate children, then build recursively
-    fn build_node(dir: &std::path::Path, depth: usize) -> Option<FileTreeNode> {
+    // Use walkdir to build tree recursively
+    fn build_node(dir: &std::path::Path) -> Option<FileTreeNode> {
         let name = dir.file_name()?.to_string_lossy().to_string();
         let path = dir.to_string_lossy().to_string();
 
@@ -68,7 +68,7 @@ fn build_file_tree(root_path: String) -> Result<FileTreeNode, String> {
             }
             let entry_path = entry.path();
             if entry_path.is_dir() {
-                if let Some(child) = build_node(&entry_path, depth + 1) {
+                if let Some(child) = build_node(&entry_path) {
                     children.push(child);
                 }
             } else if entry_path.is_file() && is_md_file(&entry_name) {
@@ -79,6 +79,11 @@ fn build_file_tree(root_path: String) -> Result<FileTreeNode, String> {
                     children: None,
                 });
             }
+        }
+
+        // 目录下没有任何 .md 文件（也无可递归的子目录包含 .md 文件）→ 跳过
+        if children.is_empty() {
+            return None;
         }
 
         // Sort: directories first, then files, alphabetical
@@ -102,7 +107,7 @@ fn build_file_tree(root_path: String) -> Result<FileTreeNode, String> {
         })
     }
 
-    Ok(build_node(&root, 0).unwrap_or(root_node))
+    Ok(build_node(&root).unwrap_or(root_node))
 }
 
 // ── Text search ──

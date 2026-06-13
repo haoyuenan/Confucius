@@ -129,6 +129,7 @@
   "sidebar.welcome.newNote": "新建笔记",
   "sidebar.welcome.recent": "最近打开",
   "sidebar.fileTree.empty": "文件夹为空",
+  "sidebar.fileTree.scanning": "正在遍历文件夹…",
   "sidebar.fileTree.closeFolder": "关闭文件夹",
   "sidebar.backlinks.empty": "无反向链接",
   "sidebar.backlinks.emptyNoFile": "打开笔记查看反链",

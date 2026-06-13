@@ -1,10 +1,9 @@
 import { useMemo, useRef, useEffect, useCallback } from 'react'
 import { EditorView } from 'codemirror'
-import { renderMarkdown } from '../../editor/markdown-renderer'
+import { renderMarkdownWithBaseDir } from '../../editor/markdown-renderer'
 import { initMermaid, renderMermaidDiagrams } from '../../editor/mermaid-renderer'
 import { themeService } from '../../services/theme-service'
 import { open as shellOpen } from '@tauri-apps/plugin-shell'
-import { convertFileSrc } from '@tauri-apps/api/core'
 import { updatePreviewContent } from '../../utils/dom-diff'
 import { useSidebarStore } from '../../stores/sidebar-store'
 import { useEditorStore } from '../../stores/editor-store'
@@ -30,9 +29,13 @@ function PreviewPane({ content }: PreviewPaneProps) {
   const previewRef = useRef<HTMLDivElement>(null)
   const isFirstRender = useRef(true)
   const zoomRef = useRef(1)
-  const html = useMemo(() => renderMarkdown(content), [content])
-  const outlineItems = useSidebarStore((s) => s.outlineItems)
   const activeFilePath = useTabStore((s) => s.activeTab()?.filePath ?? null)
+  const html = useMemo(() => {
+    if (!activeFilePath) return renderMarkdownWithBaseDir(content, null)
+    const dirPath = activeFilePath.replace(/[\\/][^\\/]*$/, '')
+    return renderMarkdownWithBaseDir(content, dirPath)
+  }, [content, activeFilePath])
+  const outlineItems = useSidebarStore((s) => s.outlineItems)
 
   // Ctrl+滚轮缩放预览区
   const handleWheel = useCallback((e: WheelEvent) => {
@@ -125,23 +128,6 @@ function PreviewPane({ content }: PreviewPaneProps) {
       isFirstRender.current = false
     } else {
       updatePreviewContent(previewRef.current, html)
-    }
-
-    // 将相对路径图片解析为 local-asset:// 绝对路径
-    if (activeFilePath) {
-      const dirPath = activeFilePath.replace(/[\\/][^\\/]*$/, '')
-      const imgs = previewRef.current.querySelectorAll('img')
-      imgs.forEach((img) => {
-        const src = img.getAttribute('src')
-        if (!src) return
-        // 相对路径 → 绝对路径 → convertFileSrc 转换
-        const normalized = src.replace(/\\/g, '/')
-        const dirNorm = dirPath.replace(/\\/g, '/')
-        const absPath = normalized.startsWith('/')
-          ? normalized
-          : dirNorm + '/' + normalized
-        img.setAttribute('src', convertFileSrc(absPath))
-      })
     }
 
     // 大文件跳过 Mermaid 渲染（性能开销大）
