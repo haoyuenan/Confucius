@@ -5,7 +5,7 @@
  * 解析 wikilinks、tags、YAML frontmatter，维护反向链接索引。
  */
 
-import { invoke } from '@tauri-apps/api/core'
+import { readFileRaw, writeFile as bridgeWriteFile, fileExists as bridgeFileExists, readDir as bridgeReadDir, statFile as bridgeStatFile } from './electron-bridge'
 
 // ── Types ──
 
@@ -126,37 +126,33 @@ function relative(from: string, to: string): string {
 // ── File I/O helpers (wrap Rust commands) ──
 
 async function readFileBytes(path: string): Promise<string> {
-  return invoke<string>('read_file_utf8', { path })
+  return readFileRaw(path)
 }
 
 async function writeFile(path: string, content: string): Promise<void> {
-  return invoke('write_file_utf8', { path, content })
+  return bridgeWriteFile(path, content)
 }
 
 async function fileExists(path: string): Promise<boolean> {
-  try {
-    await invoke('stat_file', { path })
-    return true
-  } catch {
-    return false
-  }
+  return bridgeFileExists(path)
 }
 
 async function readDir(path: string): Promise<{ name: string; is_directory: boolean }[]> {
-  return invoke('read_dir_entries', { path })
+  return bridgeReadDir(path)
 }
 
 async function mkdir(path: string): Promise<void> {
-  // Use create_dir on the parent with the last segment as name
   const parent = dirname(path)
   const name = basename(path)
   if (name) {
-    await invoke('create_dir', { parentPath: parent === '.' ? path : parent, dirName: name }).catch(() => {})
+    // Use bridge's create_dir: parentPath + dirName
+    const { createDir } = await import('./electron-bridge')
+    await createDir(parent, name)
   }
 }
 
 async function statFile(path: string): Promise<{ size: number; modified: string; is_dir: boolean }> {
-  return invoke('stat_file', { path })
+  return bridgeStatFile(path)
 }
 
 // ── Knowledge Service ──

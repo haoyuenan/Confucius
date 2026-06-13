@@ -41,10 +41,20 @@ export async function renderMermaidDiagrams(container: HTMLElement): Promise<voi
           pre.classList.add('mermaid-rendered')
         })
         .catch((err: Error) => {
-          pre.innerHTML = `<div class="mermaid-error">图表渲染失败: ${err.message}</div>`
+          pre.innerHTML = `<div class="mermaid-error">图表渲染失败: ${escapeHtml(err.message)}</div>`
         }),
     )
   })
 
   await Promise.all(tasks)
+}
+
+/** HTML 转义，防止 XSS */
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
 }

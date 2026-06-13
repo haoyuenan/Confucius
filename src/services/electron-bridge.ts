@@ -126,9 +126,29 @@ export function deleteItem(targetPath: string): Promise<void> {
 }
 
 export function revealInExplorer(_targetPath: string): Promise<void> {
-  // Tauri 上暂不支持 showItemInFolder 等价物，后续可加 shell command
+  // Tauri 上暂不支持 showItemInFolder 等价物
   return Promise.resolve()
 }
+
+/** 读取文件原始内容（UTF-8，供知识库内部使用） */
+export const readFileRaw: (path: string) => Promise<string> = (path) =>
+  invoke('read_file_utf8', { path })
+
+/** 检查文件是否存在（供知识库内部使用） */
+export async function fileExists(path: string): Promise<boolean> {
+  try {
+    await invoke('stat_file', { path })
+    return true
+  } catch { return false }
+}
+
+/** 读取目录条目（供知识库内部使用） */
+export const readDir: (path: string) => Promise<{ name: string; is_directory: boolean }[]> = (path) =>
+  invoke('read_dir_entries', { path })
+
+/** 获取文件状态（供知识库内部使用） */
+export const statFile: (path: string) => Promise<{ size: number; modified: string; is_dir: boolean }> = (path) =>
+  invoke('stat_file', { path })
 
 // ─── 搜索 ───
 
