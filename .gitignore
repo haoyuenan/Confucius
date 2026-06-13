@@ -8,6 +8,8 @@ dist-release/
 test-results/
 .traces/
 .superpowers/
+.codegraph/
+.reasonix/
 *.log
 .DS_Store
 Thumbs.db
