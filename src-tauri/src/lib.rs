@@ -266,6 +266,30 @@ fn read_file_utf8(path: String) -> Result<String, String> {
     Ok(content)
 }
 
+/** 根据文件扩展名推断 MIME 类型 */
+fn infer_mime(path: &str) -> &str {
+    let lower = path.to_lowercase();
+    if lower.ends_with(".png") { "image/png" }
+    else if lower.ends_with(".jpg") || lower.ends_with(".jpeg") { "image/jpeg" }
+    else if lower.ends_with(".gif") { "image/gif" }
+    else if lower.ends_with(".svg") { "image/svg+xml" }
+    else if lower.ends_with(".webp") { "image/webp" }
+    else if lower.ends_with(".ico") { "image/x-icon" }
+    else if lower.ends_with(".bmp") { "image/bmp" }
+    else { "image/png" }
+}
+
+#[tauri::command]
+fn read_file_base64(path: String) -> Result<String, String> {
+    let _ = sanitize_path(&path)?;
+    let bytes = std::fs::read(&path)
+        .map_err(|e| format!("读取文件失败: {}", e))?;
+    use base64::Engine;
+    let b64 = base64::engine::general_purpose::STANDARD.encode(&bytes);
+    let mime = infer_mime(&path);
+    Ok(format!("data:{};base64,{}", mime, b64))
+}
+
 #[tauri::command]
 fn write_file_utf8(path: String, content: String) -> Result<(), String> {
     let _ = sanitize_path(&path)?;
@@ -470,6 +494,7 @@ pub fn run() {
             build_file_tree,
             search_text,
             read_file_utf8,
+            read_file_base64,
             write_file_utf8,
             create_file,
             create_dir,

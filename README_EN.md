@@ -179,6 +179,14 @@ confucius/
 
 ## Migration from Electron
 
+v0.5.2 Stability fixes and UI improvements:
+
+- **Image preview fix**: Replaced Tauri asset protocol with Rust `read_file_base64` + base64 data URI, fixing image loading issues
+- **Print fix**: Uses hidden iframe with standalone document for printing, bypassing main window overflow constraints
+- **File tree optimization**: Skips empty directories with no `.md` files
+- **UI improvements**: "Scanning folder…" indicator while loading; separated search/sidebar button logic; larger toolbar font; centered window on startup
+- **Migration cleanup**: Removed all Electron leftover code, translation keys, and test mocks
+
 v0.5.0 migrates from Electron 28 to Tauri 2:
 
 - **Installer size**: ~72 MB (Electron NSIS) → **~8 MB** (Tauri)
@@ -192,7 +200,7 @@ v0.5.0 migrates from Electron 28 to Tauri 2:
 
 ## Development Status
 
-v0.5.0 completes the architecture migration from Electron to Tauri. Core editor and knowledge base features are fully functional.
+v0.5.2 fixes image preview, printing, and optimizes file tree and UI details. Moving forward into feature iteration.
 
 ## License
 

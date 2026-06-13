@@ -71,7 +71,6 @@ hljs.registerLanguage('ini', ini)
 hljs.registerLanguage('makefile', makefile)
 import katex from 'katex'
 import { sanitizeHtml } from '../utils/sanitize'
-import { convertFileSrc } from '@tauri-apps/api/core'
 
 const md = new MarkdownIt({
   html: true,
@@ -143,37 +142,3 @@ export function renderMarkdown(text: string): string {
   return sanitizeHtml(raw)
 }
 
-/**
- * 将 HTML 中的相对图片路径转换为 Tauri asset:// 协议 URL
- * @param html 渲染后的 HTML
- * @param baseDir Markdown 文件所在目录（绝对路径），用于解析相对路径
- */
-function convertImagePaths(html: string, baseDir: string): string {
-  return html.replace(
-    /(<img\s[^>]*?src\s*=\s*["'])([^"']+)(["'][^>]*>)/gi,
-    (_match, prefix, src, suffix) => {
-      // 网络图片 / data URI / asset 协议 → 跳过
-      if (/^(?:https?:|data:|asset:)/i.test(src)) return _match
-
-      const normalized = (src as string).replace(/\\/g, '/')
-      const dirNorm = (baseDir as string).replace(/\\/g, '/')
-      const absPath = normalized.startsWith('/')
-        ? normalized
-        : dirNorm + '/' + normalized
-
-      return prefix + convertFileSrc(absPath) + suffix
-    },
-  )
-}
-
-/**
- * 渲染 Markdown，并基于 Markdown 文件所在目录转换图片路径为 Tauri asset URL
- * @param text Markdown 源码
- * @param baseDir Markdown 文件所在目录（绝对路径），传 null 则不做图片转换
- */
-export function renderMarkdownWithBaseDir(text: string, baseDir: string | null): string {
-  const processed = preprocessWikiLinks(text)
-  const raw = md.render(processed)
-  const converted = baseDir ? convertImagePaths(raw, baseDir) : raw
-  return sanitizeHtml(converted)
-}

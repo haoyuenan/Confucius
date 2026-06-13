@@ -22,6 +22,11 @@ export async function readFile(filePath: string): Promise<{ content: string; fil
   return { content: cleaned, filePath }
 }
 
+/** 读取文件为 base64 data URI（用于图片等二进制文件） */
+export function readFileBase64(filePath: string): Promise<string> {
+  return invoke<string>('read_file_base64', { path: filePath })
+}
+
 /** 写文件 UTF-8 */
 export function writeFile(filePath: string, content: string): Promise<void> {
   return invoke('write_file_utf8', { path: filePath, content })

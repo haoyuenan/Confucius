@@ -6,7 +6,7 @@ vi.mock('@tauri-apps/api/core', () => ({
   invoke: vi.fn(async (cmd: string, _args?: Record<string, unknown>) => {
     switch (cmd) {
       case 'get_app_version':
-        return '0.5.1'
+        return '0.5.2'
       case 'read_file_utf8':
         return '# Mock file content'
       case 'write_file_utf8':
