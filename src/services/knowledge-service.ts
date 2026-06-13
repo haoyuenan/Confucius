@@ -1,17 +1,11 @@
 /**
  * 知识库索引服务（前端版）
  *
- * 使用 @tauri-apps/plugin-fs 替代 Node.js fs 模块。
+ * 使用 Rust commands 替代 Node.js fs 模块。
  * 解析 wikilinks、tags、YAML frontmatter，维护反向链接索引。
  */
 
-import {
-  readFile as tauriReadFile,
-  writeTextFile,
-  readDir as tauriReadDir,
-  mkdir as tauriMkdir,
-  stat as tauriStat,
-} from '@tauri-apps/plugin-fs'
+import { invoke } from '@tauri-apps/api/core'
 
 // ── Types ──
 
@@ -116,8 +110,6 @@ function join(...parts: string[]): string {
   }).join('/')
 }
 
-
-
 function relative(from: string, to: string): string {
   const fParts = from.replace(/\\/g, '/').split('/').filter(Boolean)
   const tParts = to.replace(/\\/g, '/').split('/').filter(Boolean)
@@ -129,6 +121,42 @@ function relative(from: string, to: string): string {
   const up = fParts.slice(i).map(() => '..')
   const down = tParts.slice(i)
   return [...up, ...down].join('/') || '.'
+}
+
+// ── File I/O helpers (wrap Rust commands) ──
+
+async function readFileBytes(path: string): Promise<string> {
+  return invoke<string>('read_file_utf8', { path })
+}
+
+async function writeFile(path: string, content: string): Promise<void> {
+  return invoke('write_file_utf8', { path, content })
+}
+
+async function fileExists(path: string): Promise<boolean> {
+  try {
+    await invoke('stat_file', { path })
+    return true
+  } catch {
+    return false
+  }
+}
+
+async function readDir(path: string): Promise<{ name: string; is_directory: boolean }[]> {
+  return invoke('read_dir_entries', { path })
+}
+
+async function mkdir(path: string): Promise<void> {
+  // Use create_dir on the parent with the last segment as name
+  const parent = dirname(path)
+  const name = basename(path)
+  if (name) {
+    await invoke('create_dir', { parentPath: parent === '.' ? path : parent, dirName: name }).catch(() => {})
+  }
+}
+
+async function statFile(path: string): Promise<{ size: number; modified: string; is_dir: boolean }> {
+  return invoke('stat_file', { path })
 }
 
 // ── Knowledge Service ──
@@ -143,12 +171,16 @@ export class KnowledgeService {
     this.workspacePath = workspacePath.replace(/\\/g, '/')
     this.indexPath = join(workspacePath, '.confucius', 'index.json')
 
-    try {
-      const raw = await tauriReadFile(this.indexPath)
-      const text = new TextDecoder().decode(raw)
-      this.index = JSON.parse(text)
-      await this.syncChanges()
-    } catch {
+    const exists = await fileExists(this.indexPath)
+    if (exists) {
+      try {
+        const text = await readFileBytes(this.indexPath)
+        this.index = JSON.parse(text)
+        await this.syncChanges()
+      } catch {
+        await this.fullScan()
+      }
+    } else {
       await this.fullScan()
     }
     this.ready = true
@@ -169,12 +201,12 @@ export class KnowledgeService {
 
   private async scanDirectory(dirPath: string): Promise<void> {
     try {
-      const entries = await tauriReadDir(dirPath)
+      const entries = await readDir(dirPath)
       for (const entry of entries) {
         const name = entry.name
         if (name.startsWith('.')) continue
         const fullPath = join(dirPath, name)
-        if (entry.isDirectory) {
+        if (entry.is_directory) {
           await this.scanDirectory(fullPath)
         } else if (name.endsWith('.md') || name.endsWith('.markdown')) {
           await this.indexFile(fullPath)
@@ -188,8 +220,7 @@ export class KnowledgeService {
   private async indexFile(fullPath: string): Promise<void> {
     let content: string
     try {
-      const bytes = await tauriReadFile(fullPath)
-      content = new TextDecoder('utf-8').decode(bytes)
+      content = await readFileBytes(fullPath)
     } catch {
       return
     }
@@ -197,8 +228,8 @@ export class KnowledgeService {
     const fm = parseFrontmatter(content)
     let modified = ''
     try {
-      const stat = await tauriStat(fullPath)
-      modified = stat.mtime?.toString() ?? new Date().toISOString()
+      const stat = await statFile(fullPath)
+      modified = stat.modified || new Date().toISOString()
     } catch {
       modified = new Date().toISOString()
     }
@@ -257,11 +288,11 @@ export class KnowledgeService {
   private async save(): Promise<void> {
     const dir = dirname(this.indexPath)
     try {
-      await tauriMkdir(dir, { recursive: true })
+      await mkdir(dir)
     } catch {
       // Directory may already exist
     }
-    await writeTextFile(this.indexPath, JSON.stringify(this.index, null, 2))
+    await writeFile(this.indexPath, JSON.stringify(this.index, null, 2))
   }
 
   private async syncChanges(): Promise<void> {
@@ -284,12 +315,12 @@ export class KnowledgeService {
 
   private async collectFilePaths(dirPath: string, result: Set<string>): Promise<void> {
     try {
-      const entries = await tauriReadDir(dirPath)
+      const entries = await readDir(dirPath)
       for (const entry of entries) {
         if (entry.name.startsWith('.')) continue
         const fullPath = join(dirPath, entry.name)
         const relPath = relative(this.workspacePath, fullPath)
-        if (entry.isDirectory) {
+        if (entry.is_directory) {
           await this.collectFilePaths(fullPath, result)
         } else if (entry.name.endsWith('.md') || entry.name.endsWith('.markdown')) {
           result.add(relPath)
@@ -303,11 +334,11 @@ export class KnowledgeService {
   async updateFile(fullPath: string): Promise<void> {
     if (!this.ready) return
     const relPath = relative(this.workspacePath, fullPath)
-    try {
-      await tauriStat(fullPath)
+    const exists = await fileExists(fullPath)
+    if (exists) {
       if (!fullPath.endsWith('.md') && !fullPath.endsWith('.markdown')) return
       await this.indexFile(fullPath)
-    } catch {
+    } else {
       // File doesn't exist, remove from index
       delete this.index.files[relPath]
       this.index.links = this.index.links.filter(l => l.source !== relPath)
@@ -402,18 +433,15 @@ export class KnowledgeService {
     const filePath = join(dirPath, `${y}-${m}-${d}.md`)
 
     try {
-      await tauriMkdir(dirPath, { recursive: true })
+      await mkdir(dirPath)
     } catch {
       // Already exists
     }
 
-    try {
-      await tauriStat(filePath)
-      // File exists, just return path
-    } catch {
-      // Create new daily note
+    const exists = await fileExists(filePath)
+    if (!exists) {
       const content = `---\ntitle: ${y}-${m}-${d} 日记\ncreated: ${y}-${m}-${d}\ntags: [日记]\n---\n\n# ${y}-${m}-${d}\n\n`
-      await writeTextFile(filePath, content)
+      await writeFile(filePath, content)
     }
 
     return filePath
@@ -424,5 +452,4 @@ export class KnowledgeService {
   }
 }
 
-// Singleton
 export const knowledgeService = new KnowledgeService()

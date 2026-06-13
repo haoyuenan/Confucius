@@ -27,8 +27,11 @@ wiki-link::after { content: ']]'; opacity: 0.5; }
 
 /* 浅色主题：覆盖 github-markdown-css 变量 */
 [data-theme='plain-white'] .markdown-body,
+[data-theme='warm-sun'] .markdown-body,
 [data-theme='cloud'] .markdown-body,
-[data-theme='mint'] .markdown-body {
+[data-theme='mint'] .markdown-body,
+[data-theme='tokyo-night-light'] .markdown-body,
+[data-theme='rose-pine-dawn'] .markdown-body {
   --bgColor-default: #ffffff;
   --bgColor-muted: #f6f8fa;
   --fgColor-default: #1f2328;
@@ -49,7 +52,10 @@ wiki-link::after { content: ']]'; opacity: 0.5; }
 /* 深色主题：覆盖 github-markdown-css 变量 */
 [data-theme='night-black'] .markdown-body,
 [data-theme='deep-sea'] .markdown-body,
-[data-theme='warm-gray'] .markdown-body {
+[data-theme='warm-gray'] .markdown-body,
+[data-theme='mo-zhu'] .markdown-body,
+[data-theme='tokyo-night'] .markdown-body,
+[data-theme='rose-pine'] .markdown-body {
   --bgColor-default: #1e1e1e;
   --bgColor-muted: #2d2d2d;
   --fgColor-default: #d4d4d4;

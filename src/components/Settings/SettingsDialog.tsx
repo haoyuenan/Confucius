@@ -4,7 +4,8 @@ import { themeService, getThemesByMode, type ThemeMode, type ThemeId } from '../
 import { useEditorStore } from '../../stores/editor-store'
 import { useAppStore } from '../../stores/app-store'
 import { useTranslation, useI18nStore } from '../../i18n/i18n-store'
-import PluginPanel from './PluginPanel'
+
+// ─── Types ───
 
 interface EnvInfo {
   electron: string
@@ -14,7 +15,7 @@ interface EnvInfo {
   arch: string
 }
 
-export type SettingsTab = 'general' | 'display' | 'shortcuts' | 'plugin' | 'about'
+export type SettingsTab = 'general' | 'display' | 'shortcuts' | 'about'
 
 export const THEME_SWATCHES: Record<ThemeId, { bg: string; accent: string; secondary: string }> = {
   'plain-white': { bg: '#ffffff', accent: '#0366d6', secondary: '#f6f8fa' },
@@ -31,7 +32,7 @@ export const THEME_SWATCHES: Record<ThemeId, { bg: string; accent: string; secon
   'rose-pine':   { bg: '#191724', accent: '#ebbcba', secondary: '#1f1d2e' },
 }
 
-const FEATURE_KEYS = ['editor', 'modes', 'tabs', 'search', 'mermaid', 'katex', 'focus', 'themes', 'export', 'plugins']
+const FEATURE_KEYS = ['editor', 'modes', 'tabs', 'search', 'mermaid', 'katex', 'focus', 'themes', 'export']
 
 const PLATFORM_LABELS: Record<string, string> = {
   win32: 'Windows',
@@ -43,7 +44,6 @@ const NAV_ITEM_DEFS: { id: SettingsTab; icon: string }[] = [
   { id: 'general', icon: '⚙' },
   { id: 'display', icon: '🎨' },
   { id: 'shortcuts', icon: '⌨' },
-  { id: 'plugin', icon: '🧩' },
   { id: 'about', icon: 'app' },
 ]
 
@@ -303,13 +303,6 @@ function SettingsDialog({ onClose, initialTab = 'general' }: Props) {
                   { keys: ['Esc'], desc: t('settings.shortcuts.desc.closeDialog') },
                   { keys: ['Ctrl', '滚轮'], desc: t('settings.shortcuts.desc.previewZoom') },
                 ]} />
-              </div>
-            )}
-
-            {activeTab === 'plugin' && (
-              <div className="settings-section plugin-section">
-                <h3 className="settings-section-title">{t('settings.plugin.title')}</h3>
-                <PluginPanel />
               </div>
             )}
 

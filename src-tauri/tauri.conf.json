@@ -1,12 +1,12 @@
 {
   "$schema": "https://raw.githubusercontent.com/nicco-io/tauri-plugin-cargo/v2/src/schema.json",
   "productName": "Confucius",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "identifier": "com.confucius.editor",
   "build": {
     "frontendDist": "../dist",
     "devUrl": "http://localhost:5173",
-    "beforeDevCommand": "npm run dev",
+    "beforeDevCommand": "npm run dev:vite",
     "beforeBuildCommand": "npm run build"
   },
   "app": {

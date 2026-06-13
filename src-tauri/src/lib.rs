@@ -224,6 +224,126 @@ fn collect_md_files(dir: &PathBuf, files: &mut Vec<PathBuf>) {
     }
 }
 
+// ── File operations (bypasses Tauri fs scope for arbitrary paths) ──
+
+#[derive(Clone, serde::Serialize)]
+pub struct FileStat {
+    pub size: u64,
+    pub modified: String,
+    pub is_dir: bool,
+}
+
+#[derive(Clone, serde::Serialize)]
+pub struct DirEntry {
+    pub name: String,
+    pub is_directory: bool,
+}
+
+#[tauri::command]
+fn read_file_utf8(path: String) -> Result<String, String> {
+    let content = std::fs::read_to_string(&path)
+        .map_err(|e| format!("读取文件失败: {}", e))?;
+    Ok(content)
+}
+
+#[tauri::command]
+fn write_file_utf8(path: String, content: String) -> Result<(), String> {
+    if let Some(parent) = std::path::Path::new(&path).parent() {
+        std::fs::create_dir_all(parent)
+            .map_err(|e| format!("创建目录失败: {}", e))?;
+    }
+    std::fs::write(&path, &content)
+        .map_err(|e| format!("写入文件失败: {}", e))?;
+    Ok(())
+}
+
+#[tauri::command]
+fn create_file(parent_path: String, file_name: String) -> Result<String, String> {
+    let dir = std::path::Path::new(&parent_path);
+    std::fs::create_dir_all(dir)
+        .map_err(|e| format!("创建目录失败: {}", e))?;
+    let file_path = dir.join(&file_name);
+    std::fs::write(&file_path, "")
+        .map_err(|e| format!("创建文件失败: {}", e))?;
+    Ok(file_path.to_string_lossy().to_string())
+}
+
+#[tauri::command]
+fn create_dir(parent_path: String, dir_name: String) -> Result<String, String> {
+    let dir = std::path::Path::new(&parent_path).join(&dir_name);
+    std::fs::create_dir_all(&dir)
+        .map_err(|e| format!("创建目录失败: {}", e))?;
+    Ok(dir.to_string_lossy().to_string())
+}
+
+#[tauri::command]
+fn rename_item(old_path: String, new_name: String) -> Result<(), String> {
+    let old = std::path::Path::new(&old_path);
+    let parent = old.parent().ok_or("无法获取父目录")?;
+    let new_path = parent.join(&new_name);
+    std::fs::rename(old, &new_path)
+        .map_err(|e| format!("重命名失败: {}", e))?;
+    Ok(())
+}
+
+#[tauri::command]
+fn delete_item(target_path: String) -> Result<(), String> {
+    let path = std::path::Path::new(&target_path);
+    if path.is_dir() {
+        std::fs::remove_dir_all(path)
+            .map_err(|e| format!("删除目录失败: {}", e))?;
+    } else {
+        std::fs::remove_file(path)
+            .map_err(|e| format!("删除文件失败: {}", e))?;
+    }
+    Ok(())
+}
+
+#[tauri::command]
+fn stat_file(path: String) -> Result<FileStat, String> {
+    let meta = std::fs::metadata(&path)
+        .map_err(|e| format!("获取文件信息失败: {}", e))?;
+    let modified = meta
+        .modified()
+        .ok()
+        .map(|t| {
+            let dur = t.duration_since(std::time::UNIX_EPOCH).unwrap_or_default();
+            dur.as_secs().to_string()
+        })
+        .unwrap_or_default();
+    Ok(FileStat {
+        size: meta.len(),
+        modified,
+        is_dir: meta.is_dir(),
+    })
+}
+
+#[tauri::command]
+fn read_dir_entries(path: String) -> Result<Vec<DirEntry>, String> {
+    let entries = std::fs::read_dir(&path)
+        .map_err(|e| format!("读取目录失败: {}", e))?;
+    let mut result = Vec::new();
+    for entry in entries {
+        let entry = entry.map_err(|e| format!("读取目录项失败: {}", e))?;
+        let name = entry.file_name().to_string_lossy().to_string();
+        if name.starts_with('.') {
+            continue;
+        }
+        let is_directory = entry.file_type()
+            .map(|t| t.is_dir())
+            .unwrap_or(false);
+        result.push(DirEntry { name, is_directory });
+    }
+    result.sort_by(|a, b| {
+        if a.is_directory != b.is_directory {
+            if a.is_directory { std::cmp::Ordering::Less } else { std::cmp::Ordering::Greater }
+        } else {
+            a.name.to_lowercase().cmp(&b.name.to_lowercase())
+        }
+    });
+    Ok(result)
+}
+
 // ── Run code (Python execution) ──
 
 #[tauri::command]
@@ -321,6 +441,14 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             build_file_tree,
             search_text,
+            read_file_utf8,
+            write_file_utf8,
+            create_file,
+            create_dir,
+            rename_item,
+            delete_item,
+            stat_file,
+            read_dir_entries,
             run_code,
             start_file_watcher,
             stop_file_watcher,

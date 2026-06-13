@@ -206,7 +206,7 @@ function App() {
         case 'mode:preview':
           setMode(useEditorStore.getState().mode === 'preview' ? 'split' : 'preview')
           break
-        case 'plugin:manage': setSettingsTab('plugin'); break
+        case 'plugin:manage': setSettingsTab('general'); break
         case 'settings:display': setSettingsTab('display'); break
         case 'app:about': setSettingsTab('about'); break
         case 'focus:mode': toggleFocusMode(); break

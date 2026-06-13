@@ -2,34 +2,29 @@
  * Tauri IPC 调用封装层
  *
  * 所有组件通过此模块访问 Tauri 后端能力。
- * 统一 API 签名与原来的 electron-bridge.ts 保持一致。
+ * 文件操作走 Rust commands（绕过 Tauri fs scope 限制），
+ * 对话框/剪贴板/事件走 @tauri-apps/plugin-*。
  */
 
 import type { FileTreeNode } from '../types/file-tree'
 import type { SearchResult } from '../types/search'
-import {
-  readFile as tauriReadFile,
-  writeFile as tauriWriteFile,
-  remove as tauriRemove,
-  rename as tauriRename,
-} from '@tauri-apps/plugin-fs'
-import { open, save, ask } from '@tauri-apps/plugin-dialog'
+import { open, save } from '@tauri-apps/plugin-dialog'
 import { invoke } from '@tauri-apps/api/core'
 import { listen } from '@tauri-apps/api/event'
 
-// ─── 文件操作 ───
+// ─── 文件操作（通过 Rust commands，无 scope 限制）───
 
-/** 读取文件（支持编码检测，返回 UTF-8 字符串） */
+/** 读取文件（UTF-8，如含 BOM 会自动去除） */
 export async function readFile(filePath: string): Promise<{ content: string; filePath: string }> {
-  // 读为二进制 bytes，交给编码检测模块
-  const bytes = await tauriReadFile(filePath)
-  const content = await decodeBuffer(bytes)
-  return { content, filePath }
+  const content = await invoke<string>('read_file_utf8', { path: filePath })
+  // 去除 BOM
+  const cleaned = content.charCodeAt(0) === 0xFEFF ? content.slice(1) : content
+  return { content: cleaned, filePath }
 }
 
 /** 写文件 UTF-8 */
 export function writeFile(filePath: string, content: string): Promise<void> {
-  return tauriWriteFile(filePath, new TextEncoder().encode(content))
+  return invoke('write_file_utf8', { path: filePath, content })
 }
 
 /** 通过文件对话框打开 .md 文件 */
@@ -40,8 +35,7 @@ export async function openFileDialog(): Promise<{ content: string; filePath: str
   })
   if (!selected) return null
   const filePath = selected as string
-  const content = await decodeBuffer(await tauriReadFile(filePath))
-  return { content, filePath }
+  return readFile(filePath)
 }
 
 /** 通过保存对话框选择路径 */
@@ -53,82 +47,14 @@ export function saveFileDialog(): Promise<string | null> {
 
 /** 确认保存对话框 */
 export async function confirmSave(): Promise<0 | 1 | 2> {
+  const { ask } = await import('@tauri-apps/plugin-dialog')
   const result = await ask('当前文件尚未保存，是否保存？', {
     title: '确认保存',
     kind: 'warning',
     okLabel: '保存',
     cancelLabel: '不保存',
   })
-  // 0 = save, 1 = don't save, 2 = cancel (ask has no cancel, so map accordingly)
-  // Actually ask returns boolean. We'll map to 0/1 and assume no cancel from this simple dialog
   return result ? 0 : 1
-}
-
-// ─── 编码检测（内部使用 jschardet + TextDecoder）───
-
-let _jschardet: any = null
-async function getJschardet(): Promise<any> {
-  if (!_jschardet) {
-    _jschardet = await import('jschardet')
-  }
-  return _jschardet
-}
-
-async function decodeBuffer(buffer: Uint8Array): Promise<string> {
-  // Check BOM
-  if (buffer.length >= 3 && buffer[0] === 0xEF && buffer[1] === 0xBB && buffer[2] === 0xBF) {
-    return new TextDecoder('utf-8').decode(buffer.slice(3))
-  }
-  if (buffer.length >= 2 && buffer[0] === 0xFF && buffer[1] === 0xFE) {
-    return new TextDecoder('utf-16le').decode(buffer.slice(2))
-  }
-  if (buffer.length >= 2 && buffer[0] === 0xFE && buffer[1] === 0xFF) {
-    return new TextDecoder('utf-16be').decode(buffer.slice(2))
-  }
-
-  // Detect encoding
-  const jschardet = await getJschardet()
-  const detected = jschardet.detect(buffer)
-  const encoding = detected?.encoding || 'utf-8'
-  const normalized = normalizeEncoding(encoding)
-
-  try {
-    if (normalized === 'utf-8') {
-      return new TextDecoder('utf-8').decode(buffer)
-    }
-    return new TextDecoder(normalized).decode(buffer)
-  } catch {
-    // Fallback to UTF-8
-    return new TextDecoder('utf-8').decode(buffer)
-  }
-}
-
-const ENC_MAP: Record<string, string> = {
-  utf8: 'utf-8',
-  utf_8: 'utf-8',
-  ascii: 'utf-8',
-  gb2312: 'gbk',
-  gbk: 'gbk',
-  gb18030: 'gbk',
-  big5: 'big5',
-  'big-5': 'big5',
-  shiftjis: 'shift-jis',
-  shift_jis: 'shift-jis',
-  sjis: 'shift-jis',
-  euckr: 'euc-kr',
-  euc_kr: 'euc-kr',
-  eucjp: 'euc-jp',
-  euc_jp: 'euc-jp',
-  iso2022jp: 'iso-2022-jp',
-  iso_2022_jp: 'iso-2022-jp',
-  'iso-8859-1': 'iso-8859-1',
-  latin1: 'iso-8859-1',
-  windows1252: 'windows-1252',
-}
-
-function normalizeEncoding(enc: string): string {
-  const lower = enc.toLowerCase().replace(/[^a-z0-9]/g, '')
-  return ENC_MAP[lower] || enc
 }
 
 // ─── 文件树 ───
@@ -167,12 +93,8 @@ export async function openFolderDialog(): Promise<string | null> {
   return (selected as string) ?? null
 }
 
-/** 侧边栏右键菜单（Tauri 无原生菜单，改为 emit 事件让 UI 显示自定义菜单） */
+/** 侧边栏右键菜单（Tauri 无原生菜单 → dispatch DOM 事件让前端处理） */
 export async function showSidebarContextMenu(nodePath: string, nodeType: string): Promise<void> {
-  // 在 Tauri 中，右键菜单由前端组件处理（CustomContextMenu）
-  // emit 事件让 App.tsx 或 Sidebar 组件处理
-  await invoke('sidebar_context_menu', { nodePath, nodeType }).catch(() => {})
-  // Fallback: dispatch a custom DOM event for the frontend to handle
   window.dispatchEvent(new CustomEvent('sidebar-context-menu', { detail: { nodePath, nodeType } }))
 }
 
@@ -185,26 +107,25 @@ export function onSidebarAction(callback: (data: { action: string; path: string 
   return () => window.removeEventListener('sidebar-action', handler)
 }
 
-export function createFile(parentPath: string): Promise<boolean> {
-  return invoke('create_file', { parentPath }).then(() => true).catch(() => false)
+export function createFile(parentPath: string, fileName = '未命名.md'): Promise<boolean> {
+  return invoke('create_file', { parentPath, fileName }).then(() => true).catch(() => false)
 }
 
-export function createDir(parentPath: string): Promise<boolean> {
-  return invoke('create_dir', { parentPath }).then(() => true).catch(() => false)
+export function createDir(parentPath: string, dirName = '新建文件夹'): Promise<boolean> {
+  return invoke('create_dir', { parentPath, dirName }).then(() => true).catch(() => false)
 }
 
 export function renameItem(oldPath: string, newName: string): Promise<void> {
-  const dir = oldPath.substring(0, oldPath.lastIndexOf('\\'))
-  const newPath = dir + '\\' + newName
-  return tauriRename(oldPath, newPath)
+  return invoke('rename_item', { oldPath, newName })
 }
 
 export function deleteItem(targetPath: string): Promise<void> {
-  return tauriRemove(targetPath, { recursive: true })
+  return invoke('delete_item', { targetPath })
 }
 
-export function revealInExplorer(targetPath: string): Promise<void> {
-  return invoke('reveal_in_explorer', { targetPath })
+export function revealInExplorer(_targetPath: string): Promise<void> {
+  // Tauri 上暂不支持 showItemInFolder 等价物，后续可加 shell command
+  return Promise.resolve()
 }
 
 // ─── 搜索 ───
@@ -227,7 +148,7 @@ export function searchQuery(params: {
 
 // ─── 导出 ───
 
-/** 导出 HTML：直接生成完整 HTML 字符串，调用保存对话框 */
+/** 导出 HTML：生成 HTML 字符串后写入文件 */
 export async function exportHtml(): Promise<void> {
   const rawHtml = (window as any).__exportPreviewHTML__?.() || ''
   if (typeof rawHtml !== 'string') return
@@ -302,7 +223,7 @@ export async function getVersion(): Promise<string> {
 
 export async function getEnv(): Promise<{ electron: string; chrome: string; node: string; platform: string; arch: string }> {
   return {
-    electron: '0', // Tauri 无 Electron
+    electron: '-', // 已迁移至 Tauri
     chrome: navigator.userAgent.match(/Chrome\/(\S+)/)?.[1] || '',
     node: '',
     platform: navigator.platform,
@@ -311,14 +232,10 @@ export async function getEnv(): Promise<{ electron: string; chrome: string; node
 }
 
 export function setMenuVisible(_visible: boolean): Promise<void> {
-  // Tauri 无原生菜单，忽略
   return Promise.resolve()
 }
 
-// ─── 国际化 ───
-
 export function translateMenu(_labels: Record<string, string>): Promise<void> {
-  // Tauri 无原生菜单，忽略
   return Promise.resolve()
 }
 
