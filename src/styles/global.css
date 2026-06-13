@@ -131,7 +131,7 @@ body,
   border: none;
   cursor: pointer;
   padding: 4px 6px;
-  font-size: 12px;
+  font-size: 13px;
   color: var(--text-primary);
   border-radius: 4px;
   transition: background 0.15s, color 0.15s;

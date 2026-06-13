@@ -30,7 +30,7 @@ const TAURI_MOCK_SCRIPT = `
 // Mock @tauri-apps/api/core invoke
 window.__TAURI_INVOKE__ = (cmd, args) => {
   switch (cmd) {
-    case 'get_app_version': return Promise.resolve('0.5.1');
+    case 'get_app_version': return Promise.resolve('0.5.2');
     case 'read_file_utf8':   return Promise.resolve('# Mock content from: ' + (args?.path || ''));
     case 'write_file_utf8':  return Promise.resolve(undefined);
     case 'build_file_tree':  return Promise.resolve({ name: 'mock', path: '/mock', type: 'directory', children: [] });

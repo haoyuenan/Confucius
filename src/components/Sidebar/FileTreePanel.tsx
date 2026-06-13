@@ -111,6 +111,8 @@ function FileTreePanel() {
   const selectedPath = useSidebarStore((s) => s.selectedPath)
   const setRootPath = useSidebarStore((s) => s.setRootPath)
   const setFileTree = useSidebarStore((s) => s.setFileTree)
+  const setFileTreeLoading = useSidebarStore((s) => s.setFileTreeLoading)
+  const isFileTreeLoading = useSidebarStore((s) => s.isFileTreeLoading)
   const toggleExpand = useSidebarStore((s) => s.toggleExpand)
   const selectFile = useSidebarStore((s) => s.selectFile)
 
@@ -135,12 +137,14 @@ function FileTreePanel() {
     const folderPath = await bridge.openFolderDialog()
     if (!folderPath) return
     setRootPath(folderPath)
+    setFileTreeLoading(true)
     const tree = await bridge.buildFileTree(folderPath)
     setFileTree(tree)
+    setFileTreeLoading(false)
     await bridge.startFileWatcher(folderPath)
     // 初始化知识库索引
     useKnowledgeStore.getState().initialize(folderPath)
-  }, [setRootPath, setFileTree])
+  }, [setRootPath, setFileTree, setFileTreeLoading])
 
   /** 关闭文件夹 */
   const handleCloseFolder = useCallback(async () => {
@@ -195,8 +199,10 @@ function FileTreePanel() {
       </div>
 
       <div className="file-tree-list">
-        {flatItems.length === 0 ? (
+        {flatItems.length === 0 && !isFileTreeLoading ? (
           <div className="sidebar-empty">{t('sidebar.fileTree.empty')}</div>
+        ) : flatItems.length === 0 && isFileTreeLoading ? (
+          <div className="sidebar-empty sidebar-scanning">{t('sidebar.fileTree.scanning')}</div>
         ) : (
           flatItems.map(({ depth, node }) => (
             <div

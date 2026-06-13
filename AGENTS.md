@@ -18,13 +18,13 @@ npm run tauri -- help  # Tauri CLI help
 **Tauri dual-process**. The frontend runs as a webview (React + TypeScript) in `src/`. The backend consists of Rust commands in `src-tauri/src/lib.rs`. Communication uses `@tauri-apps/api/core`'s `invoke()` (request-response pattern). There is no Electron/Node.js main process.
 
 **Rust backend** (`src-tauri/src/lib.rs`). All system-level operations are implemented as `#[tauri::command]` functions:
-- `build_file_tree` — recursive directory walk, returns sorted tree of `.md` files
+- `build_file_tree` — recursive directory walk, returns sorted tree of `.md` files (skips empty dirs)
 - `search_text` — parallel full-text regex search (8 threads)
 - `read_file_utf8` / `write_file_utf8` — file I/O (bypasses Tauri fs scope)
+- `read_file_base64` — read binary files as base64 data URI (for images in preview)
 - `create_file` / `create_dir` / `rename_item` / `delete_item` — file management
 - `stat_file` / `read_dir_entries` — file metadata and directory listing
 - `start_file_watcher` / `stop_file_watcher` — filesystem change watcher (via `notify` crate)
-- `run_code` — Python code execution via `child_process`
 - `get_app_version` — returns package version
 
 **IPC bridge**. `src/services/electron-bridge.ts` wraps all Tauri `invoke()` calls and plugin APIs into a single module — the frontend's sole entry point for system operations. Channel naming convention follows the original Electron IPC: `<domain>:<action>` (e.g. `file:read`, `search:query`). If you add a new Rust command, update both `lib.rs` (the command function + `generate_handler![]`) and `electron-bridge.ts` (the wrapper function).
@@ -69,6 +69,7 @@ Stores are the single source of truth — React components read via hooks and wr
 - `@tauri-apps/plugin-dialog` — file/folder dialogs
 - `@tauri-apps/plugin-shell` — open external URLs
 - `@tauri-apps/plugin-process` — process info
-- Rust crate `notify-debouncer-full` (v0.3) — filesystem watching
+- Rust crate `notify` (v7) — filesystem watching
+- Rust crate `base64` (v0.22) — base64 encode for image preview
 
 **Build/packaging**: `tauri.conf.json` configures the Tauri builder. Icon resources live in `src-tauri/icons/`. Output is configured in `dist-release/` via `npm run build:tauri`.

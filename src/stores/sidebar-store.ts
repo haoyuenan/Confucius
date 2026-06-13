@@ -17,10 +17,12 @@ interface SidebarState {
   searchQuery: string
   searchResults: SearchResult[]
   isSearching: boolean
+  isFileTreeLoading: boolean
 
   setActiveTab: (tab: SidebarTab) => void
   setRootPath: (path: string | null) => void
   setFileTree: (tree: FileTreeNode | null) => void
+  setFileTreeLoading: (v: boolean) => void
   toggleExpand: (path: string) => void
   selectFile: (path: string | null) => void
   setExpandedPaths: (paths: string[]) => void
@@ -45,6 +47,7 @@ export const useSidebarStore = create<SidebarState>((set) => ({
   searchQuery: '',
   searchResults: [],
   isSearching: false,
+  isFileTreeLoading: false,
 
   setActiveTab: (tab) => set({ activeTab: tab }),
   setRootPath: (path) => set({ rootPath: path }),
@@ -60,6 +63,7 @@ export const useSidebarStore = create<SidebarState>((set) => ({
   setSearchQuery: (q) => set({ searchQuery: q }),
   setSearchResults: (results) => set({ searchResults: results }),
   setIsSearching: (v) => set({ isSearching: v }),
+  setFileTreeLoading: (v) => set({ isFileTreeLoading: v }),
   refreshFileTree: (tree) => set({ fileTree: tree }),
 
   getSavedWidth: () => {

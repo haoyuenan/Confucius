@@ -333,8 +333,9 @@ dependencies = [
 
 [[package]]
 name = "confucius"
-version = "0.5.1"
+version = "0.5.2"
 dependencies = [
+ "base64 0.22.1",
  "notify",
  "regex",
  "serde",

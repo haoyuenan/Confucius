@@ -52,8 +52,8 @@ fn build_file_tree(root_path: String) -> Result<FileTreeNode, String> {
         children: Some(vec![]),
     };
 
-    // Use walkdir with max depth 0 to get immediate children, then build recursively
-    fn build_node(dir: &std::path::Path, depth: usize) -> Option<FileTreeNode> {
+    // Use walkdir to build tree recursively
+    fn build_node(dir: &std::path::Path) -> Option<FileTreeNode> {
         let name = dir.file_name()?.to_string_lossy().to_string();
         let path = dir.to_string_lossy().to_string();
 
@@ -68,7 +68,7 @@ fn build_file_tree(root_path: String) -> Result<FileTreeNode, String> {
             }
             let entry_path = entry.path();
             if entry_path.is_dir() {
-                if let Some(child) = build_node(&entry_path, depth + 1) {
+                if let Some(child) = build_node(&entry_path) {
                     children.push(child);
                 }
             } else if entry_path.is_file() && is_md_file(&entry_name) {
@@ -79,6 +79,11 @@ fn build_file_tree(root_path: String) -> Result<FileTreeNode, String> {
                     children: None,
                 });
             }
+        }
+
+        // 目录下没有任何 .md 文件（也无可递归的子目录包含 .md 文件）→ 跳过
+        if children.is_empty() {
+            return None;
         }
 
         // Sort: directories first, then files, alphabetical
@@ -102,7 +107,7 @@ fn build_file_tree(root_path: String) -> Result<FileTreeNode, String> {
         })
     }
 
-    Ok(build_node(&root, 0).unwrap_or(root_node))
+    Ok(build_node(&root).unwrap_or(root_node))
 }
 
 // ── Text search ──
@@ -259,6 +264,30 @@ fn read_file_utf8(path: String) -> Result<String, String> {
     let content = std::fs::read_to_string(&path)
         .map_err(|e| format!("读取文件失败: {}", e))?;
     Ok(content)
+}
+
+/** 根据文件扩展名推断 MIME 类型 */
+fn infer_mime(path: &str) -> &str {
+    let lower = path.to_lowercase();
+    if lower.ends_with(".png") { "image/png" }
+    else if lower.ends_with(".jpg") || lower.ends_with(".jpeg") { "image/jpeg" }
+    else if lower.ends_with(".gif") { "image/gif" }
+    else if lower.ends_with(".svg") { "image/svg+xml" }
+    else if lower.ends_with(".webp") { "image/webp" }
+    else if lower.ends_with(".ico") { "image/x-icon" }
+    else if lower.ends_with(".bmp") { "image/bmp" }
+    else { "image/png" }
+}
+
+#[tauri::command]
+fn read_file_base64(path: String) -> Result<String, String> {
+    let _ = sanitize_path(&path)?;
+    let bytes = std::fs::read(&path)
+        .map_err(|e| format!("读取文件失败: {}", e))?;
+    use base64::Engine;
+    let b64 = base64::engine::general_purpose::STANDARD.encode(&bytes);
+    let mime = infer_mime(&path);
+    Ok(format!("data:{};base64,{}", mime, b64))
 }
 
 #[tauri::command]
@@ -465,6 +494,7 @@ pub fn run() {
             build_file_tree,
             search_text,
             read_file_utf8,
+            read_file_base64,
             write_file_utf8,
             create_file,
             create_dir,

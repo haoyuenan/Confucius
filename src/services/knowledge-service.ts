@@ -9,7 +9,7 @@ import { readFileRaw, writeFile as bridgeWriteFile, fileExists as bridgeFileExis
 
 // ── Types ──
 
-export interface FileMeta {
+interface FileMeta {
   path: string
   title: string
   links: string[]
@@ -19,14 +19,14 @@ export interface FileMeta {
   modified: string
 }
 
-export interface Link {
+interface Link {
   source: string
   target: string
   resolved: boolean
   targetPath?: string
 }
 
-export interface KnowledgeIndex {
+interface KnowledgeIndex {
   version: 1
   files: Record<string, FileMeta>
   links: Link[]
@@ -447,5 +447,3 @@ export class KnowledgeService {
     this.renameFile(oldPath, newPath).catch(() => {})
   }
 }
-
-export const knowledgeService = new KnowledgeService()

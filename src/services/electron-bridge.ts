@@ -22,6 +22,11 @@ export async function readFile(filePath: string): Promise<{ content: string; fil
   return { content: cleaned, filePath }
 }
 
+/** 读取文件为 base64 data URI（用于图片等二进制文件） */
+export function readFileBase64(filePath: string): Promise<string> {
+  return invoke<string>('read_file_base64', { path: filePath })
+}
+
 /** 写文件 UTF-8 */
 export function writeFile(filePath: string, content: string): Promise<void> {
   return invoke('write_file_utf8', { path: filePath, content })
@@ -100,15 +105,6 @@ export async function showSidebarContextMenu(nodePath: string, nodeType: string)
   window.dispatchEvent(new CustomEvent('sidebar-context-menu', { detail: { nodePath, nodeType } }))
 }
 
-export function onSidebarAction(callback: (data: { action: string; path: string }) => void): () => void {
-  const handler = (e: Event) => {
-    const detail = (e as CustomEvent).detail
-    if (detail) callback(detail)
-  }
-  window.addEventListener('sidebar-action', handler)
-  return () => window.removeEventListener('sidebar-action', handler)
-}
-
 export function createFile(parentPath: string, fileName = '未命名.md'): Promise<boolean> {
   return invoke('create_file', { parentPath, fileName }).then(() => true).catch(() => false)
 }
@@ -123,11 +119,6 @@ export function renameItem(oldPath: string, newName: string): Promise<void> {
 
 export function deleteItem(targetPath: string): Promise<void> {
   return invoke('delete_item', { targetPath })
-}
-
-export function revealInExplorer(_targetPath: string): Promise<void> {
-  // Tauri 上暂不支持 showItemInFolder 等价物
-  return Promise.resolve()
 }
 
 /** 读取文件原始内容（UTF-8，供知识库内部使用） */

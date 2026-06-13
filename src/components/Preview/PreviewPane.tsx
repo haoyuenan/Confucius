@@ -4,7 +4,7 @@ import { renderMarkdown } from '../../editor/markdown-renderer'
 import { initMermaid, renderMermaidDiagrams } from '../../editor/mermaid-renderer'
 import { themeService } from '../../services/theme-service'
 import { open as shellOpen } from '@tauri-apps/plugin-shell'
-import { convertFileSrc } from '@tauri-apps/api/core'
+import * as bridge from '../../services/electron-bridge'
 import { updatePreviewContent } from '../../utils/dom-diff'
 import { useSidebarStore } from '../../stores/sidebar-store'
 import { useEditorStore } from '../../stores/editor-store'
@@ -30,9 +30,9 @@ function PreviewPane({ content }: PreviewPaneProps) {
   const previewRef = useRef<HTMLDivElement>(null)
   const isFirstRender = useRef(true)
   const zoomRef = useRef(1)
+  const activeFilePath = useTabStore((s) => s.activeTab()?.filePath ?? null)
   const html = useMemo(() => renderMarkdown(content), [content])
   const outlineItems = useSidebarStore((s) => s.outlineItems)
-  const activeFilePath = useTabStore((s) => s.activeTab()?.filePath ?? null)
 
   // Ctrl+滚轮缩放预览区
   const handleWheel = useCallback((e: WheelEvent) => {
@@ -127,27 +127,41 @@ function PreviewPane({ content }: PreviewPaneProps) {
       updatePreviewContent(previewRef.current, html)
     }
 
-    // 将相对路径图片解析为 local-asset:// 绝对路径
+    // 大文件跳过 Mermaid 渲染（性能开销大）
+    const isLarge = useEditorStore.getState().isLargeFile
+    if (!isLarge) {
+      renderMermaidDiagrams(previewRef.current)
+    }
+
+    // 异步加载本地图片为 base64 data URI（绕过 Tauri asset 协议限制）
     if (activeFilePath) {
       const dirPath = activeFilePath.replace(/[\\/][^\\/]*$/, '')
       const imgs = previewRef.current.querySelectorAll('img')
       imgs.forEach((img) => {
         const src = img.getAttribute('src')
         if (!src) return
-        // 相对路径 → 绝对路径 → convertFileSrc 转换
+        // 跳过网络图片 / data URI / asset 协议
+        if (/^(?:https?:|data:|asset:)/i.test(src)) return
+        // 跳过已转换的（来自上一次渲染）
+        if (img.dataset.b64Loaded) return
+
         const normalized = src.replace(/\\/g, '/')
         const dirNorm = dirPath.replace(/\\/g, '/')
         const absPath = normalized.startsWith('/')
           ? normalized
           : dirNorm + '/' + normalized
-        img.setAttribute('src', convertFileSrc(absPath))
-      })
-    }
 
-    // 大文件跳过 Mermaid 渲染（性能开销大）
-    const isLarge = useEditorStore.getState().isLargeFile
-    if (!isLarge) {
-      renderMermaidDiagrams(previewRef.current)
+        img.dataset.b64Loading = '1'
+        bridge.readFileBase64(absPath).then((dataUri) => {
+          // 组件可能已卸载或内容已变
+          if (!document.body.contains(img)) return
+          img.setAttribute('src', dataUri)
+          img.dataset.b64Loaded = '1'
+          delete img.dataset.b64Loading
+        }).catch(() => {
+          delete img.dataset.b64Loading
+        })
+      })
     }
   }, [html, activeFilePath])
 
