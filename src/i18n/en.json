@@ -160,6 +160,8 @@
   "settings.general.modeSplit": "Split (Editor + Preview)",
   "settings.general.modeWysiwyg": "Live Render (WYSIWYG)",
   "settings.general.modePreview": "Full Preview",
+  "settings.general.imagePath": "Image Save Path",
+  "settings.general.imagePathDesc": "Relative to the note file, default: assets",
   "settings.display.title": "Theme",
   "settings.display.mode": "Theme Mode",
   "settings.display.light": "Light Mode",

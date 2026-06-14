@@ -159,7 +159,7 @@ confucius/
 │   │   ├── Sidebar/                # Sidebar (file tree/outline/search/backlinks/tags/graph)
 │   │   └── Settings/               # Settings panel
 │   ├── services/
-│   │   ├── electron-bridge.ts      # Tauri IPC wrapper
+│   │   ├── bridge.ts      # Tauri IPC wrapper
 │   │   ├── command-registry.ts     # Built-in commands + fuzzy search
 │   │   ├── workspace-store.ts      # Session save/restore
 │   │   ├── theme-service.ts        # Theme management (12 themes)
@@ -178,6 +178,14 @@ confucius/
 ```
 
 ## Migration from Electron
+
+v0.6.0 Image paste management and architecture cleanup:
+
+- **Image paste management**: Ctrl+V screenshots/images → Rust auto-saves to `assets/` → inserts `![](...)`
+- **New Rust command**: `save_image_file` — receives base64, decodes, writes to target directory
+- **New setting**: Configurable image save path (default: `assets`)
+- **File rename**: `electron-bridge.ts` → `bridge.ts`, removing Electron confusion
+- **Dead code cleanup**: Removed never-reached return value `2` from `confirmSave`
 
 v0.5.3 Configuration enhancements and i18n standardization:
 
@@ -204,10 +212,11 @@ v0.5.0 migrates from Electron 28 to Tauri 2:
 - **PDF export**: Electron printToPDF → system print dialog
 - **Plugin system**: Removed (engine + external plugins)
 - **Encoding detection**: jschardet + iconv-lite → Rust native UTF-8
+- **Image paths**: `convertFileSrc` + asset protocol → Rust base64 data URI
 
 ## Development Status
 
-v0.5.3 completes i18n standardization and configuration enhancements. The feature set is stabilizing, entering a polish phase.
+v0.6.0 adds image paste management and completes architecture cleanup. Feature set is maturing well.
 
 ## License
 

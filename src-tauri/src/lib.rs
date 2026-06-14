@@ -291,6 +291,31 @@ fn read_file_base64(path: String) -> Result<String, String> {
 }
 
 #[tauri::command]
+fn save_image_file(data_base64: String, file_name: String, target_dir: String) -> Result<String, String> {
+    let dir = sanitize_path(&target_dir)?;
+    std::fs::create_dir_all(&dir)
+        .map_err(|e| format!("创建目录失败: {}", e))?;
+
+    // 从 data:image/...;base64, 格式中剥离前缀（如果存在）
+    let b64_data = if let Some(pos) = data_base64.find("base64,") {
+        &data_base64[pos + 7..]
+    } else {
+        &data_base64
+    };
+
+    use base64::Engine;
+    let bytes = base64::engine::general_purpose::STANDARD
+        .decode(b64_data)
+        .map_err(|e| format!("base64 解码失败: {}", e))?;
+
+    let file_path = dir.join(&file_name);
+    std::fs::write(&file_path, &bytes)
+        .map_err(|e| format!("写入图片失败: {}", e))?;
+
+    Ok(file_path.to_string_lossy().to_string())
+}
+
+#[tauri::command]
 fn write_file_utf8(path: String, content: String) -> Result<(), String> {
     let _ = sanitize_path(&path)?;
     if let Some(parent) = std::path::Path::new(&path).parent() {
@@ -495,6 +520,7 @@ pub fn run() {
             search_text,
             read_file_utf8,
             read_file_base64,
+            save_image_file,
             write_file_utf8,
             create_file,
             create_dir,

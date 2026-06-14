@@ -60,7 +60,7 @@ Rust 后端 (src-tauri/src/lib.rs)
 │   ├── active-view.ts      # 模块级 EditorView 引用
 │   └── large-file-handler.ts # 大文件检测
 ├── services/
-│   ├── electron-bridge.ts  # Tauri invoke() 封装层
+│   ├── bridge.ts  # Tauri invoke() 封装层
 │   ├── knowledge-service.ts # 知识库引擎（维基链接/标签/图谱）
 │   ├── theme-service.ts    # 主题切换
 │   ├── workspace-store.ts  # 工作区会话持久化
@@ -102,7 +102,7 @@ Rust 后端 (src-tauri/src/lib.rs)
 | `start_file_watcher` / `stop_file_watcher` | 文件变更监听（notify crate，500ms 防抖） |
 | `get_app_version` | 返回版本号 |
 
-所有命令通过 `@tauri-apps/api/core` 的 `invoke()` 调用。桥接层在 `src/services/electron-bridge.ts` 统一封装。
+所有命令通过 `@tauri-apps/api/core` 的 `invoke()` 调用。桥接层在 `src/services/bridge.ts` 统一封装。
 
 ## 关键数据流
 

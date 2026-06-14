@@ -1,7 +1,7 @@
 import { useEffect, useCallback } from 'react'
 import { useKnowledgeStore } from '../../stores/knowledge-store'
 import { useTabStore } from '../../stores/tab-store'
-import * as bridge from '../../services/electron-bridge'
+import * as bridge from '../../services/bridge'
 import { useTranslation } from 'react-i18next'
 
 export function BacklinksPanel() {

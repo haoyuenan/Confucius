@@ -28,6 +28,11 @@ export function readFileBase64(filePath: string): Promise<string> {
   return invoke<string>('read_file_base64', { path: filePath })
 }
 
+/** 保存剪贴板图片到指定目录 */
+export function saveImageFile(dataBase64: string, fileName: string, targetDir: string): Promise<string> {
+  return invoke<string>('save_image_file', { dataBase64, fileName, targetDir })
+}
+
 /** 写文件 UTF-8 */
 export function writeFile(filePath: string, content: string): Promise<void> {
   return invoke('write_file_utf8', { path: filePath, content })

@@ -159,7 +159,7 @@ confucius/
 │   │   ├── Sidebar/                # 侧边栏（文件树/大纲/搜索/反链/标签/图谱）
 │   │   └── Settings/               # 设置面板
 │   ├── services/
-│   │   ├── electron-bridge.ts      # Tauri IPC 封装层
+│   │   ├── bridge.ts      # Tauri IPC 封装层
 │   │   ├── command-registry.ts     # 内置命令 + 模糊搜索
 │   │   ├── workspace-store.ts      # 工作区会话保存/恢复
 │   │   ├── theme-service.ts        # 主题管理（12 套主题）
@@ -178,6 +178,14 @@ confucius/
 ```
 
 ## 从 Electron 迁移
+
+v0.6.0 图片粘贴管理与架构清理：
+
+- **图片粘贴管理**：Ctrl+V 粘贴截图/图片 → Rust 自动保存到 `assets/` 目录 → 插入 `![](...)`
+- **新增 Rust 命令**：`save_image_file` — 接收 base64、解码、写入指定目录
+- **新增设置项**：图片保存路径（可配置，默认 `assets`）
+- **文件重命名**：`electron-bridge.ts` → `bridge.ts`，消除 Electron 误解
+- **死代码清理**：`confirmSave` 移除永不触发的返回值 `2`
 
 v0.5.3 配置系统增强与 i18n 标准化：
 
@@ -204,10 +212,11 @@ v0.5.0 从 Electron 28 迁移至 Tauri 2，主要变化：
 - **PDF 导出**：Electron printToPDF → 系统打印对话框
 - **插件系统**：移除（引擎 + 外部插件）
 - **编码检测**：jschardet + iconv-lite → Rust 直接读取 UTF-8
+- **图片路径**：`convertFileSrc` + asset 协议 → Rust base64 data URI
 
 ## 开发状态
 
-v0.5.3 完成 i18n 标准化和配置系统增强。功能趋于稳定，进入细节打磨阶段。
+v0.6.0 新增图片粘贴管理功能，完成架构清理。功能趋于完善。
 
 ## License
 

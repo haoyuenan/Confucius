@@ -5,7 +5,7 @@ import { useTabStore } from '../../stores/tab-store'
 import { useKnowledgeStore } from '../../stores/knowledge-store'
 import { flattenTree, type FileTreeNode } from '../../types/file-tree'
 import { fileNameFromPath } from '../../utils/path'
-import * as bridge from '../../services/electron-bridge'
+import * as bridge from '../../services/bridge'
 import { addRecentFile, getRecentFiles, type RecentFile } from '../../services/recent-files'
 
 /* ─── 欢迎屏（零状态） ─── */

@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { useTabStore } from '../stores/tab-store'
-import * as bridge from '../services/electron-bridge'
+import * as bridge from '../services/bridge'
 
 const AUTOSAVE_KEY = 'confucius-autosave-interval'
 

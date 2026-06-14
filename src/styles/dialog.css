@@ -991,3 +991,20 @@
 .settings-select:focus {
   border-color: var(--accent-color);
 }
+
+.settings-text-input {
+  width: 160px;
+  padding: 6px 10px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 13px;
+  font-family: monospace;
+  outline: none;
+  text-align: right;
+}
+
+.settings-text-input:focus {
+  border-color: var(--accent-color);
+}
