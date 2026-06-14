@@ -11,6 +11,7 @@ import type { SearchResult } from '../types/search'
 import { open, save } from '@tauri-apps/plugin-dialog'
 import { invoke } from '@tauri-apps/api/core'
 import { listen } from '@tauri-apps/api/event'
+import i18n from '../i18n/i18n'
 
 // ─── 文件操作（通过 Rust commands，无 scope 限制）───
 
@@ -53,8 +54,7 @@ export function saveFileDialog(): Promise<string | null> {
 /** 确认保存对话框 */
 export async function confirmSave(): Promise<0 | 1 | 2> {
   const { ask } = await import('@tauri-apps/plugin-dialog')
-  const { useI18nStore } = await import('../i18n/i18n-store')
-  const t = useI18nStore.getState().t
+  const t = i18n.t
   const result = await ask(t('dialog.confirmSave.message'), {
     title: t('dialog.confirmSave.title'),
     kind: 'warning',
@@ -335,11 +335,6 @@ export async function getEnv(): Promise<{ tauri: string; platform: string; arch:
     platform: navigator.platform,
     arch: navigator.platform.includes('64') ? 'x64' : 'x86',
   }
-}
-
-export function setMenuVisible(_visible: boolean): Promise<void> {
-  // 在 Tauri 中菜单由配置文件管理，此接口保留为空操作
-  return Promise.resolve()
 }
 
 // ─── 知识库 ───

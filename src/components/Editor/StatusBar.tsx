@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useTabStore } from '../../stores/tab-store'
-import { useTranslation } from '../../i18n/i18n-store'
+import { useTranslation } from 'react-i18next'
 import { getActiveView } from '../../editor/active-view'
 
 function StatusBar() {

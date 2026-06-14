@@ -1,6 +1,6 @@
 {
   "name": "confucius",
-  "version": "0.5.2",
+  "version": "0.5.3",
   "description": "本地 Markdown 编辑器",
   "author": "renfy",
   "license": "MIT",
@@ -12,6 +12,7 @@
     "preview": "vite preview",
     "lint": "eslint src/ --ext .ts,.tsx",
     "typecheck": "tsc --noEmit",
+    "version:bump": "node scripts/bump-version.js",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
@@ -68,6 +69,8 @@
     "@tauri-apps/plugin-process": "^2.3.1",
     "@tauri-apps/plugin-shell": "^2.3.5",
     "@types/d3": "^7.4.3",
-    "d3": "^7.9.0"
+    "d3": "^7.9.0",
+    "i18next": "^26.3.1",
+    "react-i18next": "^17.0.8"
   }
 }

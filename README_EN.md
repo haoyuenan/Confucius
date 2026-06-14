@@ -179,6 +179,13 @@ confucius/
 
 ## Migration from Electron
 
+v0.5.3 Configuration enhancements and i18n standardization:
+
+- **i18n migration**: Replaced custom Zustand i18n store with react-i18next, laying groundwork for multi-language expansion
+- **New settings**: Configurable auto-save interval (1-30s), default edit mode (Split / WYSIWYG / Preview)
+- **Settings cleanup**: Removed "Hide Menu" toggle (Tauri has no native menu) and plugin manager remnants
+- **Version**: 0.5.1 → 0.5.3 (intermediate versions squashed)
+
 v0.5.2 Stability fixes and UI improvements:
 
 - **Image preview fix**: Replaced Tauri asset protocol with Rust `read_file_base64` + base64 data URI, fixing image loading issues
@@ -200,7 +207,7 @@ v0.5.0 migrates from Electron 28 to Tauri 2:
 
 ## Development Status
 
-v0.5.2 fixes image preview, printing, and optimizes file tree and UI details. Moving forward into feature iteration.
+v0.5.3 completes i18n standardization and configuration enhancements. The feature set is stabilizing, entering a polish phase.
 
 ## License
 

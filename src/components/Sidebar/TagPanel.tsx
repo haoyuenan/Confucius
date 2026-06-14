@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { useKnowledgeStore } from '../../stores/knowledge-store'
 import { useTabStore } from '../../stores/tab-store'
 import * as bridge from '../../services/electron-bridge'
-import { useTranslation } from '../../i18n/i18n-store'
+import { useTranslation } from 'react-i18next'
 
 export function TagPanel() {
   const { t } = useTranslation()

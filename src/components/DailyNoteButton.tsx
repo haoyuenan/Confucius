@@ -1,7 +1,7 @@
 import { useCallback } from 'react'
 import { knowledgeCreateDailyNote, readFile } from '../services/electron-bridge'
 import { useTabStore } from '../stores/tab-store'
-import { useTranslation } from '../i18n/i18n-store'
+import { useTranslation } from 'react-i18next'
 
 export function DailyNoteButton() {
   const { t } = useTranslation()

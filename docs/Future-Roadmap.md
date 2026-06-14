@@ -1,8 +1,8 @@
 # 未来发展规划
 
-**版本**：v0.3.0  
-**日期**：2026-05-19  
-**现状**：Phase 1-6 核心功能 + 插件引擎 v3 + 命令面板 + 工作区恢复 + 中英双语 i18n 完成，141 测试全部通过
+**版本**：v0.5.3  
+**日期**：2026-06-13  
+**现状**：Electron → Tauri 2 架构迁移完成，核心编辑器 + 知识库功能稳定，~159 测试通过
 
 ---
 
@@ -15,23 +15,22 @@
 | CM6 Markdown 编辑 + 语法高亮 + 格式化工具栏 + 快捷键 | ✅ 稳定 |
 | markdown-it + highlight.js + KaTeX + Mermaid + DOMPurify | ✅ 稳定 |
 | 双栏 / WYSIWYG / 纯预览三种模式 + 专注/打字机模式 | ✅ 稳定 |
-| 多标签页 + 文件树 + 全局搜索 + 编码自动检测 | ✅ 稳定 |
-| HTML / PDF 导出 | ✅ 稳定 |
-| 亮色/暗色/护眼三主题 + 持久化 | ✅ 稳定 |
-| 117 单元+集成测试 | ✅ 稳定 |
-| 14 E2E 测试（Playwright + Electron） | ✅ 稳定 |
-| GitHub Actions CI/CD（lint/test/e2e/release） | ✅ 稳定 |
-| DOMPurify XSS + 路径遍历防护 + Mermaid strict | ✅ 稳定 |
-| 插件引擎完整版（解耦/发现/依赖/事件/持久化/沙箱/管理 UI） | ✅ 稳定 |
-| 状态栏（字数/光标/编码/模式）+ 外部插件注册 | ✅ 稳定 |
-| 纯预览模式 + 编辑/预览滚动同步 | ✅ 稳定 |
-| 命令面板 Ctrl+E（模糊搜索 + 最近使用 + 插件命令集成） | ✅ 稳定 |
-| 工作区会话恢复（标签/侧边栏/主题自动保存恢复） | ✅ 稳定 |
-| 中英双语 i18n（实时切换 + Electron 菜单翻译） | ✅ 稳定 |
-| CSS Modules 迁移 + 技术债务清理（22/22 项） | ✅ 完成 |
+| 多标签页 + 文件树（跳过空目录）+ 全局搜索 | ✅ 稳定 |
+| HTML / PDF 打印（预览内容独立文档） | ✅ 稳定 |
+| 12 主题系统（亮/暗六组）+ 持久化 | ✅ 稳定 |
+| 图片预览（Rust base64 data URI，绕过 asset 协议限制） | ✅ 稳定 |
+| wiki-link 双向链接 + 反链面板 + 标签系统 + 知识图谱 | ✅ 稳定 |
+| 命令面板 Ctrl+E（模糊搜索 + 最近使用） | ✅ 稳定 |
+| 工作区会话恢复（标签/侧边栏/主题） | ✅ 稳定 |
+| 中英双语 i18n | ✅ 稳定 |
+| 文件变更监听（notify crate，500ms 防抖） | ✅ 稳定 |
+| 157+ 单元+集成测试 + 5 E2E 测试（Playwright web fixture） | ✅ 稳定 |
+| Tauri 2 迁移完成（移除所有 Electron 依赖，~8 MB 安装包） | ✅ 完成 |
 
 ### 当前局限
 
+- 无图片粘贴/拖入自动管理（需手动复制到 assets 目录）
+- 无 Git 同步
 - 无云同步 / 协作 / Web 版本
 - 无拼写检查
 
@@ -43,81 +42,48 @@
 
 - 截图 Ctrl+V 粘贴 → 自动保存到 `assets/` 目录并插入 `![](...)`
 - 拖入图片文件支持
-- 图片管理器面板（缩略图预览、跳转、删除、批量导出）
-- 可选：`sharp` 图片压缩
+- 图片管理器面板（缩略图预览、跳转、删除）
+- 可选：`image` crate 图片压缩
 
 ### Phase 8 — Git 同步（2-3 周）
 
 - 保存后自动 `git commit`（3 秒防抖）
 - 手动 `git pull` / `git push`（菜单项）
 - 冲突检测与提示
-- 依赖：`simple-git` 或 `isomorphic-git`
+- 依赖：`git2` crate 或 CLI 调用
 
 ### Phase 9 — 编辑体验进阶（2-3 周）
 
 - 标题折叠/展开（CM6 `foldGutter`）
 - 可拖拽重组文档结构（标题区块拖拽）
-- 内联代码运行器（JS eval 沙箱）
-- 拼写检查（`nspell` / `hunspell`）
+- 内联代码运行器（Python 沙箱）
+- 拼写检查
 
-### Phase 10 — Web 版本（5-6 周）
+### Phase 10 — 图片增强（1-2 周）
 
-- `StorageAdapter` 抽象（Electron ↔ REST API 切换）
-- Node.js 后端（Fastify/Express）
-- 共享 80%+ 代码（`components/`、`editor/`、`stores/`）
-- PWA 支持
+- 粘贴/拖入图片自动保存到工作区 `assets/`
+- 图片管理器（侧边栏面板）
+- 图片懒加载 + 缩略图缓存
 
-### Phase 11 — 协作编辑（6-8 周）
+### Phase 11 — 移动端适配（4-6 周）
 
-- Yjs（CRDT）+ `y-codemirror.next` 集成
-- 实时光标 + 选区显示
-- 离线编辑 → 重连合并
-- WebSocket 服务器（`y-websocket`）
-
-### Phase 12 — 无障碍（1-2 周）
-
-- ARIA 属性 + 键盘导航 + 高对比度主题
-
-> **注**：国际化（i18n）中文/英文切换已在 v0.3.0 完成。
+- Tauri Mobile（iOS/Android）
+- 响应式布局调整
+- 触控手势支持
 
 ---
 
-## 3. 技术栈演进
-
-### 短期（0-6 个月）
-
-| 当前 | 目标 |
-|------|------|
-| Electron 28 | Electron 33+ |
-| React 18 | React 19 |
-
-### 中期（6-12 个月）
-
-- 云同步：Supabase 或自研 WebSocket 服务
-- Web 版：`StorageAdapter` 抽象层
-- 状态管理：现有 Zustand 保持
-
-### 长期（12-24 个月）
-
-- 协作编辑：Yjs
-- 移动端：Tauri Mobile
-- AI 辅助：OpenAI API / 本地 LLM
-- 桌面分发：Electron → Tauri（可选，更小体积）
-
----
-
-## 4. 技术债务
+## 3. 技术债与优化
 
 | 项 | 优先级 | 状态 |
 |----|--------|------|
-| E2E 测试（Playwright + Electron，14 spec） | P0 | ✅ 已完成 |
-| CI/CD（GitHub Actions：ci/e2e/release） | P1 | ✅ 已完成 |
-| CSS Modules 迁移（4 个组件已迁移） | P2 | ✅ 已完成 |
-| hljs 主题本地打包（移除 CDN 依赖） | P1 | ✅ 已完成 |
-| 创建 FileService 类（10 个方法） | P1 | ✅ 已完成 |
-| markdown-it-texmath 集成（替换自研 DOM 遍历） | P2 | ✅ 已完成 |
-| 搜索并行化（8 并发度 Promise.all） | P2 | ✅ 已完成 |
-| 删除死代码 plugin-manager.ts | P1 | ✅ 已完成 |
-| app-store 文件状态精简（移除 9 个冗余字段） | P2 | ✅ 已完成 |
-| IPC sanitizePath 简化（FileService 吸收） | P2 | ✅ 已完成 |
-| 大文件限制落实（PreviewPane 跳过 Mermaid） | P2 | ✅ 已完成 |
+| E2E 测试（Playwright +  Tauri web fixture，5 spec） | P0 | ✅ 已完成 |
+| 图片预览 base64 改造（绕过 asset 协议限制） | P0 | ✅ 已完成 |
+| 文件树跳过无 .md 的空目录 | P1 | ✅ 已完成 |
+| 搜索/侧边按钮逻辑分离 | P2 | ✅ 已完成 |
+| 打印使用 iframe 独立文档 | P1 | ✅ 已完成 |
+| 添加 Rust base64 依赖用于图片预览 | P1 | ✅ 已完成 |
+| 打开文件夹时显示"正在遍历…"加载提示 | P2 | ✅ 已完成 |
+| 清理所有 Electron 残留代码/翻译键/测试 mock | P1 | ✅ 已完成 |
+| 代码语法高亮数量 | P2 | ✅ 已完成（33 语言） |
+| 搜索并行化（8 线程） | P2 | ✅ 已完成 |

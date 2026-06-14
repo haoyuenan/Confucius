@@ -3,7 +3,7 @@ import { undo, redo } from '@codemirror/commands'
 import { getActiveView } from '../../editor/active-view'
 import { useEditorStore } from '../../stores/editor-store'
 import * as fmt from '../../editor/format-helpers'
-import { useI18nStore } from '../../i18n/i18n-store'
+import { useTranslation } from 'react-i18next'
 import styles from './FormatToolbar.module.css'
 
 interface ButtonDef {
@@ -36,7 +36,7 @@ function exec(command: string, level?: number): void {
 }
 
 function FormatToolbar() {
-  const t = useI18nStore((s) => s.t)
+  const t = useTranslation().t
   const focusMode = useEditorStore((s) => s.focusMode)
   const typewriterMode = useEditorStore((s) => s.typewriterMode)
 

@@ -6,7 +6,7 @@ import {
 } from '../../services/command-registry'
 import { useKnowledgeStore } from '../../stores/knowledge-store'
 import { useTabStore } from '../../stores/tab-store'
-import { useTranslation } from '../../i18n/i18n-store'
+import { useTranslation } from 'react-i18next'
 import * as bridge from '../../services/electron-bridge'
 import styles from './CommandPalette.module.css'
 

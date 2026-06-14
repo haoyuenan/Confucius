@@ -1,5 +1,5 @@
 import { useSidebarStore } from '../../stores/sidebar-store'
-import { useI18nStore } from '../../i18n/i18n-store'
+import { useTranslation } from 'react-i18next'
 import FileTreePanel from './FileTreePanel'
 import OutlinePanel from './OutlinePanel'
 import SearchPanel from './SearchPanel'
@@ -32,7 +32,7 @@ function TabIcon({ name, size = 20 }: { name: string; size?: number }) {
 function Sidebar() {
   const activeTab = useSidebarStore((s) => s.activeTab)
   const setActiveTab = useSidebarStore((s) => s.setActiveTab)
-  const t = useI18nStore((s) => s.t)
+  const t = useTranslation().t
 
   const allTabs = [
     { id: 'file-tree', label: t('sidebar.tab.files'), icon: 'files' },

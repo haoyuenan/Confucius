@@ -1,5 +1,5 @@
 import { useEffect, useCallback, useState } from 'react'
-import { useTranslation } from '../../i18n/i18n-store'
+import { useTranslation } from 'react-i18next'
 import { useSidebarStore } from '../../stores/sidebar-store'
 import { useTabStore } from '../../stores/tab-store'
 import { useKnowledgeStore } from '../../stores/knowledge-store'

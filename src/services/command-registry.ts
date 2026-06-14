@@ -1,4 +1,4 @@
-import { useI18nStore } from '../i18n/i18n-store'
+import i18n from '../i18n/i18n'
 
 // ── Types ──
 
@@ -57,7 +57,7 @@ export function getRecentCommands(all: PaletteCommand[]): PaletteCommand[] {
 // ── Built-in commands ──
 
 export function getBuiltinCommands(ctx: CommandContext): PaletteCommand[] {
-  const t = useI18nStore.getState().t
+  const t = i18n.t
   return [
     { id: 'file:new', label: t('commandPalette.cmd.fileNew'), category: t('commandPalette.cat.file'), shortcut: 'Ctrl+N',
       execute: () => ctx.newUntitledTab() },
