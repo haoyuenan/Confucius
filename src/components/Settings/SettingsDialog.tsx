@@ -3,7 +3,7 @@ import * as bridge from '../../services/electron-bridge'
 import { themeService, getThemesByMode, type ThemeMode, type ThemeId } from '../../services/theme-service'
 import { useEditorStore } from '../../stores/editor-store'
 import { useAppStore } from '../../stores/app-store'
-import { useTranslation, useI18nStore } from '../../i18n/i18n-store'
+import { useTranslation } from 'react-i18next'
 
 // ─── Types ───
 
@@ -51,9 +51,8 @@ interface Props {
 }
 
 function SettingsDialog({ onClose, initialTab = 'general' }: Props) {
-  const { t } = useTranslation()
-  const lang = useI18nStore((s) => s.lang)
-  const setLang = useI18nStore((s) => s.setLang)
+  const { t, i18n } = useTranslation()
+  const lang = i18n.language
   const [activeTab, setActiveTab] = useState<SettingsTab>(initialTab)
 
   const focusMode = useEditorStore((s) => s.focusMode)
@@ -64,7 +63,12 @@ function SettingsDialog({ onClose, initialTab = 'general' }: Props) {
   const toggleSidebar = useAppStore((s) => s.toggleSidebar)
 
   const [currentTheme, setCurrentTheme] = useState<ThemeId>(() => themeService.getCurrentTheme())
-  const [hideMenu, setHideMenu] = useState(() => localStorage.getItem('confucius-hide-menu') !== 'false')
+  const [autoSaveInterval, setAutoSaveInterval] = useState(() => {
+    try { return parseInt(localStorage.getItem('confucius-autosave-interval') || '5000', 10) } catch { return 5000 }
+  })
+  const [defaultMode, setDefaultMode] = useState(() => {
+    try { return (localStorage.getItem('confucius-default-mode') || 'split') as 'split' | 'wysiwyg' | 'preview' } catch { return 'split' }
+  })
   const [version, setVersion] = useState('...')
   const [env, setEnv] = useState<EnvInfo | null>(null)
 
@@ -166,33 +170,51 @@ function SettingsDialog({ onClose, initialTab = 'general' }: Props) {
                     </label>
                   </div>
                   <div className="settings-row">
-                    <span className="settings-row-label">{t('settings.general.hideMenu')}</span>
-                    <label className="settings-toggle">
+                    <span className="settings-row-label">{t('settings.general.autoSave')}</span>
+                    <div className="settings-slider-group">
                       <input
-                        type="checkbox"
-                        checked={hideMenu}
-                        onChange={() => {
-                          const next = !hideMenu
-                          setHideMenu(next)
-                          localStorage.setItem('confucius-hide-menu', String(next))
-                          bridge.setMenuVisible(!next).catch(() => {})
+                        type="range"
+                        min="1"
+                        max="30"
+                        step="1"
+                        value={Math.round(autoSaveInterval / 1000)}
+                        onChange={(e) => {
+                          const sec = parseInt(e.target.value, 10)
+                          const ms = sec * 1000
+                          setAutoSaveInterval(ms)
+                          localStorage.setItem('confucius-autosave-interval', String(ms))
                         }}
+                        className="settings-slider"
                       />
-                      <span className="settings-toggle-track">
-                        <span className="settings-toggle-thumb" />
-                      </span>
-                    </label>
+                      <span className="settings-slider-value">{t('settings.general.autoSaveDesc', { s: Math.round(autoSaveInterval / 1000) })}</span>
+                    </div>
+                  </div>
+                  <div className="settings-row">
+                    <span className="settings-row-label">{t('settings.general.defaultMode')}</span>
+                    <select
+                      className="settings-select"
+                      value={defaultMode}
+                      onChange={(e) => {
+                        const mode = e.target.value as 'split' | 'wysiwyg' | 'preview'
+                        setDefaultMode(mode)
+                        localStorage.setItem('confucius-default-mode', mode)
+                      }}
+                    >
+                      <option value="split">{t('settings.general.modeSplit')}</option>
+                      <option value="wysiwyg">{t('settings.general.modeWysiwyg')}</option>
+                      <option value="preview">{t('settings.general.modePreview')}</option>
+                    </select>
                   </div>
                   <div className="settings-row">
                     <span className="settings-row-label">{t('settings.language.title')}</span>
                     <div className="lang-toggle-group">
                       <button
                         className={`lang-btn${lang === 'zh' ? ' active' : ''}`}
-                        onClick={() => setLang('zh')}
+                        onClick={() => i18n.changeLanguage('zh')}
                       >🇨🇳 {t('settings.language.zh')}</button>
                       <button
                         className={`lang-btn${lang === 'en' ? ' active' : ''}`}
-                        onClick={() => setLang('en')}
+                        onClick={() => i18n.changeLanguage('en')}
                       >🇺🇸 {t('settings.language.en')}</button>
                     </div>
                   </div>
@@ -297,7 +319,6 @@ function SettingsDialog({ onClose, initialTab = 'general' }: Props) {
                 <ShortcutGroup title={t('settings.shortcuts.other')} shortcuts={[
                   { keys: ['Ctrl', 'Z'], desc: t('settings.shortcuts.desc.undo') },
                   { keys: ['Ctrl', 'Y'], desc: t('settings.shortcuts.desc.redo') },
-                  { keys: ['Ctrl', 'Shift', 'I'], desc: t('settings.shortcuts.desc.pluginManager') },
                   { keys: ['Esc'], desc: t('settings.shortcuts.desc.closeDialog') },
                   { keys: ['Ctrl', t('settings.shortcuts.key.scroll')], desc: t('settings.shortcuts.desc.previewZoom') },
                 ]} />

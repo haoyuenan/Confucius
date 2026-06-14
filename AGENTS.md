@@ -10,6 +10,7 @@ npm run build:tauri    # Full Tauri production build (frontend + Rust)
 npm run typecheck      # Run tsc --noEmit for type errors
 npm run lint           # ESLint on src/
 npm test               # Run Vitest unit/integration tests
+npm run version:bump -- 0.6.0  # Bump version in package.json + Cargo.toml + tauri.conf.json
 npm run tauri -- help  # Tauri CLI help
 ```
 

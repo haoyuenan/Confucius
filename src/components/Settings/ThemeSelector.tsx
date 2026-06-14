@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { themeService, getThemesByMode, type ThemeId } from '../../services/theme-service'
-import { useTranslation } from '../../i18n/i18n-store'
+import { useTranslation } from 'react-i18next'
 import styles from './ThemeSelector.module.css'
 
 function ThemeSelector() {

@@ -1,6 +1,6 @@
 import { useEffect, useCallback } from 'react'
 import { EditorView } from 'codemirror'
-import { useTranslation } from '../../i18n/i18n-store'
+import { useTranslation } from 'react-i18next'
 import { useSidebarStore } from '../../stores/sidebar-store'
 import { useEditorStore } from '../../stores/editor-store'
 import { extractOutline, getOutlineIndent } from '../../editor/outline-parser'

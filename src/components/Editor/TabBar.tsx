@@ -1,6 +1,6 @@
 import { useTabStore } from '../../stores/tab-store'
 import { useAppStore } from '../../stores/app-store'
-import { useTranslation } from '../../i18n/i18n-store'
+import { useTranslation } from 'react-i18next'
 import styles from './TabBar.module.css'
 
 function TabBar() {

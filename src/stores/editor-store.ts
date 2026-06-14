@@ -19,10 +19,20 @@ interface EditorState {
   toggleTypewriterMode: () => void
 }
 
+const MODE_KEY = 'confucius-default-mode'
+
+function loadDefaultMode(): EditorMode {
+  try {
+    const saved = localStorage.getItem(MODE_KEY) as EditorMode | null
+    if (saved === 'split' || saved === 'wysiwyg' || saved === 'preview') return saved
+  } catch { /* noop */ }
+  return 'split'
+}
+
 export const useEditorStore = create<EditorState>((set) => ({
   content: '',
   isLargeFile: false,
-  mode: 'split',
+  mode: loadDefaultMode(),
   focusMode: false,
   typewriterMode: false,
 

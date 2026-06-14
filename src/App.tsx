@@ -13,8 +13,17 @@ import CommandPalette from './components/CommandPalette/CommandPalette'
 import { getActiveView } from './editor/active-view'
 import * as bridge from './services/electron-bridge'
 import { loadSession, subscribeAutoSave } from './services/workspace-store'
-import { useTranslation } from './i18n/i18n-store'
+import { useTranslation } from 'react-i18next'
 import { DailyNoteButton } from './components/DailyNoteButton'
+
+const AUTOSAVE_KEY = 'confucius-autosave-interval'
+function getAutoSaveInterval(): number {
+  try {
+    const val = parseInt(localStorage.getItem(AUTOSAVE_KEY) || '', 10)
+    if (val >= 1000 && val <= 30000) return val
+  } catch { /* noop */ }
+  return 5000
+}
 
 function App() {
   const [settingsTab, setSettingsTab] = useState<SettingsTab | null>(null)
@@ -159,7 +168,6 @@ function App() {
         case 'mode:preview':
           setMode(useEditorStore.getState().mode === 'preview' ? 'split' : 'preview')
           break
-        case 'plugin:manage': setSettingsTab('general'); break
         case 'settings:display': setSettingsTab('display'); break
         case 'app:about': setSettingsTab('about'); break
         case 'focus:mode': toggleFocusMode(); break
@@ -206,7 +214,7 @@ function App() {
           if (t) s.markTabSaved(tab.id)
         })
         .catch((err) => console.error('自动保存失败:', err))
-    }, 5000)
+    }, getAutoSaveInterval())
     return () => clearInterval(id)
   }, [])
 

@@ -4,119 +4,117 @@
 
 | 层级 | 技术 | 说明 |
 |------|------|------|
-| 桌面框架 | Electron ^28 | 主进程 + 渲染进程双进程架构 |
+| 桌面框架 | Tauri 2 (Rust) | WebView + Rust 后端双进程 |
 | 前端 | React 18 + TypeScript | 组件化 UI |
-| 构建 | Vite 5 + vite-plugin-electron | HMR + 主进程热重启 |
+| 构建 | Vite 5 + Tauri CLI | HMR + Rust 编译 |
 | 编辑器 | CodeMirror 6 | Markdown 编辑内核 |
 | Markdown 渲染 | markdown-it + 插件 | GFM、Task List、KaTeX |
-| 代码高亮 | highlight.js | — |
+| 代码高亮 | highlight.js (33 语言) | — |
 | 数学公式 | KaTeX | 行内 + 块级 |
 | 图表 | Mermaid | 流程图、时序图等 |
-| 状态管理 | Zustand | 6 个 Store + 1 个 i18n Store |
+| 状态管理 | Zustand | 5 个 Store |
 | 安全防护 | DOMPurify | XSS 过滤 |
 | DOM 更新 | morphdom | 预览区增量更新 |
-| 编码检测 | jschardet + iconv-lite | UTF-8/GBK/Big5 等 |
-| 测试 | Vitest + React Testing Library | 141 测试通过 |
-| 打包 | electron-builder | Windows/macOS/Linux |
+| 测试 | Vitest + Playwright | 单元/集成/E2E |
+| 打包 | Tauri Builder | Windows/macOS/Linux (约 8 MB) |
 
 ## 进程架构
 
 ```
-Electron 主进程 (electron/)
-├── main.ts               # 窗口管理、生命周期
-├── menu.ts              # 原生菜单
-├── ipc-handlers.ts      # IPC 路由
-├── preload.ts           # 上下文桥接
-└── services/
-    ├── file-service.ts    # 文件读写、文件树（含 sanitizePath）
-    ├── file-watcher.ts    # fs.watch 监听
-    ├── search-service.ts  # 并行全文搜索
-    ├── export-service.ts  # HTML/PDF 导出
-    ├── encoding-detector.ts # 编码检测
-    └── scanner-service.ts # 插件目录扫描
+Rust 后端 (src-tauri/src/lib.rs)
+├── build_file_tree        # 递归文件树（跳过空目录）
+├── search_text             # 并行全文搜索（8 线程）
+├── read_file_utf8          # 读 UTF-8 文件
+├── write_file_utf8         # 写文件
+├── read_file_base64        # 读二进制文件为 base64（图片预览）
+├── create_file / create_dir / rename_item / delete_item
+├── stat_file / read_dir_entries
+├── start_file_watcher / stop_file_watcher  # notify crate 文件监听
+└── get_app_version
 
-渲染进程 (src/)
-├── App.tsx               # 根组件、菜单 IPC 处理、命令面板、工作区恢复
-├── main.tsx              # 入口 + 主题/样式 CSS 加载
+前端 WebView (src/)
+├── App.tsx                 # 根组件、工具栏、快捷键、命令面板
+├── main.tsx                # 入口
 ├── i18n/
-│   ├── i18n-store.ts     # Zustand store + useTranslation hook
-│   ├── zh.json           # 中文翻译
-│   └── en.json           # 英文翻译
+│   ├── i18n-store.ts       # Zustand store + useTranslation hook
+│   ├── zh.json             # 中文翻译
+│   └── en.json             # 英文翻译
 ├── components/
-│   ├── CommandPalette/   # Ctrl+E 命令面板（模糊搜索 + 键盘导航）
-│   ├── Editor/           # 编辑器布局/面板/工具栏/标签栏/状态栏
-│   ├── Preview/          # Markdown 预览
-│   ├── Sidebar/          # 文件树/大纲/搜索
-│   └── Settings/         # 主题选择器/插件管理/语言切换/快捷键/关于
+│   ├── CommandPalette/     # Ctrl+E 命令面板（模糊搜索 + 键盘导航）
+│   ├── Editor/             # 编辑器布局/面板/工具栏/标签栏
+│   ├── Preview/            # Markdown 预览（含图片 base64 加载）
+│   ├── Sidebar/            # 文件树/大纲/搜索/反链/标签/知识图谱
+│   ├── Settings/           # 主题/语言/快捷键/关于
+│   └── DailyNoteButton/    # 今日笔记
 ├── editor/
-│   ├── cm6-setup.ts      # CM6 初始化
-│   ├── keybindings.ts    # 编辑器快捷键
-│   ├── format-helpers.ts # 格式化函数（工具栏+快捷键共用）
-│   ├── markdown-renderer.ts # markdown-it + texmath 配置
-│   ├── mermaid-renderer.ts  # Mermaid 渲染
-│   ├── wysiwyg-plugin.ts    # WYSIWYG 模式
-│   ├── focus-mode.ts        # 专注模式
+│   ├── cm6-setup.ts        # CM6 初始化
+│   ├── keybindings.ts      # 编辑器快捷键
+│   ├── format-helpers.ts   # 格式化函数
+│   ├── markdown-renderer.ts # markdown-it + texmath + sanitize
+│   ├── mermaid-renderer.ts # Mermaid 渲染
+│   ├── wysiwyg-plugin.ts   # WYSIWYG 模式
+│   ├── focus-mode.ts       # 专注模式
 │   ├── typewriter-mode.ts   # 打字机模式
-│   ├── sync-scroll.ts       # 编辑/预览滚动同步
-│   ├── outline-parser.ts    # 大纲提取
-│   ├── active-view.ts       # 模块级 EditorView 引用
+│   ├── sync-scroll.ts      # 编辑/预览滚动同步
+│   ├── outline-parser.ts   # 大纲提取
+│   ├── active-view.ts      # 模块级 EditorView 引用
 │   └── large-file-handler.ts # 大文件检测
-├── engine/               # 插件引擎（已全部实现）
-│   ├── PluginEngine.ts   # 引擎核心（注册/激活/依赖/事件/持久化）
-│   ├── HostAPIBridge.ts  # 宿主适配器
-│   ├── DependencyGraph.ts # 依赖图（拓扑排序）
-│   ├── EventBus.ts       # 事件总线（12 内置事件）
-│   ├── ConfigDB.ts       # 配置持久化
-│   ├── SandboxFactory.ts # 沙箱执行器（Proxy 隔离）
-│   ├── ScannerIPC.ts     # 目录扫描 IPC 封装
-│   └── types/
-│       ├── host-api.ts   # HostAPIBridge 接口
-│       └── plugin.ts     # 插件类型定义
 ├── services/
-│   ├── command-registry.ts    # 内置命令定义 + 模糊搜索 + LRU 最近使用
-│   ├── workspace-store.ts     # 工作区会话持久化（localStorage）
-│   ├── electron-bridge.ts     # IPC 封装层（23 个函数）
-│   └── theme-service.ts       # 主题切换 + hljs/Mermaid 联动
+│   ├── electron-bridge.ts  # Tauri invoke() 封装层
+│   ├── knowledge-service.ts # 知识库引擎（维基链接/标签/图谱）
+│   ├── theme-service.ts    # 主题切换
+│   ├── workspace-store.ts  # 工作区会话持久化
+│   ├── command-registry.ts # 命令注册与模糊搜索
+│   └── recent-files.ts     # 最近文件
 ├── stores/
-│   ├── app-store.ts       # 应用配置（版本/侧边栏）
-│   ├── editor-store.ts    # 编辑器状态
-│   ├── sidebar-store.ts   # 侧边栏状态
-│   ├── tab-store.ts       # 多标签管理
-│   └── plugin-store.ts    # 插件 UI 状态（状态栏/侧边栏/命令注册）
+│   ├── app-store.ts        # 应用配置
+│   ├── editor-store.ts     # 编辑器状态
+│   ├── sidebar-store.ts    # 侧边栏状态（含文件树加载状态）
+│   ├── tab-store.ts        # 多标签管理
+│   └── knowledge-store.ts  # 知识库数据
 ├── utils/
-│   ├── sanitize.ts       # DOMPurify
-│   ├── dom-diff.ts       # morphdom 增量更新
-│   └── path.ts           # 路径工具
-├── plugins/builtins/
-│   ├── status-bar-info.tsx     # 内置状态栏插件
-│   └── status-bar/
-│       └── manifest.json       # 插件清单
+│   ├── sanitize.ts         # DOMPurify 配置
+│   ├── dom-diff.ts         # morphdom 增量更新
+│   └── path.ts             # 路径工具
 └── styles/
     ├── global.css          # CSS 变量 + 基础重置
     ├── editor.css          # 编辑器/分栏
     ├── preview.css         # Markdown 预览
     ├── sidebar.css         # 侧边栏
-    ├── dialog.css          # 对话框（插件管理/关于）
+    ├── dialog.css          # 对话框
     ├── status-bar.css      # 状态栏
-    ├── wysiwyg.css         # WYSIWYG 装饰样式
-    └── TabBar.module.css   # CSS Modules（4 个组件）
-    └── FormatToolbar.module.css
-    └── ModeSwitch.module.css
-    └── ThemeSelector.module.css
+    └── wysiwyg.css         # WYSIWYG 装饰样式
 ```
+
+## Tauri 命令（替代 Electron IPC）
+
+| 命令 | 说明 |
+|------|------|
+| `build_file_tree` | 递归构建 .md 文件树，跳过无 .md 文件的空目录 |
+| `search_text` | 并行全文搜索（8 线程，支持正则/大小写） |
+| `read_file_utf8` | 读取 UTF-8 文件（前端去 BOM） |
+| `write_file_utf8` | 写入文件（自动创建父目录） |
+| `read_file_base64` | 读取二进制文件，返回 data: base64 URI（图片预览） |
+| `create_file` / `create_dir` | 新建文件/目录 |
+| `rename_item` / `delete_item` | 重命名/删除 |
+| `stat_file` | 文件元信息 |
+| `read_dir_entries` | 目录条目列表 |
+| `start_file_watcher` / `stop_file_watcher` | 文件变更监听（notify crate，500ms 防抖） |
+| `get_app_version` | 返回版本号 |
+
+所有命令通过 `@tauri-apps/api/core` 的 `invoke()` 调用。桥接层在 `src/services/electron-bridge.ts` 统一封装。
 
 ## 关键数据流
 
 ### 文件打开
 
 ```
-文件树/搜索结果点击
-  → electron-bridge.readFile()
-  → IPC file:read → FileService → fs.readFile
+文件树点击 → bridge.readFile()
+  → invoke('read_file_utf8') → Rust → fs.read_to_string
   → tab-store.openFile(filePath, content)
-  → editor-store.setContent()
   → EditorPane dispatch 到 CM6
-  → PreviewPane 渲染 markdown-it → SVG/HTML
+  → PreviewPane renderMarkdown() → morphdom 增量更新
+  → 异步：bridge.readFileBase64() → 图片 data URI
 ```
 
 ### 编辑 → 预览
@@ -128,38 +126,58 @@ CM6 updateListener (150ms 防抖)
   → PreviewPane useMemo → renderMarkdown()
   → morphdom 增量更新
   → renderMermaidDiagrams()（大文件跳过）
+  → 异步图片 base64 加载
 ```
 
 ### 模式切换
 
 ```
-菜单 Ctrl+Shift+P / ModeSwitch 按钮
+工具栏 / 快捷键 Ctrl+Shift+P
   → editor-store.toggleMode()
   → EditorLayout 根据 mode 渲染 split/wysiwyg/preview
   → key={activeTabId} 触发 CM6 重建
 ```
 
-## IPC 通道命名
+### 打印
 
-| 通道 | 方向 | 说明 |
-|------|------|------|
-| `app:get-version` | R→M | 获取版本 |
-| `app:get-env` | R→M | 获取 Electron/Chrome/Node 版本 |
-| `dialog:open-file` | R→M | 打开文件对话框 |
-| `dialog:save-file` | R→M | 保存文件对话框 |
-| `dialog:open-folder` | R→M | 打开文件夹对话框 |
-| `dialog:open-plugin` | R→M | 加载插件对话框 |
-| `file:read/write` | R→M | 文件读写 |
-| `file:confirm-save` | R→M | 保存确认对话框 |
-| `file-tree:build` | R→M | 构建文件树 |
-| `file-watcher:start/stop` | R→M | 文件变更监听 |
-| `sidebar:context-menu` | R→M | 右键菜单 |
-| `sidebar:action` | M→R | 侧边栏操作 |
-| `sidebar:create-file/dir` | R→M | 新建文件/目录 |
-| `sidebar:rename/delete/reveal` | R→M | 重命名/删除/显示 |
-| `search:query` | R→M | 全局搜索 |
-| `export:html/pdf` | R→M | 导出 |
-| `scanner:scan/read-entry` | R→M | 插件目录扫描 |
-| `menu:action` | M→R | 菜单操作（统一路由） |
-| `menu:translate` | R→M | 语言切换时发送翻译菜单文本 |
-| `menu:set-visible` | R→M | 显示/隐藏原生菜单 |
+```
+🖨 按钮 → bridge.printPreview()
+  → 获取 previewRef.innerHTML（__exportPreviewHTML__）
+  → 构建独立 HTML 文档
+  → 写入隐藏 iframe
+  → iframe.contentWindow.print()
+  → onafterprint 清理
+```
+
+## 文件监听
+
+- 使用 Rust `notify` crate（v7），递归监听
+- 500ms 防抖，通过 `file-tree-changed` 事件通知前端
+- 前端收到事件后重新调用 `build_file_tree` 更新侧边栏树
+- 线程通过 `AtomicBool` 安全停止
+
+## 主题系统
+
+12 个主题 CSS 文件定义亮色/暗色模式变量：
+- 浅色：plain-white、warm-sun、cloud、mint、tokyo-night-light、rose-pine-dawn
+- 深色：night-black、deep-sea、warm-gray、mo-zhu、tokyo-night、rose-pine
+
+ThemeService 通过 `document.documentElement.dataset.theme` 切换，同时联动 highlight.js 和 Mermaid 主题。
+
+## 知识库引擎
+
+`src/services/knowledge-service.ts` — 纯前端实现：
+- 解析 `[[维基链接]]`、`#标签`、YAML frontmatter
+- 索引存储在 `.confucius/index.json`（工作区隐藏目录）
+- 打开工作区时全量扫描，文件变更时增量更新
+- 提供反链、图谱数据、标签浏览、文件搜索、维基链接解析
+
+## 构建与部署
+
+```bash
+npm run dev          # 开发模式（Vite HMR + Tauri WebView）
+npm run build        # TypeScript 检查 + Vite 生产构建
+npm run build:tauri  # 完整 Tauri 构建（前端 + Rust 编译）
+```
+
+输出目录：`dist-release/`，约 8 MB 安装包。
