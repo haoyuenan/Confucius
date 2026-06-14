@@ -6,24 +6,19 @@ import { useSidebarStore } from './stores/sidebar-store'
 import Sidebar from './components/Sidebar/Sidebar'
 import EditorLayout from './components/Editor/EditorLayout'
 import StatusBar from './components/Editor/StatusBar'
-import { themeService, getThemeDef, getThemesByMode, type ThemeId } from './services/theme-service'
+import { getThemeDef, getThemesByMode, type ThemeId } from './services/theme-service'
 import { checkLargeFile } from './editor/large-file-handler'
 import SettingsDialog, { type SettingsTab, THEME_SWATCHES } from './components/Settings/SettingsDialog'
 import CommandPalette from './components/CommandPalette/CommandPalette'
 import { getActiveView } from './editor/active-view'
 import * as bridge from './services/electron-bridge'
-import { loadSession, subscribeAutoSave } from './services/workspace-store'
 import { useTranslation } from 'react-i18next'
 import { DailyNoteButton } from './components/DailyNoteButton'
-
-const AUTOSAVE_KEY = 'confucius-autosave-interval'
-function getAutoSaveInterval(): number {
-  try {
-    const val = parseInt(localStorage.getItem(AUTOSAVE_KEY) || '', 10)
-    if (val >= 1000 && val <= 30000) return val
-  } catch { /* noop */ }
-  return 5000
-}
+import { useKeyboardShortcuts } from './hooks/use-keyboard-shortcuts'
+import { useSessionRestore } from './hooks/use-session-restore'
+import { useAutoSave } from './hooks/use-auto-save'
+import { useMenuActions } from './hooks/use-menu-actions'
+import { useThemeManager } from './hooks/use-theme-manager'
 
 function App() {
   const [settingsTab, setSettingsTab] = useState<SettingsTab | null>(null)
@@ -32,95 +27,28 @@ function App() {
 
   const { t } = useTranslation()
   const sidebarVisible = useAppStore((s) => s.sidebarVisible)
+  const toggleSidebar = useAppStore((s) => s.toggleSidebar)
 
   const newUntitledTab = useTabStore((s) => s.newUntitledTab)
   const markTabSaved = useTabStore((s) => s.markTabSaved)
   const openFile = useTabStore((s) => s.openFile)
+
+  const setMode = useEditorStore((s) => s.setMode)
+  const toggleFocusMode = useEditorStore((s) => s.toggleFocusMode)
+  const toggleTypewriterMode = useEditorStore((s) => s.toggleTypewriterMode)
+  const setIsLargeFile = useEditorStore((s) => s.setIsLargeFile)
+
+  const { currentTheme, handleToggleTheme, handleThemeSelect } = useThemeManager()
 
   const handleDailyNote = useCallback(async () => {
     const filePath = await bridge.knowledgeCreateDailyNote()
     const file = await bridge.readFile(filePath)
     openFile(file.filePath, file.content)
   }, [openFile])
-  const toggleSidebar = useAppStore((s) => s.toggleSidebar)
-  const setMode = useEditorStore((s) => s.setMode)
-  const toggleFocusMode = useEditorStore((s) => s.toggleFocusMode)
-  const toggleTypewriterMode = useEditorStore((s) => s.toggleTypewriterMode)
-  const setIsLargeFile = useEditorStore((s) => s.setIsLargeFile)
 
-  const setActiveTab = useSidebarStore((s) => s.setActiveTab)
-
-  // Ctrl+E 命令面板 / Ctrl+O 快速打开 / Ctrl+Shift+D 今日笔记
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === 'e') {
-        e.preventDefault()
-        setCommandPaletteMode('command')
-        setShowCommandPalette((v) => !v)
-      } else if ((e.ctrlKey || e.metaKey) && e.key === 'o') {
-        e.preventDefault()
-        setCommandPaletteMode('file')
-        setShowCommandPalette(true)
-      } else if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'D') {
-        e.preventDefault()
-        handleDailyNote()
-      }
-    }
-    window.addEventListener('keydown', handler)
-    return () => window.removeEventListener('keydown', handler)
-  }, [])
-
-  // 启动：恢复工作区 或 建空白标签
-  useEffect(() => {
-    const session = loadSession()
-    if (session) {
-      // 同步恢复：主题 + 侧边栏
-      themeService.switchTheme(session.theme as ThemeId)
-      setCurrentTheme(session.theme as ThemeId)
-      useAppStore.getState().setSidebarWidth(session.sidebar.width)
-      if (!session.sidebar.visible) {
-        useAppStore.getState().toggleSidebar()
-      }
-      useSidebarStore.getState().setActiveTab(session.sidebar.activeTab)
-      useSidebarStore.getState().setExpandedPaths(session.sidebar.expandedPaths)
-
-      // 异步恢复标签页（串行读文件，避免 IPC 竞争）
-      ;(async () => {
-        for (const t of session.tabs) {
-          if (t.filePath) {
-            try {
-              const data = await bridge.readFile(t.filePath)
-              useTabStore.getState().openFile(t.filePath, data.content)
-            } catch { continue }
-          } else {
-            useTabStore.getState().newUntitledTab()
-          }
-        }
-        const tabs = useTabStore.getState().tabs
-        const idx = Math.min(session.activeTabIndex, tabs.length - 1)
-        if (tabs[idx]) useTabStore.getState().activateTab(tabs[idx].id)
-      })()
-    } else {
-      if (useTabStore.getState().tabs.length === 0) {
-        newUntitledTab()
-      }
-    }
-
-    // 订阅自动保存 + beforeunload
-    const unsub = subscribeAutoSave()
-    return () => unsub()
-  }, [newUntitledTab]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  const handleSaveFile = useCallback(async () => {
-    const tab = useTabStore.getState().activeTab()
-    if (!tab || !tab.filePath) return
-    try {
-      await bridge.writeFile(tab.filePath, tab.content)
-      markTabSaved(tab.id)
-    } catch (err) {
-      console.error('保存文件失败:', err)
-    }
-  }, [markTabSaved])
+  const handleNewFile = useCallback(() => {
+    newUntitledTab()
+  }, [newUntitledTab])
 
   const handleOpenFile = useCallback(async () => {
     const file = await bridge.openFileDialog()
@@ -136,6 +64,17 @@ function App() {
     openFile(file.filePath, file.content)
   }, [openFile, setIsLargeFile, setMode])
 
+  const handleSaveFile = useCallback(async () => {
+    const tab = useTabStore.getState().activeTab()
+    if (!tab || !tab.filePath) return
+    try {
+      await bridge.writeFile(tab.filePath, tab.content)
+      markTabSaved(tab.id)
+    } catch (err) {
+      console.error('保存文件失败:', err)
+    }
+  }, [markTabSaved])
+
   const handleSaveAs = useCallback(async () => {
     const tab = useTabStore.getState().activeTab()
     if (!tab) return
@@ -149,92 +88,54 @@ function App() {
     }
   }, [openFile])
 
-  const handleNewFile = useCallback(() => {
-    newUntitledTab()
-  }, [newUntitledTab])
-
-  useEffect(() => {
-    const cleanup = bridge.onMenuAction((action) => {
-      switch (action) {
-        case 'view:toggle-sidebar': toggleSidebar(); break
-        case 'file:new': handleNewFile(); break
-        case 'file:open': handleOpenFile(); break
-        case 'file:save': handleSaveFile(); break
-        case 'file:save-as': handleSaveAs(); break
-        case 'search:focus': toggleSidebar(); setActiveTab('search'); break
-        case 'export:html': bridge.exportHtml(); break
-        case 'export:pdf': bridge.exportPdf(); break
-        case 'mode:toggle': useEditorStore.getState().toggleMode(); break
-        case 'mode:preview':
-          setMode(useEditorStore.getState().mode === 'preview' ? 'split' : 'preview')
-          break
-        case 'settings:display': setSettingsTab('display'); break
-        case 'app:about': setSettingsTab('about'); break
-        case 'focus:mode': toggleFocusMode(); break
-        case 'typewriter:mode': toggleTypewriterMode(); break
-        case 'file:close': window.close(); break
-      }
-    })
-    return () => cleanup?.()
-  }, [toggleSidebar, handleNewFile, handleOpenFile, handleSaveFile, handleSaveAs, setActiveTab, toggleFocusMode, toggleTypewriterMode, setMode])
-
-  useEffect(() => {
-    const cleanup = bridge.onExportDone((info) => {
-      if (window.Notification?.permission === 'granted') {
-        new window.Notification(t('app.notification.exportDone'), { body: t('app.notification.exportBody', { format: info.format, path: info.path }) })
-      }
-    })
-    return () => cleanup?.()
-  }, [])
-
-  // 监听外部文件打开（拖拽文件到应用图标）
-  useEffect(() => {
-    const cleanup = bridge.onFileOpen((data) => {
-      const large = checkLargeFile(data.content.length)
-      if (large.isLarge) {
-        setIsLargeFile(true)
-        setMode('split')
-      } else {
-        setIsLargeFile(false)
-      }
-      openFile(data.filePath, data.content)
-    })
-    return () => cleanup?.()
-  }, [openFile, setIsLargeFile, setMode])
-
-  // 自动保存：每 5 秒检查未保存的文件
-  useEffect(() => {
-    const id = setInterval(() => {
-      const tab = useTabStore.getState().activeTab()
-      if (!tab || !tab.filePath || !tab.isModified) return
-      bridge.writeFile(tab.filePath, tab.content)
-        .then(() => {
-          const s = useTabStore.getState()
-          const t = s.tabs.find(t2 => t2.id === tab.id)
-          if (t) s.markTabSaved(tab.id)
-        })
-        .catch((err) => console.error('自动保存失败:', err))
-    }, getAutoSaveInterval())
-    return () => clearInterval(id)
-  }, [])
-
-  const isPreviewMode = useEditorStore((s) => s.mode) === 'preview'
-  const mode = useEditorStore((s) => s.mode)
-  const [currentTheme, setCurrentTheme] = useState<ThemeId>(themeService.getCurrentTheme())
-
   const handleSearch = useCallback(() => {
     if (!sidebarVisible) {
       toggleSidebar()
     }
-    setActiveTab('search')
-  }, [sidebarVisible, toggleSidebar, setActiveTab])
+    useSidebarStore.getState().setActiveTab('search')
+  }, [sidebarVisible, toggleSidebar])
 
+  const handleToggleCommandPalette = useCallback(() => {
+    setCommandPaletteMode('command')
+    setShowCommandPalette((v) => !v)
+  }, [])
+
+  const handleQuickOpen = useCallback(() => {
+    setCommandPaletteMode('file')
+    setShowCommandPalette(true)
+  }, [])
+
+  const handleSetSettingsTab = useCallback((tab: string) => {
+    setSettingsTab(tab as SettingsTab)
+  }, [])
+
+  // Hooks
+  useKeyboardShortcuts({
+    onToggleCommandPalette: handleToggleCommandPalette,
+    onQuickOpen: handleQuickOpen,
+    onDailyNote: handleDailyNote,
+  })
+
+  useSessionRestore(newUntitledTab)
+  useAutoSave()
+
+  useMenuActions({
+    onToggleSidebar: () => toggleSidebar(),
+    onNewFile: handleNewFile,
+    onOpenFile: handleOpenFile,
+    onSaveFile: handleSaveFile,
+    onSaveAs: handleSaveAs,
+    onSetSettingsTab: handleSetSettingsTab,
+  })
+
+  // Derived state
+  const isPreviewMode = useEditorStore((s) => s.mode) === 'preview'
+  const mode = useEditorStore((s) => s.mode)
   const currentMode = getThemeDef(currentTheme).mode
 
   const [themePickerOpen, setThemePickerOpen] = useState(false)
   const themePickerRef = useRef<HTMLDivElement>(null)
 
-  // 点击外部关闭主题选择器
   useEffect(() => {
     if (!themePickerOpen) return
     const onOutsideClick = (e: MouseEvent) => {
@@ -246,16 +147,10 @@ function App() {
     return () => document.removeEventListener('mousedown', onOutsideClick)
   }, [themePickerOpen])
 
-  const handleToggleTheme = useCallback(() => {
-    themeService.toggleTheme()
-    setCurrentTheme(themeService.getCurrentTheme())
-  }, [])
-
-  const handleThemeSelect = useCallback((id: ThemeId) => {
-    themeService.switchTheme(id)
-    setCurrentTheme(id)
+  const handleThemeSelectAndClose = useCallback((id: ThemeId) => {
+    handleThemeSelect(id)
     setThemePickerOpen(false)
-  }, [])
+  }, [handleThemeSelect])
 
   const currentThemes = getThemesByMode(currentMode)
 
@@ -283,11 +178,9 @@ function App() {
   return (
     <div className={`app-root${isPreviewMode ? ' preview-mode' : ''}`}>
       <header className="app-titlebar">
-        {/* 品牌区 — 左侧固定 */}
         <div className="titlebar-brand">
           <span className="titlebar-app-name">{t('app.title')}</span>
         </div>
-        {/* 工具栏 — 占满剩余空间，右对齐 */}
         <div className="titlebar-tools">
           <DailyNoteButton />
           <button className="toolbar-btn" onClick={handleNewFile} title={t('app.toolbar.new')}>📄 {t('app.toolbar.newLabel')}</button>
@@ -320,7 +213,7 @@ function App() {
                     <button
                       key={theme.id}
                       className={`theme-picker-card${active ? ' active' : ''}`}
-                      onClick={() => handleThemeSelect(theme.id)}
+                      onClick={() => handleThemeSelectAndClose(theme.id)}
                     >
                       <div className="theme-picker-card-swatches">
                         <span className="theme-picker-card-swatch" style={{ backgroundColor: swatch.bg }} />

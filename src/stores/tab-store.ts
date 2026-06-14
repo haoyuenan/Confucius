@@ -98,11 +98,14 @@ export const useTabStore = create<TabState>((set, get) => ({
     if (!tab) return false
 
     if (tab.isModified) {
-      const result = await bridge.confirmSave()
-      if (result === 0 && tab.filePath) {
-        await bridge.writeFile(tab.filePath, tab.content)
-        get().markTabSaved(tab.id)
-      } else if (result === 2) {
+      try {
+        const result = await bridge.confirmSave()
+        if (result === 0 && tab.filePath) {
+          await bridge.writeFile(tab.filePath, tab.content)
+          get().markTabSaved(tab.id)
+        }
+      } catch (err) {
+        console.error('关闭标签时保存失败:', err)
         return false
       }
     }

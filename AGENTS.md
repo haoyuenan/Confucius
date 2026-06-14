@@ -10,67 +10,79 @@ npm run build:tauri    # Full Tauri production build (frontend + Rust)
 npm run typecheck      # Run tsc --noEmit for type errors
 npm run lint           # ESLint on src/
 npm test               # Run Vitest unit/integration tests
+npm run test:watch     # Vitest in watch mode
+npm run test:coverage  # Vitest with coverage report
 npm run version:bump -- 0.6.0  # Bump version in package.json + Cargo.toml + tauri.conf.json
-npm run tauri -- help  # Tauri CLI help
 ```
 
 ## Architecture
 
-**Tauri dual-process**. The frontend runs as a webview (React + TypeScript) in `src/`. The backend consists of Rust commands in `src-tauri/src/lib.rs`. Communication uses `@tauri-apps/api/core`'s `invoke()` (request-response pattern). There is no Electron/Node.js main process.
+**Tauri dual-process**. Frontend (React 18 + TypeScript) runs as a webview in `src/`. Backend is Rust in `src-tauri/src/lib.rs`. No Electron/Node.js main process.
 
-**Rust backend** (`src-tauri/src/lib.rs`). All system-level operations are implemented as `#[tauri::command]` functions:
-- `build_file_tree` — recursive directory walk, returns sorted tree of `.md` files (skips empty dirs)
-- `search_text` — parallel full-text regex search (8 threads)
-- `read_file_utf8` / `write_file_utf8` — file I/O (bypasses Tauri fs scope)
-- `read_file_base64` — read binary files as base64 data URI (for images in preview)
-- `create_file` / `create_dir` / `rename_item` / `delete_item` — file management
-- `stat_file` / `read_dir_entries` — file metadata and directory listing
-- `start_file_watcher` / `stop_file_watcher` — filesystem change watcher (via `notify` crate)
-- `get_app_version` — returns package version
+**IPC flow**: React component → `src/services/electron-bridge.ts` (the only file that calls `invoke()`) → Rust command → direct `std::fs` operations. Channel naming follows the original Electron IPC: `<domain>:<action>` (e.g. `file:read`, `search:query`).
 
-**IPC bridge**. `src/services/electron-bridge.ts` wraps all Tauri `invoke()` calls and plugin APIs into a single module — the frontend's sole entry point for system operations. Channel naming convention follows the original Electron IPC: `<domain>:<action>` (e.g. `file:read`, `search:query`). If you add a new Rust command, update both `lib.rs` (the command function + `generate_handler![]`) and `electron-bridge.ts` (the wrapper function).
-
-**State management**. Five Zustand stores in `src/stores/`:
+**State management**: Five Zustand stores in `src/stores/`:
 - `app-store.ts` — app info, sidebar toggle/width
-- `editor-store.ts` — editor mode (split/wysiwyg/preview), content, loading state, focus/typewriter mode
-- `sidebar-store.ts` — active tab, root path, file tree, expanded paths, outline items, search results
-- `tab-store.ts` — tab management (open/close/active/modification state)
-- `knowledge-store.ts` — knowledge base data (backlinks, graph data, tags, file search results)
+- `editor-store.ts` — editor mode (split/wysiwyg/preview), content, loading state
+- `sidebar-store.ts` — active tab, root path, file tree, expanded paths, outline, search
+- `tab-store.ts` — tab management (open/close/active/modification)
+- `knowledge-store.ts` — backlinks, graph data, tags, file search
 
-Stores are the single source of truth — React components read via hooks and write via store actions.
+**Editor pipeline**: Three modes — `split` (dual-pane with draggable divider), `wysiwyg` (single-pane with syntax marker hiding), `preview` (full-screen reading). CM6 extensions composed in `src/editor/cm6-setup.ts`. Key custom extensions: `wikilinks-plugin.ts` (`[[` autocomplete + Ctrl+Click), `tags-plugin.ts` (`#` autocomplete).
 
-**Editor pipeline**. The editing experience supports three modes:
-1. `split` — dual-pane layout with `ResizablePane` (draggable divider). `EditorPane` wraps a CodeMirror 6 view (initialized once, never remounted). `PreviewPane` renders Markdown via markdown-it.
-2. `wysiwyg` — single-pane CodeMirror with syntax marker hiding via `src/editor/wysiwyg-plugin.ts`.
-3. `preview` — full-screen reading layout.
+**Custom hooks**: `src/hooks/` contains extracted App.tsx logic — `use-keyboard-shortcuts`, `use-session-restore`, `use-auto-save`, `use-menu-actions`, `use-theme-manager`. App.tsx composes these and owns the UI state.
 
-**CM6 extensions** are composed in `src/editor/cm6-setup.ts`. Key extensions:
-- `wikilinks-plugin.ts` — `[[` autocomplete, syntax highlighting, Ctrl+Click navigation
-- `tags-plugin.ts` — `#` autocomplete
+**Theme system**: Twelve CSS files in `themes/` define light/dark mode variables via `html[data-theme='<id>']` selectors. ThemeService manages switching and per-mode memory (localStorage key `confucius-theme`).
 
-**Theme system**. Twelve theme CSS files in `themes/` define light/dark mode variables. ThemeService manages switching via `document.documentElement.dataset.theme`. Themes also control highlight.js `<style>` elements and Mermaid theme. Toolbar toggles light/dark; settings panel offers per-mode theme selection.
+**Knowledge base**: `src/services/knowledge-service.ts` is a pure-JS engine (no Rust). Parses `[[wikilinks]]`, `#tags`, and YAML frontmatter. Index stored in `.confucius/index.json`.
 
-**File operations**. Always flow: React component → `bridge.method()` → `invoke('command_name', args)` → Rust command → direct `std::fs` operations. File tree is built recursively in Rust (async, directory-first sort). File changes are watched via the `notify` Rust crate (recursive, 500ms debounce in the event thread).
+**File tree**: Built recursively in Rust (async, directory-first sort). Skips empty dirs and dot-prefixed entries. File changes watched via the `notify` Rust crate (500ms debounce). Only one watcher at a time.
 
-**Knowledge base index**. `src/services/knowledge-service.ts` provides a complete knowledge base engine running entirely in the frontend:
-- Parses `[[wikilinks]]`, `#tags`, and YAML frontmatter from all `.md` files in the workspace
-- Stores index in `.confucius/index.json` (hidden workspace directory)
-- Full scan on workspace open, incremental update on file changes
-- Exposes backlinks, graph data, tags, file search, and wikilink resolution via bridge APIs
+## Code style
 
-**Preview HTML export**. `PreviewPane` registers `window.__exportPreviewHTML__` which returns the rendered innerHTML. The HTML export generates a standalone HTML document with embedded CSS. PDF export uses the browser's native `window.print()` (system print dialog).
+- **No semicolons** (Prettier `semi: false`)
+- **Single quotes**, trailing commas everywhere, 100 char print width
+- `@/*` path alias maps to `src/` — configured in both `tsconfig.json` and `vite.config.mts` (must stay in sync)
+- TypeScript strict mode: `noUnusedLocals`, `noUnusedParameters`
+- ESLint: `no-unused-vars` is warn (not error), unused params prefixed `_` are ignored
 
-**Heading slug system**. The outline panel and preview use a shared `slugify()` function (exported from `src/editor/markdown-renderer.ts`) to generate heading IDs. Outline items include a `slug` field for precise preview targeting — clicking an outline heading finds the preview element by `id` attribute rather than by index or text matching.
+## Adding a new Rust command
 
-**Dependencies for knowledge base**:
-- `d3` (v7) — force-directed graph layout for knowledge graph visualization
-- highlight.js configured with 33 commonly used languages (core + selective registration) instead of all 384 languages
+1. Add the `#[tauri::command]` function in `src-tauri/src/lib.rs`
+2. Register it in the `generate_handler![]` macro at the bottom of `lib.rs`
+3. Add a wrapper export in `src/services/electron-bridge.ts` (camelCase name, calls `invoke('snake_case_command_name')`)
+4. Add a mock case in `test/setup.ts` (throws `unmocked invoke` on missing commands)
 
-**Tauri plugins**:
-- `@tauri-apps/plugin-dialog` — file/folder dialogs
-- `@tauri-apps/plugin-shell` — open external URLs
-- `@tauri-apps/plugin-process` — process info
-- Rust crate `notify` (v7) — filesystem watching
-- Rust crate `base64` (v0.22) — base64 encode for image preview
+**Naming trap**: Rust commands use `snake_case`, bridge exports use `camelCase`. The `invoke()` string must match the Rust function name exactly.
 
-**Build/packaging**: `tauri.conf.json` configures the Tauri builder. Icon resources live in `src-tauri/icons/`. Output is configured in `dist-release/` via `npm run build:tauri`.
+## Testing
+
+- **Framework**: Vitest (jsdom env, globals enabled — no `describe`/`it` imports needed)
+- **Setup**: `test/setup.ts` mocks `@tauri-apps/api/core` invoke, `@tauri-apps/api/event` listen, `@tauri-apps/plugin-dialog`, and `window.__exportPreviewHTML__`
+- **Coverage threshold**: 70% across branches/functions/lines/statements
+- **Test locations**: `src/**/*.{test,spec}.{ts,tsx}`, `test/unit/**`, `test/integration/**`
+- **E2E**: Playwright in `test/e2e/`, uses its own Vite dev server on port 5179, injects Tauri IPC mocks via `addInitScript`. Key helpers: `typeInEditor`, `getEditorContent`, `selectAllInEditor`, `dispatchMenuAction` in `test/e2e/helpers.ts`
+- **Adding a new Rust command**: Update both `test/setup.ts` (switch-case mock) and `test/e2e/helpers.ts` (if E2E uses it)
+
+## Pitfalls
+
+- `sidebar-store.ts` uses `Set<string>` for `expandedPaths` — careful with serialization/persistence
+- `tab-store` directly calls `useEditorStore.getState().setContent()` — modifying one store may require updating the other
+- Knowledge base functions go through JS (knowledge-service.ts), not Rust — no `invoke()` involved
+- `readFile()` in bridge strips BOM client-side; `readFileRaw()` does NOT strip BOM
+- `search_text` Rust command only searches `.md`/`.markdown` files
+- All file commands reject `..` traversal and null bytes via `sanitize_path()` in Rust
+- Vite config file is `vite.config.mts` (not `.ts`)
+
+## Key files
+
+| File | Purpose |
+|------|---------|
+| `src-tauri/src/lib.rs` | All 14 Rust commands (file I/O, search, watcher) |
+| `src/services/electron-bridge.ts` | IPC wrapper — sole entry point for system operations |
+| `src/hooks/` | Custom hooks extracted from App.tsx |
+| `src/editor/cm6-setup.ts` | CM6 extension composition |
+| `src/services/knowledge-service.ts` | Knowledge base engine (pure JS) |
+| `src/services/theme-service.ts` | Theme switching and persistence |
+| `test/setup.ts` | Global Vitest mocks |
+| `test/e2e/helpers.ts` | Playwright fixtures and helpers |

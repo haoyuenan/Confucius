@@ -35,7 +35,7 @@ pub struct FileTreeNode {
 
 #[tauri::command]
 fn build_file_tree(root_path: String) -> Result<FileTreeNode, String> {
-    let root = PathBuf::from(&root_path);
+    let root = sanitize_path(&root_path)?;
     if !root.exists() {
         return Err(format!("路径不存在: {}", root_path));
     }
@@ -152,7 +152,7 @@ fn search_text(
     }
     .map_err(|e| format!("正则表达式错误: {}", e))?;
 
-    let root = PathBuf::from(&root_path);
+    let root = sanitize_path(&root_path)?;
     let stop_flag = Arc::new(AtomicBool::new(false));
 
     // Collect all .md files first
@@ -162,7 +162,7 @@ fn search_text(
 
     // Search with concurrency (8 tasks), collect results per thread and merge
     let concurrency = 8usize;
-    let chunk_size = (files.len() + concurrency - 1).max(1);
+    let chunk_size = ((files.len() + concurrency - 1) / concurrency).max(1);
 
     let chunks: Vec<Vec<PathBuf>> = files.chunks(chunk_size).map(|c| c.to_vec()).collect();
 
@@ -508,4 +508,65 @@ pub fn run() {
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn sanitize_path_accepts_normal_path() {
+        let result = sanitize_path("/home/user/notes/file.md");
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap(), PathBuf::from("/home/user/notes/file.md"));
+    }
+
+    #[test]
+    fn sanitize_path_rejects_empty() {
+        let result = sanitize_path("");
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("为空"));
+    }
+
+    #[test]
+    fn sanitize_path_rejects_dotdot() {
+        let result = sanitize_path("/home/user/../../etc/passwd");
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains(".."));
+    }
+
+    #[test]
+    fn sanitize_path_rejects_null_byte() {
+        let result = sanitize_path("/home/user/\0file.md");
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("空字节"));
+    }
+
+    #[test]
+    fn sanitize_path_accepts_windows_path() {
+        let result = sanitize_path("D:\\Notes\\file.md");
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn sanitize_path_rejects_dotdot_prefix() {
+        let result = sanitize_path("../secrets");
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains(".."));
+    }
+
+    #[test]
+    fn is_md_file_positive() {
+        assert!(is_md_file("readme.md"));
+        assert!(is_md_file("README.MD"));
+        assert!(is_md_file("notes.markdown"));
+    }
+
+    #[test]
+    fn is_md_file_negative() {
+        assert!(!is_md_file("notes.txt"));
+        assert!(!is_md_file("image.png"));
+        assert!(!is_md_file("Makefile"));
+        assert!(!is_md_file("readme.md.bak"));
+    }
 }

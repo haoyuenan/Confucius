@@ -52,7 +52,7 @@ export function saveFileDialog(): Promise<string | null> {
 }
 
 /** 确认保存对话框 */
-export async function confirmSave(): Promise<0 | 1 | 2> {
+export async function confirmSave(): Promise<0 | 1> {
   const { ask } = await import('@tauri-apps/plugin-dialog')
   const t = i18n.t
   const result = await ask(t('dialog.confirmSave.message'), {
