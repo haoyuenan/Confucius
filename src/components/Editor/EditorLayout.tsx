@@ -1,4 +1,4 @@
-import { useCallback } from 'react'
+import { useCallback, useEffect } from 'react'
 import EditorPane from './EditorPane'
 import PreviewPane from '../Preview/PreviewPane'
 import ResizablePane from './ResizablePane'
@@ -20,7 +20,9 @@ function EditorLayout() {
   const focusMode = useEditorStore((s) => s.focusMode)
   const typewriterMode = useEditorStore((s) => s.typewriterMode)
 
-  toggleFocusMode(getActiveView(), focusMode)
+  useEffect(() => {
+    toggleFocusMode(getActiveView(), focusMode)
+  }, [focusMode])
 
   // 双栏模式时同步编辑区和预览区的滚动
   const editorScrollEl = getActiveView()?.scrollDOM ?? null

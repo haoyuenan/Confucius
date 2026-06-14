@@ -37,28 +37,48 @@ export const useKnowledgeStore = create<KnowledgeState>((set) => ({
   searchResults: [],
 
   initialize: async (workspacePath) => {
-    await bridge.knowledgeInitialize(workspacePath)
-    set({ initialized: true })
+    try {
+      await bridge.knowledgeInitialize(workspacePath)
+      set({ initialized: true })
+    } catch (err) {
+      console.error('知识库初始化失败:', err)
+    }
   },
 
   loadBacklinks: async (filePath) => {
-    const result = await bridge.knowledgeGetBacklinks(filePath)
-    set({ backlinks: result.linked, unlinkedMentions: result.unlinked })
+    try {
+      const result = await bridge.knowledgeGetBacklinks(filePath)
+      set({ backlinks: result.linked, unlinkedMentions: result.unlinked })
+    } catch (err) {
+      console.error('加载反向链接失败:', err)
+    }
   },
 
   loadGraph: async (filePath) => {
-    const data = await bridge.knowledgeGetGraph(filePath)
-    set({ graphData: data })
+    try {
+      const data = await bridge.knowledgeGetGraph(filePath)
+      set({ graphData: data })
+    } catch (err) {
+      console.error('加载知识图谱失败:', err)
+    }
   },
 
   loadTags: async () => {
-    const tags = await bridge.knowledgeGetTags()
-    set({ tags })
+    try {
+      const tags = await bridge.knowledgeGetTags()
+      set({ tags })
+    } catch (err) {
+      console.error('加载标签失败:', err)
+    }
   },
 
   searchFiles: async (query) => {
     if (!query.trim()) { set({ searchResults: [] }); return }
-    const results = await bridge.knowledgeSearchFiles(query)
-    set({ searchResults: results })
+    try {
+      const results = await bridge.knowledgeSearchFiles(query)
+      set({ searchResults: results })
+    } catch (err) {
+      console.error('搜索文件失败:', err)
+    }
   },
 }))
