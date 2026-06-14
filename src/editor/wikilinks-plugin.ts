@@ -1,7 +1,7 @@
 import { CompletionContext, CompletionResult } from '@codemirror/autocomplete'
 import { Decoration, DecorationSet, EditorView, ViewPlugin, ViewUpdate } from '@codemirror/view'
 import { RangeSetBuilder } from '@codemirror/state'
-import { knowledgeSearchFiles, knowledgeResolveLink, readFile } from '../services/electron-bridge'
+import { knowledgeSearchFiles, knowledgeResolveLink, readFile } from '../services/bridge'
 import { useTabStore } from '../stores/tab-store'
 
 export async function wikiLinkCompletion(context: CompletionContext): Promise<CompletionResult | null> {

@@ -4,7 +4,7 @@ import { useTabStore } from '../stores/tab-store'
 import { useSidebarStore } from '../stores/sidebar-store'
 import { themeService, type ThemeId } from '../services/theme-service'
 import { loadSession, subscribeAutoSave } from '../services/workspace-store'
-import * as bridge from '../services/electron-bridge'
+import * as bridge from '../services/bridge'
 
 export function useSessionRestore(newUntitledTab: () => void) {
   useEffect(() => {

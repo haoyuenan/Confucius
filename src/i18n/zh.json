@@ -160,6 +160,8 @@
   "settings.general.modeSplit": "分栏（编辑+预览）",
   "settings.general.modeWysiwyg": "即时渲染",
   "settings.general.modePreview": "纯预览",
+  "settings.general.imagePath": "图片保存路径",
+  "settings.general.imagePathDesc": "相对于笔记文件，默认为 assets",
   "settings.display.title": "主题",
   "settings.display.mode": "主题模式",
   "settings.display.light": "浅色模式",

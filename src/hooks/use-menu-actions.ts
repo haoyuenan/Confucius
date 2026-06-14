@@ -3,7 +3,7 @@ import { useEditorStore } from '../stores/editor-store'
 import { useTabStore } from '../stores/tab-store'
 import { useSidebarStore } from '../stores/sidebar-store'
 import { checkLargeFile } from '../editor/large-file-handler'
-import * as bridge from '../services/electron-bridge'
+import * as bridge from '../services/bridge'
 
 interface MenuActionOptions {
   onToggleSidebar: () => void

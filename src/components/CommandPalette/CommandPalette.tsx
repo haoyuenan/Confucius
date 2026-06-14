@@ -7,7 +7,7 @@ import {
 import { useKnowledgeStore } from '../../stores/knowledge-store'
 import { useTabStore } from '../../stores/tab-store'
 import { useTranslation } from 'react-i18next'
-import * as bridge from '../../services/electron-bridge'
+import * as bridge from '../../services/bridge'
 import styles from './CommandPalette.module.css'
 
 export interface CommandPaletteContext {

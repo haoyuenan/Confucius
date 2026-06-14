@@ -7,6 +7,8 @@ import { markdown, markdownLanguage } from '@codemirror/lang-markdown'
 import { syntaxHighlighting, defaultHighlightStyle } from '@codemirror/language'
 import { editorKeyBindings } from './keybindings'
 import { wrapSelectionAsLink, insertImageFromPath } from './format-helpers'
+import * as bridge from '../services/bridge'
+import { useTabStore } from '../stores/tab-store'
 import { wysiwygMode } from './wysiwyg-plugin'
 import { typewriterScrollListener } from './typewriter-mode'
 import { wikiLinkExtensions, wikiLinkCompletion } from './wikilinks-plugin'
@@ -44,6 +46,49 @@ export function createEditorView(
             return true
           }
         }
+
+        // 检查剪贴板中的图片数据（截图/复制图片）
+        const items = event.clipboardData?.items
+        if (items) {
+          for (let i = 0; i < items.length; i++) {
+            if (items[i].type.startsWith('image/')) {
+              const file = items[i].getAsFile()
+              if (!file) continue
+              event.preventDefault()
+
+              const reader = new FileReader()
+              reader.onload = async () => {
+                const base64 = reader.result as string
+                // 获取当前编辑文件的所在目录
+                const activeFilePath = useTabStore.getState().activeTab()?.filePath
+                if (!activeFilePath) return
+
+                const dirPath = activeFilePath.replace(/[\\/][^\\/]*$/, '')
+                const assetsDir = dirPath + '/' + (localStorage.getItem('confucius-image-path') || 'assets')
+                // 文件名：时间戳 + 原始扩展名
+                const ts = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19)
+                const ext = file.name?.split('.').pop() || 'png'
+                const fileName = `${ts}.${ext}`
+                try {
+                  await bridge.saveImageFile(base64, fileName, assetsDir)
+                  const { from } = view.state.selection.main
+                  const alt = file.name?.replace(/\.[^.]+$/, '') || 'image'
+                  const relPath = `assets/${fileName}`
+                  const markdown = `![${alt}](${relPath})`
+                  view.dispatch({
+                    changes: { from, insert: markdown },
+                    selection: { anchor: from + markdown.length },
+                  })
+                } catch (err) {
+                  console.error('保存剪贴板图片失败:', err)
+                }
+              }
+              reader.readAsDataURL(file)
+              return true
+            }
+          }
+        }
+
         const files = event.clipboardData?.files
         if (files && files.length > 0) {
           for (const file of Array.from(files)) {

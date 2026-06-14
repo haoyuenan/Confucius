@@ -5,7 +5,7 @@
  * 解析 wikilinks、tags、YAML frontmatter，维护反向链接索引。
  */
 
-import { readFileRaw, writeFile as bridgeWriteFile, fileExists as bridgeFileExists, readDir as bridgeReadDir, statFile as bridgeStatFile } from './electron-bridge'
+import { readFileRaw, writeFile as bridgeWriteFile, fileExists as bridgeFileExists, readDir as bridgeReadDir, statFile as bridgeStatFile } from './bridge'
 
 // ── Types ──
 
@@ -146,7 +146,7 @@ async function mkdir(path: string): Promise<void> {
   const name = basename(path)
   if (name) {
     // Use bridge's create_dir: parentPath + dirName
-    const { createDir } = await import('./electron-bridge')
+    const { createDir } = await import('./bridge')
     await createDir(parent, name)
   }
 }

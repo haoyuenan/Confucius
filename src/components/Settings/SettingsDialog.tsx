@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import * as bridge from '../../services/electron-bridge'
+import * as bridge from '../../services/bridge'
 import { themeService, getThemesByMode, type ThemeMode, type ThemeId } from '../../services/theme-service'
 import { useEditorStore } from '../../stores/editor-store'
 import { useAppStore } from '../../stores/app-store'
@@ -204,6 +204,20 @@ function SettingsDialog({ onClose, initialTab = 'general' }: Props) {
                       <option value="wysiwyg">{t('settings.general.modeWysiwyg')}</option>
                       <option value="preview">{t('settings.general.modePreview')}</option>
                     </select>
+                  </div>
+                  <div className="settings-row">
+                    <span className="settings-row-label">{t('settings.general.imagePath')}</span>
+                    <input
+                      className="settings-text-input"
+                      type="text"
+                      defaultValue={localStorage.getItem('confucius-image-path') || 'assets'}
+                      onBlur={(e) => {
+                        const val = e.target.value.trim() || 'assets'
+                        localStorage.setItem('confucius-image-path', val)
+                        e.target.value = val
+                      }}
+                      placeholder="assets"
+                    />
                   </div>
                   <div className="settings-row">
                     <span className="settings-row-label">{t('settings.language.title')}</span>

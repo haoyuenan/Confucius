@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import * as d3 from 'd3'
 import { useKnowledgeStore } from '../../stores/knowledge-store'
 import { useTabStore } from '../../stores/tab-store'
-import * as bridge from '../../services/electron-bridge'
+import * as bridge from '../../services/bridge'
 
 interface GraphNode extends d3.SimulationNodeDatum {
   id: string

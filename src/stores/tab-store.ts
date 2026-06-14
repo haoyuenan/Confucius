@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { useEditorStore } from './editor-store'
 import { fileNameFromPath } from '../utils/path'
-import * as bridge from '../services/electron-bridge'
+import * as bridge from '../services/bridge'
 import i18n from '../i18n/i18n'
 
 export interface TabData {

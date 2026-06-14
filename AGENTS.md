@@ -19,7 +19,7 @@ npm run version:bump -- 0.6.0  # Bump version in package.json + Cargo.toml + tau
 
 **Tauri dual-process**. Frontend (React 18 + TypeScript) runs as a webview in `src/`. Backend is Rust in `src-tauri/src/lib.rs`. No Electron/Node.js main process.
 
-**IPC flow**: React component → `src/services/electron-bridge.ts` (the only file that calls `invoke()`) → Rust command → direct `std::fs` operations. Channel naming follows the original Electron IPC: `<domain>:<action>` (e.g. `file:read`, `search:query`).
+**IPC flow**: React component → `src/services/bridge.ts` (the only file that calls `invoke()`) → Rust command → direct `std::fs` operations. Channel naming follows the original Electron IPC: `<domain>:<action>` (e.g. `file:read`, `search:query`).
 
 **State management**: Five Zustand stores in `src/stores/`:
 - `app-store.ts` — app info, sidebar toggle/width
@@ -50,7 +50,7 @@ npm run version:bump -- 0.6.0  # Bump version in package.json + Cargo.toml + tau
 
 1. Add the `#[tauri::command]` function in `src-tauri/src/lib.rs`
 2. Register it in the `generate_handler![]` macro at the bottom of `lib.rs`
-3. Add a wrapper export in `src/services/electron-bridge.ts` (camelCase name, calls `invoke('snake_case_command_name')`)
+3. Add a wrapper export in `src/services/bridge.ts` (camelCase name, calls `invoke('snake_case_command_name')`)
 4. Add a mock case in `test/setup.ts` (throws `unmocked invoke` on missing commands)
 
 **Naming trap**: Rust commands use `snake_case`, bridge exports use `camelCase`. The `invoke()` string must match the Rust function name exactly.
@@ -78,8 +78,8 @@ npm run version:bump -- 0.6.0  # Bump version in package.json + Cargo.toml + tau
 
 | File | Purpose |
 |------|---------|
-| `src-tauri/src/lib.rs` | All 14 Rust commands (file I/O, search, watcher) |
-| `src/services/electron-bridge.ts` | IPC wrapper — sole entry point for system operations |
+| `src-tauri/src/lib.rs` | All 15 Rust commands (file I/O, search, watcher, image save) |
+| `src/services/bridge.ts` | IPC wrapper — sole entry point for system operations |
 | `src/hooks/` | Custom hooks extracted from App.tsx |
 | `src/editor/cm6-setup.ts` | CM6 extension composition |
 | `src/services/knowledge-service.ts` | Knowledge base engine (pure JS) |

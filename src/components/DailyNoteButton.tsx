@@ -1,5 +1,5 @@
 import { useCallback } from 'react'
-import { knowledgeCreateDailyNote, readFile } from '../services/electron-bridge'
+import { knowledgeCreateDailyNote, readFile } from '../services/bridge'
 import { useTabStore } from '../stores/tab-store'
 import { useTranslation } from 'react-i18next'
 

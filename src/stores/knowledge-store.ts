@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import * as bridge from '../services/electron-bridge'
+import * as bridge from '../services/bridge'
 
 interface BacklinkEntry {
   source: string

@@ -2,7 +2,7 @@ import { useState, useCallback, useRef, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useSidebarStore } from '../../stores/sidebar-store'
 import { useTabStore } from '../../stores/tab-store'
-import * as bridge from '../../services/electron-bridge'
+import * as bridge from '../../services/bridge'
 import type { SearchResult } from '../../types/search'
 
 function SearchPanel() {
