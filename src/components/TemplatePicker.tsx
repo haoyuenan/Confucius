@@ -1,48 +1,38 @@
-import { useState, useEffect } from 'react'
+import { useState, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useSidebarStore } from '../stores/sidebar-store'
 import { useTabStore } from '../stores/tab-store'
 import * as bridge from '../services/bridge'
 import {
-  listTemplates,
-  readTemplateContent,
-  ensurePresetTemplates,
+  PRESET_TEMPLATES,
   expandTemplate,
   getDefaultVariables,
-  type TemplateFile,
 } from '../services/template-service'
 
-interface TemplatePickerProps {
-  onClose: () => void
-}
-
-export function TemplatePicker({ onClose }: TemplatePickerProps) {
+export function TemplatePicker({ onClose }: { onClose: () => void }) {
   const { t } = useTranslation()
   const rootPath = useSidebarStore((s) => s.rootPath)
   const openFile = useTabStore((s) => s.openFile)
 
-  const [templates, setTemplates] = useState<TemplateFile[]>([])
-  const [selected, setSelected] = useState<TemplateFile | null>(null)
+  const templates = useMemo(
+    () => Object.keys(PRESET_TEMPLATES).map((name) => ({ name })),
+    [],
+  )
+  const [selected, setSelected] = useState(templates[0]?.name ?? '')
   const [fileName, setFileName] = useState('')
   const [creating, setCreating] = useState(false)
-
-  useEffect(() => {
-    if (rootPath) {
-      ensurePresetTemplates(rootPath).then(() => {
-        listTemplates(rootPath).then(setTemplates)
-      })
-    }
-  }, [rootPath])
 
   const handleCreate = async () => {
     if (!rootPath || !selected || creating) return
     setCreating(true)
 
-    const name = fileName.trim() || selected.name
+    const content = PRESET_TEMPLATES[selected]
+    if (!content) { setCreating(false); return }
+
+    const name = fileName.trim() || selected
     const finalName = name.endsWith('.md') ? name : `${name}.md`
 
     try {
-      const content = await readTemplateContent(selected.path)
       const title = finalName.replace(/\.md$/, '').replace(/\.markdown$/, '')
       const variables = getDefaultVariables(title)
       const expanded = expandTemplate(content, variables)
@@ -70,11 +60,17 @@ export function TemplatePicker({ onClose }: TemplatePickerProps) {
           <div className="template-list">
             {templates.map((tmpl) => (
               <div
-                key={tmpl.path}
-                className={`template-item ${selected?.path === tmpl.path ? 'selected' : ''}`}
-                onClick={() => setSelected(tmpl)}
+                key={tmpl.name}
+                className={`template-item ${selected === tmpl.name ? 'selected' : ''}`}
+                onClick={() => setSelected(tmpl.name)}
               >
-                <span className="template-name">{tmpl.name}</span>
+                <span className="template-icon">
+                  {tmpl.name.includes('日记') ? '📅' :
+                   tmpl.name.includes('会议') ? '📋' :
+                   tmpl.name.includes('周报') ? '📊' :
+                   tmpl.name.includes('读书') ? '📚' : '📄'}
+                </span>
+                <span>{tmpl.name.replace('.md', '')}</span>
               </div>
             ))}
           </div>
@@ -84,20 +80,23 @@ export function TemplatePicker({ onClose }: TemplatePickerProps) {
             <input
               value={fileName}
               onChange={(e) => setFileName(e.target.value)}
-              placeholder={selected?.name || '未命名.md'}
+              placeholder={selected || '未命名.md'}
               onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
+              autoFocus
             />
           </div>
         </div>
 
         <div className="dialog-footer">
-          <button className="dialog-btn" onClick={onClose}>{t('template.picker.cancel')}</button>
+          <button className="dialog-btn" onClick={onClose}>
+            {t('template.picker.cancel')}
+          </button>
           <button
             className="dialog-btn dialog-btn-primary"
             onClick={handleCreate}
             disabled={!selected || creating}
           >
-            {t('template.picker.create')}
+            {creating ? '...' : t('template.picker.create')}
           </button>
         </div>
       </div>

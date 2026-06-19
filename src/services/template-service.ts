@@ -2,7 +2,7 @@ import * as bridge from './bridge'
 
 const TEMPLATES_DIR = '.confucius/templates'
 
-const PRESET_TEMPLATES: Record<string, string> = {
+export const PRESET_TEMPLATES: Record<string, string> = {
   '日记.md': `---
 title: {{date}} 日记
 date: {{date}}

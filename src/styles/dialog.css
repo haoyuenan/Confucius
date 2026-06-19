@@ -1008,3 +1008,67 @@
 .settings-text-input:focus {
   border-color: var(--accent-color);
 }
+
+/* ── 模板选择器 ── */
+.template-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 16px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.template-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--text-primary);
+  transition: all 0.15s;
+}
+
+.template-item:hover {
+  background: var(--bg-secondary);
+  border-color: var(--text-muted);
+}
+
+.template-item.selected {
+  border-color: var(--accent-color);
+  background: var(--accent-color);
+  color: #fff;
+}
+
+.template-icon {
+  font-size: 16px;
+}
+
+.template-filename {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.template-filename label {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.template-filename input {
+  padding: 8px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 14px;
+  font-family: inherit;
+  outline: none;
+}
+
+.template-filename input:focus {
+  border-color: var(--accent-color);
+}
