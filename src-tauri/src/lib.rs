@@ -513,6 +513,7 @@ fn get_app_version() -> String {
 pub fn run() {
     tauri::Builder::default()
         .manage(Mutex::new(None::<WatcherState>))
+        .manage(Mutex::new(None::<knowledge::types::KnowledgeIndex>))
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_shell::init())
@@ -533,6 +534,12 @@ pub fn run() {
             start_file_watcher,
             stop_file_watcher,
             get_app_version,
+            knowledge::knowledge_init,
+            knowledge::knowledge_init_loaded,
+            knowledge::knowledge_get_backlinks,
+            knowledge::knowledge_get_graph,
+            knowledge::knowledge_get_tags,
+            knowledge::knowledge_reindex,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
