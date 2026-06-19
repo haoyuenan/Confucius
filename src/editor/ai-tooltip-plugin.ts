@@ -3,6 +3,8 @@ import { StateField, StateEffect } from '@codemirror/state'
 import { loadConfig, streamGenerate, checkHealth, type AIAction } from '../services/ai-service'
 import i18n from '../i18n/i18n'
 
+const _tooltipViews = new WeakMap<Node, EditorView>()
+
 const showAiMenu = StateEffect.define<boolean>()
 const aiMenuVisible = StateField.define<boolean>({
   create: () => false,
@@ -66,7 +68,7 @@ export function aiTooltipPlugin() {
             return
           }
 
-          const view = (dom as any).__cmView as EditorView | undefined
+          const view = _tooltipViews.get(dom)
           if (!view) return
           view.dispatch({ effects: showAiMenu.of(false) })
 
@@ -91,7 +93,7 @@ export function aiTooltipPlugin() {
         pos: sel.head,
         above: true,
         create: (view: EditorView) => {
-          ;(dom as any).__cmView = view
+          _tooltipViews.set(dom, view)
           return { dom }
         },
       }
