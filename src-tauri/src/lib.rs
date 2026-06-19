@@ -1,5 +1,6 @@
 mod knowledge;
 mod search;
+mod import;
 
 use std::path::PathBuf;
 use std::sync::Mutex;
@@ -547,6 +548,8 @@ pub fn run() {
             knowledge::knowledge_get_graph,
             knowledge::knowledge_get_tags,
             knowledge::knowledge_reindex,
+            import::check_pandoc,
+            import::import_file,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

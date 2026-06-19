@@ -13,6 +13,8 @@
   "app.toolbar.pickTheme": "主题",
   "app.toolbar.exportHtml": "导出 HTML",
   "app.toolbar.exportHtmlLabel": "导出",
+  "app.toolbar.import": "从 Word/PDF/HTML/EPUB 导入为 Markdown",
+  "app.toolbar.importLabel": "导入",
   "app.toolbar.print": "打印 (Ctrl+P)",
   "app.toolbar.printLabel": "打印",
   "app.toolbar.edit": "编辑",
@@ -109,6 +111,7 @@
   "commandPalette.cmd.toolSearch": "全局搜索",
   "commandPalette.cmd.exportHtml": "导出 HTML",
   "commandPalette.cmd.exportPdf": "导出 PDF",
+  "commandPalette.cmd.importFile": "导入文件",
   "commandPalette.cmd.settingsOpen": "打开设置",
   "commandPalette.cmd.settingsPlugins": "插件管理",
   "commandPalette.cat.file": "文件",
@@ -116,6 +119,7 @@
   "commandPalette.cat.view": "视图",
   "commandPalette.cat.theme": "主题",
   "commandPalette.cat.tool": "工具",
+  "commandPalette.cat.import": "导入",
   "commandPalette.cat.export": "导出",
   "commandPalette.cat.settings": "设置",
 
@@ -272,5 +276,10 @@
   "ai.retry": "重试连接",
   "ai.later": "稍后",
   "ai.noModel": "未找到可用模型",
-  "ai.loading": "AI 处理中..."
+  "ai.loading": "AI 处理中...",
+
+  "import.noPandoc": "未检测到 pandoc，将使用基础转换（质量可能下降）",
+  "import.noPandocHint": "安装 pandoc 可获得最佳转换质量：https://pandoc.org",
+  "import.failed": "导入失败",
+  "import.success": "导入完成：{name}"
 }

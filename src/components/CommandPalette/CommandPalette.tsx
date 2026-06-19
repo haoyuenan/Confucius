@@ -25,6 +25,7 @@ export interface CommandPaletteContext {
   exportHtml: () => void
   exportPdf: () => void
   search: () => void
+  importFile: () => void
   findInDocument: () => void
 }
 
