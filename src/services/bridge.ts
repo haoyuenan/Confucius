@@ -8,7 +8,7 @@
 
 import type { FileTreeNode } from '../types/file-tree'
 import type { SearchResult } from '../types/search'
-import { open, save } from '@tauri-apps/plugin-dialog'
+import { open, save, ask } from '@tauri-apps/plugin-dialog'
 import { invoke } from '@tauri-apps/api/core'
 import { listen } from '@tauri-apps/api/event'
 import i18n from '../i18n/i18n'
@@ -58,7 +58,6 @@ export function saveFileDialog(): Promise<string | null> {
 
 /** 确认保存对话框 */
 export async function confirmSave(): Promise<0 | 1> {
-  const { ask } = await import('@tauri-apps/plugin-dialog')
   const t = i18n.t
   const result = await ask(t('dialog.confirmSave.message'), {
     title: t('dialog.confirmSave.title'),
