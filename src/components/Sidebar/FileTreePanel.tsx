@@ -1,4 +1,4 @@
-import { useEffect, useCallback, useState } from 'react'
+import { useEffect, useCallback, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useSidebarStore } from '../../stores/sidebar-store'
 import { useTabStore } from '../../stores/tab-store'
@@ -7,6 +7,7 @@ import { flattenTree, type FileTreeNode } from '../../types/file-tree'
 import { fileNameFromPath } from '../../utils/path'
 import * as bridge from '../../services/bridge'
 import { addRecentFile, getRecentFiles, type RecentFile } from '../../services/recent-files'
+import { useVirtualList } from '../../hooks/use-virtual-list'
 
 /* ─── 欢迎屏（零状态） ─── */
 function WelcomePanel({
@@ -184,6 +185,22 @@ function FileTreePanel() {
 
   const flatItems = fileTree ? flattenTree(fileTree, expandedPaths, 0) : []
 
+  const listRef = useRef<HTMLDivElement>(null)
+  const { visibleIndices, totalHeight, offsetY, onScroll } = useVirtualList({
+    itemHeight: 28,
+    totalCount: flatItems.length,
+  })
+
+  useEffect(() => {
+    const el = listRef.current
+    if (el) onScroll(el.scrollTop, el.clientHeight)
+  }, [flatItems.length, onScroll])
+
+  const handleListScroll = useCallback(() => {
+    const el = listRef.current
+    if (el) onScroll(el.scrollTop, el.clientHeight)
+  }, [onScroll])
+
   // 未打开文件夹时显示欢迎屏
   if (!rootPath) {
     return <WelcomePanel onOpenFolder={handleOpenFolder} onNewFile={newUntitledTab} />
@@ -198,28 +215,35 @@ function FileTreePanel() {
         <button className="toolbar-btn" onClick={handleCloseFolder} title={t('sidebar.fileTree.closeFolder')}>✕</button>
       </div>
 
-      <div className="file-tree-list">
+      <div className="file-tree-list" ref={listRef} onScroll={handleListScroll}>
         {flatItems.length === 0 && !isFileTreeLoading ? (
           <div className="sidebar-empty">{t('sidebar.fileTree.empty')}</div>
         ) : flatItems.length === 0 && isFileTreeLoading ? (
           <div className="sidebar-empty sidebar-scanning">{t('sidebar.fileTree.scanning')}</div>
         ) : (
-          flatItems.map(({ depth, node }) => (
-            <div
-              key={node.path}
-              className={`file-tree-item ${selectedPath === node.path ? 'selected' : ''}`}
-              style={{ paddingLeft: 12 + depth * 16 }}
-              onClick={() => handleFileClick(node)}
-              onContextMenu={(e) => handleContextMenu(e, node)}
-            >
-              <span className="file-icon">
-                {node.type === 'directory'
-                  ? expandedPaths.has(node.path) ? '▼' : '▶'
-                  : '📄'}
-              </span>
-              <span className="file-name">{node.name}</span>
+          <div style={{ height: totalHeight, position: 'relative' }}>
+            <div style={{ transform: `translateY(${offsetY}px)` }}>
+              {visibleIndices.map((i) => {
+                const { depth, node } = flatItems[i]
+                return (
+                  <div
+                    key={node.path}
+                    className={`file-tree-item ${selectedPath === node.path ? 'selected' : ''}`}
+                    style={{ paddingLeft: 12 + depth * 16, height: 28 }}
+                    onClick={() => handleFileClick(node)}
+                    onContextMenu={(e) => handleContextMenu(e, node)}
+                  >
+                    <span className="file-icon">
+                      {node.type === 'directory'
+                        ? expandedPaths.has(node.path) ? '▼' : '▶'
+                        : '📄'}
+                    </span>
+                    <span className="file-name">{node.name}</span>
+                  </div>
+                )
+              })}
             </div>
-          ))
+          </div>
         )}
       </div>
     </div>
