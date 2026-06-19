@@ -22,6 +22,7 @@ pub fn relative(workspace: &str, full_path: &str) -> String {
     f.strip_prefix(&prefix).unwrap_or(&f).to_string()
 }
 
+#[allow(dead_code)]
 pub fn join_path(base: &str, rel: &str) -> String {
     let b = base.trim_end_matches('/').trim_end_matches('\\');
     let r = rel.trim_start_matches('/').trim_start_matches('\\');

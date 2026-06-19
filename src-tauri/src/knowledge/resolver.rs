@@ -42,6 +42,7 @@ pub fn get_tags(index: &KnowledgeIndex) -> HashMap<String, Vec<String>> {
     index.tags.clone()
 }
 
+#[allow(dead_code)]
 pub fn resolve_link(index: &KnowledgeIndex, link_title: &str) -> Option<String> {
     let lower = link_title.to_lowercase();
     for (fp, meta) in &index.files {
