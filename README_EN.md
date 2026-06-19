@@ -24,9 +24,13 @@ Split editing mode: CodeMirror 6 editor on the left, markdown-it live preview on
 - **Global Knowledge Graph**: D3.js force-directed graph with global/local modes, drag, zoom, and click-to-navigate
 - **Quick Open**: `Ctrl+O` fuzzy search across filenames and titles
 - **Daily Notes**: One-click create today's note, auto-archived to `journal/YYYY/MM/YYYY-MM-DD.md` with frontmatter
+- **Rust Knowledge Engine**: Knowledge base indexing migrated to Rust backend, 1000+ file scan < 3s
+- **Tantivy Full-Text Search**: Inverted index search engine replaces linear scanning, sub-100ms search for large vaults
 
 ### Editor
 - **Format Toolbar**: Undo/redo, headings, bold/italic/strikethrough, quote/code block/list, link/image/hr/formula/table, focus/typewriter mode
+- **AI Writing Assistant**: Select text to show AI menu: translate, summarize, rewrite, expand (requires Ollama)
+- **Template System**: Create notes from templates (daily, weekly, meeting, reading notes) with `{{date}}` placeholder support
 - **Table Insertion**: Toolbar button with row/column picker, inserts aligned Markdown table template
 - **CodeMirror 6 Core**: High-performance text editing with Markdown syntax highlighting
 - **Find & Replace**: `Ctrl+F` search, `Ctrl+Shift+F` replace, F3 next match, auto-highlight all occurrences
@@ -41,10 +45,12 @@ Split editing mode: CodeMirror 6 editor on the left, markdown-it live preview on
 ### File Management
 - **Welcome Screen**: Zero-state panel with one-click "Open Folder" and "New Note" actions
 - **Recent Files**: Auto-tracks last 10 opened files, one-click reopen from welcome screen
-- **Quick Toolbar**: New, open, daily note, toggle sidebar, search, theme toggle, export, edit/preview mode, settings
+- **Virtual Scrolling**: File tree and search results handle 10,000+ entries with smooth rendering
+- **Multi-Format Import**: Import from Word (.docx), PDF, HTML, EPUB and auto-convert to Markdown (pandoc preferred, built-in fallbacks)
+- **Quick Toolbar**: New, open, new note, toggle sidebar, search, import, export, theme toggle, edit/preview mode, settings
 - **File Tree Sidebar**: Browse and open Markdown files within a folder
 - **Outline Panel**: Auto-extract heading structure, click to jump in editor and preview
-- **Global Search**: Cross-file full-text search (Rust parallel engine)
+- **Global Search**: Cross-file full-text search (Tantivy inverted index engine)
 - **File Operations**: New, open, save, save as, **auto-save** (every 5 seconds)
 - **Sidebar Context Menu**: New file/directory, rename, delete
 
@@ -130,10 +136,12 @@ npm run build:tauri
 | Math Formulas | KaTeX |
 | Diagram Rendering | Mermaid |
 | Knowledge Graph | D3.js (d3-force) |
+| Full-Text Search | Tantivy (Rust inverted index) |
+| Text Conversion | pandoc + html2text + docx-rs |
 | State Management | Zustand |
 | XSS Security | DOMPurify |
 | DOM Diffing | morphdom |
-| Backend | Rust (file I/O, search, file watcher) |
+| Backend | Rust (file I/O, search, file watcher, knowledge indexing) |
 | Testing Framework | Vitest |
 
 ## Project Structure
@@ -146,7 +154,17 @@ confucius/
 │   ├── capabilities/default.json   # Permission scopes
 │   └── src/
 │       ├── main.rs                 # Entry point
-│       └── lib.rs                  # Rust commands (file I/O/search/watcher)
+│       ├── lib.rs                  # Rust commands (file I/O/search/watcher/import)
+│       ├── knowledge/              # Knowledge base engine (Rust)
+│       │   ├── types.rs            # Data structures
+│       │   ├── parser.rs           # wikilinks/tags/frontmatter parser
+│       │   ├── indexer.rs          # Full & incremental indexing
+│       │   └── resolver.rs         # Backlinks/graph/tags queries
+│       ├── search/                 # Tantivy full-text search
+│       │   ├── schema.rs           # Index schema
+│       │   ├── indexer.rs          # Index builder
+│       │   └── searcher.rs         # BM25 search query
+│       └── import.rs               # Multi-format import converter
 │
 ├── src/                            # Frontend (React + TypeScript)
 │   ├── main.tsx                    # React entry
@@ -157,16 +175,22 @@ confucius/
 │   │   ├── Editor/                 # Editor components
 │   │   ├── Preview/                # Preview components
 │   │   ├── Sidebar/                # Sidebar (file tree/outline/search/backlinks/tags/graph)
-│   │   └── Settings/               # Settings panel
+│   │   ├── Settings/               # Settings panel
+│   │   ├── TemplatePicker.tsx      # Template selection dialog
+│   │   ├── AIConfigDialog.tsx      # AI config dialog
+│   │   └── DailyNoteButton.tsx     # New note button
 │   ├── services/
-│   │   ├── bridge.ts      # Tauri IPC wrapper
+│   │   ├── bridge.ts               # Tauri IPC wrapper
 │   │   ├── command-registry.ts     # Built-in commands + fuzzy search
-│   │   ├── workspace-store.ts      # Session save/restore
+│   │   ├── knowledge-service.ts    # Knowledge base engine (JS, being phased out)
 │   │   ├── theme-service.ts        # Theme management (12 themes)
-│   │   ├── knowledge-service.ts    # Knowledge base engine (frontend)
+│   │   ├── template-service.ts     # Template system
+│   │   ├── import-service.ts       # Multi-format import service
+│   │   ├── ai-service.ts           # Ollama AI service
 │   │   └── recent-files.ts         # Recent files tracking
 │   ├── stores/                     # Zustand stores (5 stores)
-│   ├── editor/                     # CM6 extensions & editor tools
+│   ├── editor/                     # CM6 extensions (ai-tooltip, wikilinks, tags, wysiwyg, etc.)
+│   ├── hooks/                      # Custom hooks (virtual scrolling, etc.)
 │   └── styles/                     # CSS styles
 │
 ├── themes/                         # Theme CSS variables (12 themes)
@@ -177,9 +201,32 @@ confucius/
 └── tsconfig.json
 ```
 
-## Migration from Electron
+## Changelog
 
-v0.6.0 Image paste management and architecture cleanup:
+### v0.7.0
+
+**Knowledge Engine**:
+- **Rust Knowledge Index**: New `src-tauri/src/knowledge/` module migrates wikilinks/tags/frontmatter parsing and incremental indexing to Rust, 1000+ file full scan < 3s
+- **Tantivy Full-Text Search**: Replaced linear regex scanning with Tantivy inverted index engine, search drops from seconds to milliseconds
+- **Dual Backend**: `knowledge-store.ts` supports JS/Rust dual backend switchable via localStorage `confucius-knowledge-backend`
+
+**Editor Enhancements**:
+- **AI Writing Assistant**: Select text to show AI menu with translate, summarize, rewrite, expand (requires local Ollama)
+- **AI Config Panel**: Configure Ollama endpoint, select model, test connection with one click
+- **Template System**: `.confucius/templates/` directory with 4 preset templates (daily/weekly/meeting/reading notes), supports `{{date}}`/`{{title}}` placeholders
+- **New Note Button**: DailyNoteButton refactored to a generic template picker
+
+**File Management**:
+- **Multi-Format Import**: Import from Word (.docx), PDF, HTML, EPUB and auto-convert to Markdown (pandoc preferred, built-in html2text + docx-rs + zip fallbacks)
+- **Virtual Scrolling**: `use-virtual-list` hook, file tree and search results handle 10,000+ entries smoothly
+
+**Performance**:
+- 45 Rust unit tests covering knowledge/search modules
+- 174 frontend tests, zero type errors and lint violations
+
+### v0.6.0
+
+Image paste management and architecture cleanup:
 
 - **Image paste management**: Ctrl+V screenshots/images → Rust auto-saves to `assets/` → inserts `![](...)`
 - **New Rust command**: `save_image_file` — receives base64, decodes, writes to target directory
@@ -187,20 +234,7 @@ v0.6.0 Image paste management and architecture cleanup:
 - **File rename**: `electron-bridge.ts` → `bridge.ts`, removing Electron confusion
 - **Dead code cleanup**: Removed never-reached return value `2` from `confirmSave`
 
-v0.5.3 Configuration enhancements and i18n standardization:
-
-- **i18n migration**: Replaced custom Zustand i18n store with react-i18next, laying groundwork for multi-language expansion
-- **New settings**: Configurable auto-save interval (1-30s), default edit mode (Split / WYSIWYG / Preview)
-- **Settings cleanup**: Removed "Hide Menu" toggle (Tauri has no native menu) and plugin manager remnants
-- **Version**: 0.5.1 → 0.5.3 (intermediate versions squashed)
-
-v0.5.2 Stability fixes and UI improvements:
-
-- **Image preview fix**: Replaced Tauri asset protocol with Rust `read_file_base64` + base64 data URI, fixing image loading issues
-- **Print fix**: Uses hidden iframe with standalone document for printing, bypassing main window overflow constraints
-- **File tree optimization**: Skips empty directories with no `.md` files
-- **UI improvements**: "Scanning folder…" indicator while loading; separated search/sidebar button logic; larger toolbar font; centered window on startup
-- **Migration cleanup**: Removed all Electron leftover code, translation keys, and test mocks
+## Migration from Electron
 
 v0.5.0 migrates from Electron 28 to Tauri 2:
 
@@ -216,7 +250,7 @@ v0.5.0 migrates from Electron 28 to Tauri 2:
 
 ## Development Status
 
-v0.6.0 adds image paste management and completes architecture cleanup. Feature set is maturing well.
+v0.7.0 introduces Rust knowledge engine, Tantivy full-text search, AI writing assistant, template system, multi-format import, and virtual scrolling.
 
 ## License
 
