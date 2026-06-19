@@ -24,6 +24,19 @@
   flex-direction: column;
 }
 
+/* .dialog 与 .dialog-panel 等价，供模板、AI 设置等新弹窗使用 */
+.dialog {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+  min-width: 380px;
+  max-width: 500px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+}
+
 .dialog-header {
   display: flex;
   align-items: center;

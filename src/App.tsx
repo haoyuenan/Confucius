@@ -115,6 +115,7 @@ function App() {
     onToggleCommandPalette: handleToggleCommandPalette,
     onQuickOpen: handleQuickOpen,
     onDailyNote: handleDailyNote,
+    onSave: handleSaveFile,
   })
 
   useSessionRestore(newUntitledTab)
