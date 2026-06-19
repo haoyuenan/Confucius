@@ -43,6 +43,10 @@ pub fn knowledge_init_loaded(app: AppHandle, workspace_path: String) -> Result<(
         Err(_) => idx::full_scan(&workspace_path)?,
     };
     idx::save_index(&workspace_path, &index)?;
+
+    // Build Tantivy search index
+    let _ = crate::search::indexer::build_search_index(&workspace_path, &index.files);
+
     let state = app.state::<IndexState>();
     let mut guard = state.lock().map_err(|e| e.to_string())?;
     *guard = Some(index);
@@ -98,8 +102,22 @@ pub fn knowledge_reindex(
     file_path: String,
 ) -> Result<(), String> {
     idx::reindex_file(&workspace_path, &file_path)?;
-    // Reload index into state after reindex
     let updated = idx::load_index(&workspace_path)?;
+
+    // Update Tantivy search index
+    let rel = relative(&workspace_path, &file_path);
+    if let Some(meta) = updated.files.get(&rel) {
+        let _ = crate::search::indexer::add_document(
+            &workspace_path,
+            &rel,
+            &meta.title,
+            &meta.tags,
+            &meta.modified,
+        );
+    } else {
+        let _ = crate::search::indexer::remove_document(&workspace_path, &rel);
+    }
+
     let state = app.state::<IndexState>();
     let mut guard = state.lock().map_err(|e| e.to_string())?;
     *guard = Some(updated);

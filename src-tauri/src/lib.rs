@@ -1,4 +1,5 @@
 mod knowledge;
+mod search;
 
 use std::path::PathBuf;
 use std::sync::Mutex;
@@ -132,12 +133,17 @@ fn search_text(
     use_regex: Option<bool>,
     max_results: Option<u32>,
 ) -> Result<Vec<SearchResult>, String> {
-    use std::sync::atomic::{AtomicBool, Ordering};
-    use std::sync::Arc;
-
     let max_results = max_results.unwrap_or(500) as usize;
     let case_sensitive = case_sensitive.unwrap_or(false);
     let use_regex = use_regex.unwrap_or(false);
+
+    // Use Tantivy for non-regex, non-case-sensitive searches
+    if !use_regex && !case_sensitive {
+        return crate::search::searcher::search(&root_path, &query, max_results);
+    }
+
+    use std::sync::atomic::{AtomicBool, Ordering};
+    use std::sync::Arc;
 
     let pattern = if use_regex {
         query.clone()
