@@ -23,10 +23,14 @@
 - **标签系统**：行内 `#tag` + YAML frontmatter 标签，层级标签面板浏览
 - **全局知识图谱**：D3.js 力导向图，支持全局/局部模式、拖拽、缩放、点击跳转
 - **快速打开**：`Ctrl+O` 模糊搜索文件名和标题
-- **Daily Notes**：一键创建今日笔记，按 `日记/YYYY/MM/YYYY-MM-DD.md` 归档，自动填充 frontmatter
+- **每日笔记**：一键创建今日笔记，按 `日记/YYYY/MM/YYYY-MM-DD.md` 归档，自动填充 frontmatter
+- **Rust 知识库引擎**：知识库索引迁移至 Rust 后端，1000+ 文件扫描 < 3s
+- **Tantivy 全文搜索**：倒排索引搜索引擎替代线性扫描，大知识库搜索从秒级到毫秒级
 
 ### 编辑器
 - **格式化工具栏**：撤销/重做、标题、加粗/斜体/删除线、引用/代码块/列表、链接/图片/分割线/公式/表格、专注/打字机模式
+- **AI 辅助写作**：选中文本弹出 AI 菜单，支持翻译、摘要、改写、扩展（需安装 Ollama）
+- **模板系统**：从模板创建新笔记（日记、周报、会议记录、读书笔记），支持 `{{date}}` 占位符
 - **表格插入**：工具栏按钮，弹窗选择行列数，自动生成 Markdown 表格模板
 - **CodeMirror 6 内核**：高性能文本编辑，Markdown 语法高亮
 - **查找替换**：`Ctrl+F` 搜索，`Ctrl+Shift+F` 替换，F3 跳转下一处，选中词自动高亮所有匹配
@@ -41,10 +45,12 @@
 ### 文件管理
 - **欢迎屏（零状态）**：首次启动时显示欢迎画面，含「打开文件夹」和「新建笔记」快捷入口
 - **最近文件**：自动记录最近打开的文件（最多 10 条），欢迎屏一键重新打开
-- **快捷工具栏**：新建、打开、今日笔记、切换侧边栏、搜索、主题切换、导出、编辑/预览模式、设置
+- **虚拟滚动**：文件树和搜索结果支持 10000+ 条目流畅渲染
+- **多格式导入**：从 Word (.docx)、PDF、HTML、EPUB 导入并自动转换为 Markdown（pandoc 优先，内置降级方案）
+- **快捷工具栏**：新建、打开、新建笔记、切换侧边栏、搜索、导入、导出、主题切换、编辑/预览模式、设置
 - **文件树侧边栏**：浏览和打开文件夹内的 Markdown 文件
 - **大纲面板**：自动提取标题结构，点击跳转编辑器和预览区
-- **全局搜索**：跨文件全文搜索（Rust 并行引擎）
+- **全局搜索**：跨文件全文搜索（Tantivy 倒排索引引擎）
 - **文件操作**：新建、打开、保存、另存为、**自动保存**（每 5 秒自动保存未保存的修改）
 - **侧边栏右键菜单**：新建文件/目录、重命名、删除
 
@@ -130,10 +136,12 @@ npm run build:tauri
 | 数学公式 | KaTeX |
 | 图表渲染 | Mermaid |
 | 知识图谱 | D3.js (d3-force) |
+| 全文搜索 | Tantivy（Rust 倒排索引） |
+| 文本转换 | pandoc + html2text + docx-rs |
 | 状态管理 | Zustand |
 | 沙箱安全 | DOMPurify |
 | DOM 增量 | morphdom |
-| 后端 | Rust（文件 I/O、搜索、文件监听） |
+| 后端 | Rust（文件 I/O、搜索、文件监听、知识库索引） |
 | 测试框架 | Vitest |
 
 ## 项目结构
@@ -146,7 +154,17 @@ confucius/
 │   ├── capabilities/default.json   # 权限声明
 │   └── src/
 │       ├── main.rs                 # 入口
-│       └── lib.rs                  # Rust 命令（文件I/O/搜索/监听）
+│       ├── lib.rs                  # Rust 命令（文件I/O/搜索/监听/导入）
+│       ├── knowledge/              # 知识库索引引擎（Rust 版）
+│       │   ├── types.rs            # 数据结构
+│       │   ├── parser.rs           # wikilinks/tags/frontmatter 解析
+│       │   ├── indexer.rs          # 全量/增量索引
+│       │   └── resolver.rs         # 反链/图谱/标签查询
+│       ├── search/                 # Tantivy 全文搜索
+│       │   ├── schema.rs           # 索引 Schema
+│       │   ├── indexer.rs          # 索引构建
+│       │   └── searcher.rs         # BM25 搜索查询
+│       └── import.rs               # 多格式导入转换
 │
 ├── src/                            # 前端 (React + TypeScript)
 │   ├── main.tsx                    # React 入口
@@ -157,16 +175,22 @@ confucius/
 │   │   ├── Editor/                 # 编辑器组件
 │   │   ├── Preview/                # 预览组件
 │   │   ├── Sidebar/                # 侧边栏（文件树/大纲/搜索/反链/标签/图谱）
-│   │   └── Settings/               # 设置面板
+│   │   ├── Settings/               # 设置面板
+│   │   ├── TemplatePicker.tsx      # 模板选择对话框
+│   │   ├── AIConfigDialog.tsx      # AI 配置对话框
+│   │   └── DailyNoteButton.tsx     # 新建笔记按钮
 │   ├── services/
-│   │   ├── bridge.ts      # Tauri IPC 封装层
+│   │   ├── bridge.ts               # Tauri IPC 封装层
 │   │   ├── command-registry.ts     # 内置命令 + 模糊搜索
-│   │   ├── workspace-store.ts      # 工作区会话保存/恢复
+│   │   ├── knowledge-service.ts    # 知识库索引引擎（JS 版，渐近替换中）
 │   │   ├── theme-service.ts        # 主题管理（12 套主题）
-│   │   ├── knowledge-service.ts    # 知识库索引引擎（前端）
+│   │   ├── template-service.ts     # 模板系统
+│   │   ├── import-service.ts       # 多格式导入服务
+│   │   ├── ai-service.ts           # Ollama AI 服务
 │   │   └── recent-files.ts         # 最近文件
 │   ├── stores/                     # Zustand 状态（5 个 Store）
-│   ├── editor/                     # CM6 扩展与编辑器工具
+│   ├── editor/                     # CM6 扩展（ai-tooltip, wikilinks, tags, wysiwyg 等）
+│   ├── hooks/                      # 自定义 hooks（虚拟滚动等）
 │   └── styles/                     # CSS 样式
 │
 ├── themes/                         # 主题 CSS 变量（12 套）
@@ -177,9 +201,32 @@ confucius/
 └── tsconfig.json
 ```
 
-## 从 Electron 迁移
+## 更新日志
 
-v0.6.0 图片粘贴管理与架构清理：
+### v0.7.0
+
+**知识库引擎**：
+- **Rust 知识库索引**：新增 `src-tauri/src/knowledge/` 模块，wikilinks/tags/frontmatter 解析和增量索引迁移至 Rust，1000+ 文件全量扫描 < 3s
+- **Tantivy 全文搜索**：用 Tantivy 倒排索引引擎替换线性 regex 扫描，搜索从秒级降至毫秒级
+- **前端双后端**：`knowledge-store.ts` 支持 JS/Rust 双后端切换，通过 localStorage `confucius-knowledge-backend` 控制
+
+**编辑器增强**：
+- **AI 辅助写作**：选中文本弹出 AI 菜单，支持翻译、摘要、改写、扩展（需本地运行 Ollama）
+- **AI 配置面板**：设置 Ollama 地址、选择模型、一键测试连接
+- **模板系统**：`.confucius/templates/` 目录 + 预置 4 套模板（日记/周报/会议记录/读书笔记），支持 `{{date}}`/`{{title}}` 等占位符
+- **新建笔记按钮**：DailyNoteButton 重构为通用模板选择器
+
+**文件管理**：
+- **多格式导入**：支持从 Word (.docx)、PDF、HTML、EPUB 导入并转换为 Markdown（pandoc 优先，内置 html2text + docx-rs + zip 降级方案）
+- **虚拟滚动**：`use-virtual-list` hook，文件树和搜索结果支持 10000+ 条目流畅渲染
+
+**性能**：
+- 45 个 Rust 单元测试覆盖 knowledge/search 模块
+- 174 个前端测试，类型安全和 lint 零错误
+
+### v0.6.0
+
+图片粘贴管理与架构清理：
 
 - **图片粘贴管理**：Ctrl+V 粘贴截图/图片 → Rust 自动保存到 `assets/` 目录 → 插入 `![](...)`
 - **新增 Rust 命令**：`save_image_file` — 接收 base64、解码、写入指定目录
@@ -187,20 +234,7 @@ v0.6.0 图片粘贴管理与架构清理：
 - **文件重命名**：`electron-bridge.ts` → `bridge.ts`，消除 Electron 误解
 - **死代码清理**：`confirmSave` 移除永不触发的返回值 `2`
 
-v0.5.3 配置系统增强与 i18n 标准化：
-
-- **i18n 迁移**：自建 Zustand i18n store → react-i18next 标准方案，为多语言扩展打好基础
-- **新增配置项**：自动保存间隔（1-30s 可调）、默认编辑模式（分栏/即时渲染/纯预览）
-- **设置页清理**：移除"隐藏主菜单"（Tauri 无原生菜单）和插件管理相关残留
-- **版本**：0.5.1 → 0.5.3（中间版本合并）
-
-v0.5.2 稳定性修复与 UI 改进：
-
-- **图片预览修复**：用 Rust `read_file_base64` + base64 data URI 替代 Tauri asset 协议，彻底解决图片加载问题
-- **打印修复**：预览内容使用隐藏 iframe 独立文档打印，绕过主窗口 overflow 限制
-- **文件树优化**：跳过不含 `.md` 文件的空目录
-- **UI 改进**：打开文件夹时显示"正在遍历文件夹…"；搜索/侧边按钮逻辑分离；工具栏字体增大；窗口启动居中
-- **迁移清理**：移除所有 Electron 残留代码、翻译键、测试 mock
+## 从 Electron 迁移
 
 v0.5.0 从 Electron 28 迁移至 Tauri 2，主要变化：
 
@@ -216,7 +250,7 @@ v0.5.0 从 Electron 28 迁移至 Tauri 2，主要变化：
 
 ## 开发状态
 
-v0.6.0 新增图片粘贴管理功能，完成架构清理。功能趋于完善。
+v0.7.0 引入了 Rust 知识库引擎、Tantivy 全文搜索、AI 辅助写作、模板系统、多格式导入和虚拟滚动。
 
 ## License
 

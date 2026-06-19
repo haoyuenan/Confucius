@@ -4,6 +4,7 @@ import { useSidebarStore } from '../../stores/sidebar-store'
 import { useTabStore } from '../../stores/tab-store'
 import * as bridge from '../../services/bridge'
 import type { SearchResult } from '../../types/search'
+import { useVirtualList } from '../../hooks/use-virtual-list'
 
 function SearchPanel() {
   const { t } = useTranslation()
@@ -115,29 +116,81 @@ function SearchPanel() {
         {!isSearching && query && <span className="search-count">{t('sidebar.search.results', { count: searchResults.length })}</span>}
       </div>
 
-      <div className="search-results">
-        {!rootPath ? (
-          <div className="sidebar-empty">{t('sidebar.search.noFolder')}</div>
-        ) : searchResults.length === 0 && query && !isSearching ? (
-          <div className="sidebar-empty">{t('sidebar.search.noResults')}</div>
-        ) : (
-          searchResults.map((result, idx) => (
-            <div
-              key={`${result.filePath}-${result.lineNumber}-${idx}`}
-              className="search-result-item"
-              onClick={() => handleResultClick(result)}
-            >
-              <div className="result-file">{result.fileName}</div>
-              <div className="result-line">
-                <span className="result-line-num">{result.lineNumber}:</span>
-                <span className="result-line-content">
-                  {highlightMatch(result.lineContent, result.matchStart, result.matchEnd)}
-                </span>
-              </div>
-            </div>
-          ))
-        )}
-      </div>
+      <SearchResultsList
+        results={searchResults}
+        rootPath={rootPath}
+        query={query}
+        isSearching={isSearching}
+        onResultClick={handleResultClick}
+        highlightMatch={highlightMatch}
+      />
+    </div>
+  )
+}
+
+function SearchResultsList({
+  results,
+  rootPath,
+  query,
+  isSearching,
+  onResultClick,
+  highlightMatch,
+}: {
+  results: SearchResult[]
+  rootPath: string | null
+  query: string
+  isSearching: boolean
+  onResultClick: (result: SearchResult) => void
+  highlightMatch: (text: string, start: number, end: number) => JSX.Element
+}) {
+  const { t } = useTranslation()
+  const listRef = useRef<HTMLDivElement>(null)
+  const { visibleIndices, totalHeight, offsetY, onScroll } = useVirtualList({
+    itemHeight: 36,
+    totalCount: results.length,
+  })
+
+  useEffect(() => {
+    const el = listRef.current
+    if (el) onScroll(el.scrollTop, el.clientHeight)
+  }, [results.length, onScroll])
+
+  const handleScroll = useCallback(() => {
+    const el = listRef.current
+    if (el) onScroll(el.scrollTop, el.clientHeight)
+  }, [onScroll])
+
+  return (
+    <div className="search-results" ref={listRef} onScroll={handleScroll}>
+      {!rootPath ? (
+        <div className="sidebar-empty">{t('sidebar.search.noFolder')}</div>
+      ) : results.length === 0 && query && !isSearching ? (
+        <div className="sidebar-empty">{t('sidebar.search.noResults')}</div>
+      ) : (
+        <div style={{ height: totalHeight, position: 'relative' }}>
+          <div style={{ transform: `translateY(${offsetY}px)` }}>
+            {visibleIndices.map((i) => {
+              const result = results[i]
+              return (
+                <div
+                  key={`${result.filePath}-${result.lineNumber}-${i}`}
+                  className="search-result-item"
+                  style={{ height: 36 }}
+                  onClick={() => onResultClick(result)}
+                >
+                  <div className="result-file">{result.fileName}</div>
+                  <div className="result-line">
+                    <span className="result-line-num">{result.lineNumber}:</span>
+                    <span className="result-line-content">
+                      {highlightMatch(result.lineContent, result.matchStart, result.matchEnd)}
+                    </span>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
     </div>
   )
 }

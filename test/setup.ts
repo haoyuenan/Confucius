@@ -31,6 +31,16 @@ vi.mock('@tauri-apps/api/core', () => ({
         return undefined
       case 'stop_file_watcher':
         return undefined
+      case 'knowledge_init_loaded':
+        return undefined
+      case 'knowledge_get_backlinks':
+        return []
+      case 'knowledge_get_graph':
+        return { nodes: [], links: [] }
+      case 'knowledge_get_tags':
+        return {}
+      case 'knowledge_reindex':
+        return undefined
       default:
         throw new Error(`unmocked invoke: ${cmd}`)
     }

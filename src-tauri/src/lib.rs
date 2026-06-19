@@ -1,3 +1,7 @@
+mod knowledge;
+mod search;
+mod import;
+
 use std::path::PathBuf;
 use std::sync::Mutex;
 use tauri::{AppHandle, Emitter, Manager};
@@ -113,6 +117,7 @@ fn build_file_tree(root_path: String) -> Result<FileTreeNode, String> {
 // ── Text search ──
 
 #[derive(Clone, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct SearchResult {
     pub file_path: String,
     pub file_name: String,
@@ -130,12 +135,17 @@ fn search_text(
     use_regex: Option<bool>,
     max_results: Option<u32>,
 ) -> Result<Vec<SearchResult>, String> {
-    use std::sync::atomic::{AtomicBool, Ordering};
-    use std::sync::Arc;
-
     let max_results = max_results.unwrap_or(500) as usize;
     let case_sensitive = case_sensitive.unwrap_or(false);
     let use_regex = use_regex.unwrap_or(false);
+
+    // Use Tantivy for non-regex, non-case-sensitive searches
+    if !use_regex && !case_sensitive {
+        return crate::search::searcher::search(&root_path, &query, max_results);
+    }
+
+    use std::sync::atomic::{AtomicBool, Ordering};
+    use std::sync::Arc;
 
     let pattern = if use_regex {
         query.clone()
@@ -511,6 +521,7 @@ fn get_app_version() -> String {
 pub fn run() {
     tauri::Builder::default()
         .manage(Mutex::new(None::<WatcherState>))
+        .manage(Mutex::new(None::<knowledge::types::KnowledgeIndex>))
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_shell::init())
@@ -531,6 +542,14 @@ pub fn run() {
             start_file_watcher,
             stop_file_watcher,
             get_app_version,
+            knowledge::knowledge_init,
+            knowledge::knowledge_init_loaded,
+            knowledge::knowledge_get_backlinks,
+            knowledge::knowledge_get_graph,
+            knowledge::knowledge_get_tags,
+            knowledge::knowledge_reindex,
+            import::check_pandoc,
+            import::import_file,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

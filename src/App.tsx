@@ -14,6 +14,7 @@ import { getActiveView } from './editor/active-view'
 import * as bridge from './services/bridge'
 import { useTranslation } from 'react-i18next'
 import { DailyNoteButton } from './components/DailyNoteButton'
+import { importFileDialog } from './services/import-service'
 import { useKeyboardShortcuts } from './hooks/use-keyboard-shortcuts'
 import { useSessionRestore } from './hooks/use-session-restore'
 import { useAutoSave } from './hooks/use-auto-save'
@@ -114,6 +115,7 @@ function App() {
     onToggleCommandPalette: handleToggleCommandPalette,
     onQuickOpen: handleQuickOpen,
     onDailyNote: handleDailyNote,
+    onSave: handleSaveFile,
   })
 
   useSessionRestore(newUntitledTab)
@@ -157,6 +159,12 @@ function App() {
   const handleExport = useCallback(() => {
     bridge.exportHtml()
   }, [])
+
+  const handleImport = useCallback(async () => {
+    const root = useSidebarStore.getState().rootPath
+    if (!root) return
+    await importFileDialog(root, openFile)
+  }, [openFile])
 
   const handlePrint = useCallback(() => {
     bridge.printPreview()
@@ -231,6 +239,7 @@ function App() {
         </div>
         <div className="toolbar-sep" />
         <div className="toolbar-group">
+          <button className="toolbar-btn" onClick={handleImport} title={t('app.toolbar.import')}>📥 {t('app.toolbar.importLabel')}</button>
           <button className="toolbar-btn" onClick={handleExport} title={t('app.toolbar.exportHtml')}>📤 {t('app.toolbar.exportHtmlLabel')}</button>
           <button className="toolbar-btn" onClick={handlePrint} title={t('app.toolbar.print')}>🖨 {t('app.toolbar.printLabel')}</button>
         </div>
@@ -276,6 +285,7 @@ function App() {
             openSettings: (tab) => setSettingsTab((tab ?? 'general') as SettingsTab),
             exportHtml: () => bridge.exportHtml(),
             exportPdf: () => bridge.printPreview(),
+            importFile: () => handleImport(),
             search: () => handleSearch(),
             findInDocument: () => getActiveView()?.focus(),
           }}

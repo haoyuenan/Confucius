@@ -13,6 +13,8 @@
   "app.toolbar.pickTheme": "Theme",
   "app.toolbar.exportHtml": "Export HTML",
   "app.toolbar.exportHtmlLabel": "Export",
+  "app.toolbar.import": "Import from Word/PDF/HTML/EPUB as Markdown",
+  "app.toolbar.importLabel": "Import",
   "app.toolbar.print": "Print (Ctrl+P)",
   "app.toolbar.printLabel": "Print",
   "app.toolbar.edit": "Edit",
@@ -24,6 +26,8 @@
   "app.toolbar.toggleTheme": "Toggle Light/Dark Mode",
   "app.toolbar.dailyNote": "📅 Today",
   "app.toolbar.dailyNoteTitle": "Daily Note (Ctrl+Shift+D)",
+  "app.toolbar.newNote": "New Note",
+  "app.toolbar.newNoteTitle": "Create from template",
 
   "editor.status.unsaved": "● Unsaved",
   "editor.status.saved": "✓ Saved",
@@ -107,6 +111,7 @@
   "commandPalette.cmd.toolSearch": "Global Search",
   "commandPalette.cmd.exportHtml": "Export HTML",
   "commandPalette.cmd.exportPdf": "Export PDF",
+  "commandPalette.cmd.importFile": "Import File",
   "commandPalette.cmd.settingsOpen": "Open Settings",
   "commandPalette.cmd.settingsPlugins": "Plugin Manager",
   "commandPalette.cat.file": "File",
@@ -114,6 +119,7 @@
   "commandPalette.cat.view": "View",
   "commandPalette.cat.theme": "Theme",
   "commandPalette.cat.tool": "Tools",
+  "commandPalette.cat.import": "Import",
   "commandPalette.cat.export": "Export",
   "commandPalette.cat.settings": "Settings",
 
@@ -249,5 +255,31 @@
   "plugin.success.disabled": "Disabled: {name}",
   "plugin.success.enabled": "Enabled: {name}",
   "plugin.success.uninstalled": "Uninstalled: {name}",
-  "plugin.error.engine": "Engine not initialized"
+  "plugin.error.engine": "Engine not initialized",
+
+  "template.picker.title": "Select Template",
+  "template.picker.fileName": "File name",
+  "template.picker.create": "Create",
+  "template.picker.cancel": "Cancel",
+
+  "ai.menu.translate": "Translate",
+  "ai.menu.summarize": "Summarize",
+  "ai.menu.rewrite": "Rewrite",
+  "ai.menu.expand": "Expand",
+  "ai.config.title": "AI Settings",
+  "ai.config.endpoint": "Ollama Endpoint",
+  "ai.config.model": "Model",
+  "ai.config.test": "Test Connection",
+  "ai.config.save": "Save",
+  "ai.noConnection": "Ollama not connected",
+  "ai.noConnectionHint": "Please ensure Ollama is installed and running. Visit https://ollama.com to download.",
+  "ai.retry": "Retry",
+  "ai.later": "Later",
+  "ai.noModel": "No models found",
+  "ai.loading": "AI processing...",
+
+  "import.noPandoc": "Pandoc not detected, using basic conversion (quality may degrade)",
+  "import.noPandocHint": "Install pandoc for best conversion quality: https://pandoc.org",
+  "import.failed": "Import failed",
+  "import.success": "Import complete: {name}"
 }

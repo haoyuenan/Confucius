@@ -13,6 +13,8 @@
   "app.toolbar.pickTheme": "主题",
   "app.toolbar.exportHtml": "导出 HTML",
   "app.toolbar.exportHtmlLabel": "导出",
+  "app.toolbar.import": "从 Word/PDF/HTML/EPUB 导入为 Markdown",
+  "app.toolbar.importLabel": "导入",
   "app.toolbar.print": "打印 (Ctrl+P)",
   "app.toolbar.printLabel": "打印",
   "app.toolbar.edit": "编辑",
@@ -24,6 +26,8 @@
   "app.toolbar.toggleTheme": "切换浅色/深色模式",
   "app.toolbar.dailyNote": "📅 今日",
   "app.toolbar.dailyNoteTitle": "今日笔记 (Ctrl+Shift+D)",
+  "app.toolbar.newNote": "新建笔记",
+  "app.toolbar.newNoteTitle": "从模板创建新笔记",
 
   "editor.status.unsaved": "● 未保存",
   "editor.status.saved": "✓ 已保存",
@@ -107,6 +111,7 @@
   "commandPalette.cmd.toolSearch": "全局搜索",
   "commandPalette.cmd.exportHtml": "导出 HTML",
   "commandPalette.cmd.exportPdf": "导出 PDF",
+  "commandPalette.cmd.importFile": "导入文件",
   "commandPalette.cmd.settingsOpen": "打开设置",
   "commandPalette.cmd.settingsPlugins": "插件管理",
   "commandPalette.cat.file": "文件",
@@ -114,6 +119,7 @@
   "commandPalette.cat.view": "视图",
   "commandPalette.cat.theme": "主题",
   "commandPalette.cat.tool": "工具",
+  "commandPalette.cat.import": "导入",
   "commandPalette.cat.export": "导出",
   "commandPalette.cat.settings": "设置",
 
@@ -249,5 +255,31 @@
   "plugin.success.disabled": "已禁用: {name}",
   "plugin.success.enabled": "已启用: {name}",
   "plugin.success.uninstalled": "已卸载: {name}",
-  "plugin.error.engine": "引擎未初始化"
+  "plugin.error.engine": "引擎未初始化",
+
+  "template.picker.title": "选择模板",
+  "template.picker.fileName": "文件名",
+  "template.picker.create": "创建",
+  "template.picker.cancel": "取消",
+
+  "ai.menu.translate": "翻译",
+  "ai.menu.summarize": "摘要",
+  "ai.menu.rewrite": "改写",
+  "ai.menu.expand": "扩展",
+  "ai.config.title": "AI 设置",
+  "ai.config.endpoint": "Ollama 地址",
+  "ai.config.model": "模型",
+  "ai.config.test": "测试连接",
+  "ai.config.save": "保存",
+  "ai.noConnection": "Ollama 未连接",
+  "ai.noConnectionHint": "请确认 Ollama 已安装并运行。访问 https://ollama.com 下载。",
+  "ai.retry": "重试连接",
+  "ai.later": "稍后",
+  "ai.noModel": "未找到可用模型",
+  "ai.loading": "AI 处理中...",
+
+  "import.noPandoc": "未检测到 pandoc，将使用基础转换（质量可能下降）",
+  "import.noPandocHint": "安装 pandoc 可获得最佳转换质量：https://pandoc.org",
+  "import.failed": "导入失败",
+  "import.success": "导入完成：{name}"
 }

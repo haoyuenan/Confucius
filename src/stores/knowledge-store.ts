@@ -1,6 +1,8 @@
 import { create } from 'zustand'
 import * as bridge from '../services/bridge'
 
+const BACKEND_KEY = 'confucius-knowledge-backend'
+
 interface BacklinkEntry {
   source: string
   target: string
@@ -15,6 +17,7 @@ interface GraphData {
 
 interface KnowledgeState {
   initialized: boolean
+  useRustBackend: boolean
   backlinks: BacklinkEntry[]
   unlinkedMentions: string[]
   graphData: GraphData
@@ -28,8 +31,13 @@ interface KnowledgeState {
   searchFiles: (query: string) => Promise<void>
 }
 
-export const useKnowledgeStore = create<KnowledgeState>((set) => ({
+function getUseRust(): boolean {
+  return localStorage.getItem(BACKEND_KEY) === 'rust'
+}
+
+export const useKnowledgeStore = create<KnowledgeState>((set, get) => ({
   initialized: false,
+  useRustBackend: getUseRust(),
   backlinks: [],
   unlinkedMentions: [],
   graphData: { nodes: [], links: [] },
@@ -37,36 +45,59 @@ export const useKnowledgeStore = create<KnowledgeState>((set) => ({
   searchResults: [],
 
   initialize: async (workspacePath) => {
+    const useRust = getUseRust()
     try {
-      await bridge.knowledgeInitialize(workspacePath)
-      set({ initialized: true })
+      if (useRust) {
+        await bridge.knowledgeInitRust(workspacePath)
+      } else {
+        await bridge.knowledgeInitialize(workspacePath)
+      }
+      set({ initialized: true, useRustBackend: useRust })
     } catch (err) {
       console.error('知识库初始化失败:', err)
     }
   },
 
   loadBacklinks: async (filePath) => {
+    const { useRustBackend } = get()
     try {
-      const result = await bridge.knowledgeGetBacklinks(filePath)
-      set({ backlinks: result.linked, unlinkedMentions: result.unlinked })
+      if (useRustBackend) {
+        const links = await bridge.knowledgeGetBacklinksRust(filePath)
+        set({ backlinks: links, unlinkedMentions: [] })
+      } else {
+        const result = await bridge.knowledgeGetBacklinks(filePath)
+        set({ backlinks: result.linked, unlinkedMentions: result.unlinked })
+      }
     } catch (err) {
       console.error('加载反向链接失败:', err)
     }
   },
 
   loadGraph: async (filePath) => {
+    const { useRustBackend } = get()
     try {
-      const data = await bridge.knowledgeGetGraph(filePath)
-      set({ graphData: data })
+      if (useRustBackend) {
+        const data = await bridge.knowledgeGetGraphRust(filePath)
+        set({ graphData: { nodes: data.nodes, links: data.links } })
+      } else {
+        const data = await bridge.knowledgeGetGraph(filePath)
+        set({ graphData: data })
+      }
     } catch (err) {
       console.error('加载知识图谱失败:', err)
     }
   },
 
   loadTags: async () => {
+    const { useRustBackend } = get()
     try {
-      const tags = await bridge.knowledgeGetTags()
-      set({ tags })
+      if (useRustBackend) {
+        const tags = await bridge.knowledgeGetTagsRust()
+        set({ tags })
+      } else {
+        const tags = await bridge.knowledgeGetTags()
+        set({ tags })
+      }
     } catch (err) {
       console.error('加载标签失败:', err)
     }

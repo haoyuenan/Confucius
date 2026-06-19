@@ -378,3 +378,32 @@ export function knowledgeResolveLink(linkTitle: string) {
 export function knowledgeReindex(filePath: string): Promise<boolean> {
   return _knowledgeService.reindex(filePath)
 }
+
+// ─── 知识库 Rust 版（新 IPC 命令）───
+
+interface Link {
+  source: string
+  target: string
+  resolved: boolean
+  targetPath?: string
+}
+
+export function knowledgeInitRust(workspacePath: string): Promise<void> {
+  return invoke('knowledge_init_loaded', { workspacePath })
+}
+
+export function knowledgeGetBacklinksRust(filePath: string): Promise<Link[]> {
+  return invoke('knowledge_get_backlinks', { filePath })
+}
+
+export function knowledgeGetGraphRust(filePath?: string): Promise<{ nodes: string[]; links: Link[] }> {
+  return invoke('knowledge_get_graph', { filePath: filePath ?? null })
+}
+
+export function knowledgeGetTagsRust(): Promise<Record<string, string[]>> {
+  return invoke('knowledge_get_tags')
+}
+
+export function knowledgeReindexRust(workspacePath: string, filePath: string): Promise<void> {
+  return invoke('knowledge_reindex', { workspacePath, filePath })
+}

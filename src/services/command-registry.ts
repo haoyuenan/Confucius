@@ -26,6 +26,7 @@ export interface CommandContext {
   openSettings: (tab?: string) => void
   exportHtml: () => void
   exportPdf: () => void
+  importFile: () => void
   search: () => void
   findInDocument: () => void
 }
@@ -83,6 +84,8 @@ export function getBuiltinCommands(ctx: CommandContext): PaletteCommand[] {
       execute: () => ctx.toggleTheme() },
     { id: 'tool:search', label: t('commandPalette.cmd.toolSearch'), category: t('commandPalette.cat.tool'), shortcut: 'Ctrl+Shift+F',
       execute: () => ctx.search() },
+    { id: 'import:file', label: t('commandPalette.cmd.importFile'), category: t('commandPalette.cat.import'),
+      execute: () => ctx.importFile() },
     { id: 'export:html', label: t('commandPalette.cmd.exportHtml'), category: t('commandPalette.cat.export'), shortcut: 'Ctrl+Shift+H',
       execute: () => ctx.exportHtml() },
     { id: 'export:pdf', label: t('commandPalette.cmd.exportPdf'), category: t('commandPalette.cat.export'), shortcut: 'Ctrl+Shift+E',

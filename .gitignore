@@ -13,6 +13,7 @@ test-results/
 target/
 .confucius/
 coverage/
+superpowers/
 *.log
 .DS_Store
 Thumbs.db
