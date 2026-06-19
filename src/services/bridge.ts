@@ -8,7 +8,7 @@
 
 import type { FileTreeNode } from '../types/file-tree'
 import type { SearchResult } from '../types/search'
-import { open, save } from '@tauri-apps/plugin-dialog'
+import { open, save, ask } from '@tauri-apps/plugin-dialog'
 import { invoke } from '@tauri-apps/api/core'
 import { listen } from '@tauri-apps/api/event'
 import i18n from '../i18n/i18n'
@@ -58,7 +58,6 @@ export function saveFileDialog(): Promise<string | null> {
 
 /** 确认保存对话框 */
 export async function confirmSave(): Promise<0 | 1> {
-  const { ask } = await import('@tauri-apps/plugin-dialog')
   const t = i18n.t
   const result = await ask(t('dialog.confirmSave.message'), {
     title: t('dialog.confirmSave.title'),
@@ -168,7 +167,7 @@ export function searchQuery(params: {
 
 /** 导出 HTML：生成 HTML 字符串后写入文件 */
 export async function exportHtml(): Promise<void> {
-  const rawHtml = (window as any).__exportPreviewHTML__?.() || ''
+  const rawHtml = window.__exportPreviewHTML__?.() || ''
   if (typeof rawHtml !== 'string') return
 
   const fullHtml = `<!DOCTYPE html>
@@ -202,8 +201,8 @@ export async function exportPdf(): Promise<void> {
 /** 获取预览 HTML 源码（优先从 DOM，fallback 到即时渲染） */
 function getPreviewHTML(): string | null {
   // 优先取已渲染的预览 DOM（split / preview 模式下有 PreviewPane 实例）
-  if (typeof (window as any).__exportPreviewHTML__ === 'function') {
-    const html = (window as any).__exportPreviewHTML__()
+  if (typeof window.__exportPreviewHTML__ === 'function') {
+    const html = window.__exportPreviewHTML__()
     if (html) return html
   }
   return null

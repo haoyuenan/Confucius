@@ -74,7 +74,7 @@ export function loadSession(): WorkspaceSession | null {
 }
 
 export function clearSession(): void {
-  try { localStorage.removeItem(STORAGE_KEY) } catch {}
+  try { localStorage.removeItem(STORAGE_KEY) } catch { /* noop */ }
 }
 
 // ── Auto-save subscriptions ──

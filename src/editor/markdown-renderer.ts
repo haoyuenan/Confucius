@@ -107,9 +107,9 @@ export function slugify(text: string): string {
     .replace(/[^\w\u4e00-\u9fff\u3400-\u4dbf\u{20000}-\u{2a6df}-]/gu, '')
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const defaultHeadingOpen: any = md.renderer.rules.heading_open ||
-  function (tokens: any[], idx: number, options: any, _env: unknown, self: any) {
+const defaultHeadingOpen: NonNullable<typeof md.renderer.rules.heading_open> =
+  md.renderer.rules.heading_open ||
+  function (tokens, idx, options, _env, self) {
     return self.renderToken(tokens, idx, options)
   }
 
