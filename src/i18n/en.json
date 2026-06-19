@@ -24,6 +24,8 @@
   "app.toolbar.toggleTheme": "Toggle Light/Dark Mode",
   "app.toolbar.dailyNote": "📅 Today",
   "app.toolbar.dailyNoteTitle": "Daily Note (Ctrl+Shift+D)",
+  "app.toolbar.newNote": "New Note",
+  "app.toolbar.newNoteTitle": "Create from template",
 
   "editor.status.unsaved": "● Unsaved",
   "editor.status.saved": "✓ Saved",
@@ -249,5 +251,10 @@
   "plugin.success.disabled": "Disabled: {name}",
   "plugin.success.enabled": "Enabled: {name}",
   "plugin.success.uninstalled": "Uninstalled: {name}",
-  "plugin.error.engine": "Engine not initialized"
+  "plugin.error.engine": "Engine not initialized",
+
+  "template.picker.title": "Select Template",
+  "template.picker.fileName": "File name",
+  "template.picker.create": "Create",
+  "template.picker.cancel": "Cancel"
 }

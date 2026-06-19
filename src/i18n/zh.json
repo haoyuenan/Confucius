@@ -24,6 +24,8 @@
   "app.toolbar.toggleTheme": "切换浅色/深色模式",
   "app.toolbar.dailyNote": "📅 今日",
   "app.toolbar.dailyNoteTitle": "今日笔记 (Ctrl+Shift+D)",
+  "app.toolbar.newNote": "新建笔记",
+  "app.toolbar.newNoteTitle": "从模板创建新笔记",
 
   "editor.status.unsaved": "● 未保存",
   "editor.status.saved": "✓ 已保存",
@@ -249,5 +251,10 @@
   "plugin.success.disabled": "已禁用: {name}",
   "plugin.success.enabled": "已启用: {name}",
   "plugin.success.uninstalled": "已卸载: {name}",
-  "plugin.error.engine": "引擎未初始化"
+  "plugin.error.engine": "引擎未初始化",
+
+  "template.picker.title": "选择模板",
+  "template.picker.fileName": "文件名",
+  "template.picker.create": "创建",
+  "template.picker.cancel": "取消"
 }
