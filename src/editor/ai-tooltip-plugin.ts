@@ -14,30 +14,20 @@ const aiMenuVisible = StateField.define<boolean>({
   },
 })
 
-let _currentView: EditorView | null = null
-
-export function getAICurrentView() {
-  return _currentView
-}
-
 export function aiTooltipPlugin() {
   return [
     aiMenuVisible,
     ViewPlugin.fromClass(
       class {
-        constructor(readonly view: EditorView) {
-          _currentView = view
-        }
+        constructor(readonly view: EditorView) {}
 
         update(update: ViewUpdate) {
           if (!update.selectionSet) return
           update.view.dispatch({
-            effects: showAiMenu.of(update.state.selection.main.from !== update.state.selection.main.to),
+            effects: showAiMenu.of(
+              update.state.selection.main.from !== update.state.selection.main.to,
+            ),
           })
-        }
-
-        destroy() {
-          _currentView = null
         }
       },
     ),
@@ -76,17 +66,17 @@ export function aiTooltipPlugin() {
             return
           }
 
-          const text = state.sliceDoc(sel.from, sel.to)
-          const view = _currentView
+          const view = (dom as any).__cmView as EditorView | undefined
           if (!view) return
+          view.dispatch({ effects: showAiMenu.of(false) })
 
-          streamGenerate(config, action.key, text, {
+          streamGenerate(config, action.key, state.sliceDoc(sel.from, sel.to), {
             onToken() {},
             onDone(fullText) {
+              const s = view.state.selection.main
               view.dispatch({
-                changes: { from: sel.from, to: sel.to, insert: fullText },
+                changes: { from: s.from, to: s.to, insert: fullText },
               })
-              view.dispatch({ effects: showAiMenu.of(false) })
             },
             onError(err) {
               console.error('AI 操作失败:', err)
@@ -97,7 +87,14 @@ export function aiTooltipPlugin() {
         dom.appendChild(btn)
       }
 
-      return { pos: sel.head, above: true, create: () => ({ dom }) }
+      return {
+        pos: sel.head,
+        above: true,
+        create: (view: EditorView) => {
+          ;(dom as any).__cmView = view
+          return { dom }
+        },
+      }
     }),
   ]
 }

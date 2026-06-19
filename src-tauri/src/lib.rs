@@ -116,6 +116,7 @@ fn build_file_tree(root_path: String) -> Result<FileTreeNode, String> {
 // ── Text search ──
 
 #[derive(Clone, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct SearchResult {
     pub file_path: String,
     pub file_name: String,

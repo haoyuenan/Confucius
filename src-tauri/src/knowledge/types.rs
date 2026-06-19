@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
 pub struct FileMeta {
     pub path: String,
     pub title: String,
@@ -13,6 +14,7 @@ pub struct FileMeta {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
 pub struct Link {
     pub source: String,
     pub target: String,
@@ -22,6 +24,7 @@ pub struct Link {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
 pub struct KnowledgeIndex {
     pub version: u32,
     pub files: HashMap<String, FileMeta>,

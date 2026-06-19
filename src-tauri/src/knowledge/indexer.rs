@@ -1,7 +1,7 @@
 use crate::knowledge::parser::*;
 use crate::knowledge::types::*;
-use crate::knowledge::{index_path, join_path, relative};
-use std::collections::{HashMap, HashSet};
+use crate::knowledge::{index_path, relative};
+use std::collections::HashMap;
 use std::fs;
 use std::path::Path;
 

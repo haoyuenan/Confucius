@@ -45,17 +45,17 @@ pub fn search(
         .search(&query, &TopDocs::with_limit(max_results))
         .map_err(|e| format!("搜索失败: {}", e))?;
 
+    fn field_to_str(val: tantivy::schema::OwnedValue) -> String {
+        match val {
+            tantivy::schema::OwnedValue::Str(s) => s,
+            _ => String::new(),
+        }
+    }
+
     let mut results = Vec::new();
     for (_score, doc_address) in top_docs {
         let retrieved = searcher.doc::<tantivy::TantivyDocument>(doc_address)
             .map_err(|e| format!("读取文档失败: {}", e))?;
-
-        fn field_to_str(val: tantivy::schema::OwnedValue) -> String {
-            match val {
-                tantivy::schema::OwnedValue::Str(s) => s,
-                _ => String::new(),
-            }
-        }
 
         let file_path = retrieved
             .get_first(fields.file_path)
