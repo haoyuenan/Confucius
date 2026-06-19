@@ -21,32 +21,52 @@ export function TemplatePicker({ onClose }: { onClose: () => void }) {
   const [selected, setSelected] = useState(templates[0]?.name ?? '')
   const [fileName, setFileName] = useState('')
   const [creating, setCreating] = useState(false)
+  const [error, setError] = useState('')
 
   const handleCreate = async () => {
-    if (!rootPath || !selected || creating) return
+    setError('')
+
+    if (!rootPath) {
+      setError('请先打开一个文件夹再创建笔记')
+      return
+    }
+    if (!selected) {
+      setError('请选择一个模板')
+      return
+    }
+    if (creating) return
+
     setCreating(true)
 
-    const content = PRESET_TEMPLATES[selected]
-    if (!content) { setCreating(false); return }
-
-    const name = fileName.trim() || selected
-    const finalName = name.endsWith('.md') ? name : `${name}.md`
-
     try {
+      const content = PRESET_TEMPLATES[selected]
+      if (!content) {
+        setError('模板内容为空')
+        return
+      }
+
+      const name = fileName.trim() || selected
+      const finalName = name.endsWith('.md') ? name : `${name}.md`
+      const targetPath = `${rootPath}/${finalName}`
+
       const title = finalName.replace(/\.md$/, '').replace(/\.markdown$/, '')
       const variables = getDefaultVariables(title)
       const expanded = expandTemplate(content, variables)
 
-      await bridge.writeFile(`${rootPath}/${finalName}`, expanded)
-      const result = await bridge.readFile(`${rootPath}/${finalName}`)
+      await bridge.writeFile(targetPath, expanded)
+      const result = await bridge.readFile(targetPath)
       openFile(result.filePath, result.content)
       onClose()
     } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err)
+      setError(`创建失败: ${msg}`)
       console.error('创建文件失败:', err)
     } finally {
       setCreating(false)
     }
   }
+
+  const noFolder = !rootPath
 
   return (
     <div className="dialog-overlay" onClick={onClose}>
@@ -57,6 +77,14 @@ export function TemplatePicker({ onClose }: { onClose: () => void }) {
         </div>
 
         <div className="dialog-body">
+          {noFolder && (
+            <div className="template-error">
+              ⚠ 请先在侧边栏打开一个文件夹，再使用模板创建笔记
+            </div>
+          )}
+
+          {error && <div className="template-error">{error}</div>}
+
           <div className="template-list">
             {templates.map((tmpl) => (
               <div

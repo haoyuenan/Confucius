@@ -1072,3 +1072,13 @@
 .template-filename input:focus {
   border-color: var(--accent-color);
 }
+
+.template-error {
+  padding: 8px 12px;
+  margin-bottom: 12px;
+  font-size: 13px;
+  color: #b91c1c;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 6px;
+}
