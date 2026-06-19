@@ -256,5 +256,21 @@
   "template.picker.title": "Select Template",
   "template.picker.fileName": "File name",
   "template.picker.create": "Create",
-  "template.picker.cancel": "Cancel"
+  "template.picker.cancel": "Cancel",
+
+  "ai.menu.translate": "Translate",
+  "ai.menu.summarize": "Summarize",
+  "ai.menu.rewrite": "Rewrite",
+  "ai.menu.expand": "Expand",
+  "ai.config.title": "AI Settings",
+  "ai.config.endpoint": "Ollama Endpoint",
+  "ai.config.model": "Model",
+  "ai.config.test": "Test Connection",
+  "ai.config.save": "Save",
+  "ai.noConnection": "Ollama not connected",
+  "ai.noConnectionHint": "Please ensure Ollama is installed and running. Visit https://ollama.com to download.",
+  "ai.retry": "Retry",
+  "ai.later": "Later",
+  "ai.noModel": "No models found",
+  "ai.loading": "AI processing..."
 }

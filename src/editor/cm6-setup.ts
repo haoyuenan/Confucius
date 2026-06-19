@@ -13,6 +13,7 @@ import { wysiwygMode } from './wysiwyg-plugin'
 import { typewriterScrollListener } from './typewriter-mode'
 import { wikiLinkExtensions, wikiLinkCompletion } from './wikilinks-plugin'
 import { tagCompletion } from './tags-plugin'
+import { aiTooltipPlugin } from './ai-tooltip-plugin'
 
 export function createEditorView(
   container: HTMLElement,
@@ -144,6 +145,7 @@ export function createEditorView(
       closeOnBlur: true,
     }),
   )
+  extensions.push(...aiTooltipPlugin())
   if (enableWysiwyg) extensions.push(wysiwygMode())
   if (enableTypewriter) extensions.push(typewriterScrollListener())
 

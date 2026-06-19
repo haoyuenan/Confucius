@@ -256,5 +256,21 @@
   "template.picker.title": "选择模板",
   "template.picker.fileName": "文件名",
   "template.picker.create": "创建",
-  "template.picker.cancel": "取消"
+  "template.picker.cancel": "取消",
+
+  "ai.menu.translate": "翻译",
+  "ai.menu.summarize": "摘要",
+  "ai.menu.rewrite": "改写",
+  "ai.menu.expand": "扩展",
+  "ai.config.title": "AI 设置",
+  "ai.config.endpoint": "Ollama 地址",
+  "ai.config.model": "模型",
+  "ai.config.test": "测试连接",
+  "ai.config.save": "保存",
+  "ai.noConnection": "Ollama 未连接",
+  "ai.noConnectionHint": "请确认 Ollama 已安装并运行。访问 https://ollama.com 下载。",
+  "ai.retry": "重试连接",
+  "ai.later": "稍后",
+  "ai.noModel": "未找到可用模型",
+  "ai.loading": "AI 处理中..."
 }
