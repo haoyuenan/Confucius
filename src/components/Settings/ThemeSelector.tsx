@@ -38,7 +38,7 @@ function ThemeSelector() {
           </button>
         ))}
       </div>
-      <button className={styles.modeToggle} onClick={handleToggleMode} title={t('app.toolbar.pickTheme')}>
+      <button className={styles.modeToggle} onClick={handleToggleMode} title={t('app.toolbar.pickTheme')} data-testid="theme-mode-toggle">
         {mode === 'light' ? '🌙' : '☀'}
       </button>
     </div>

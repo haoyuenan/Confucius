@@ -273,7 +273,7 @@ function App() {
             toggleFocus: () => toggleFocusMode(),
             toggleTypewriter: () => toggleTypewriterMode(),
             toggleTheme: () => handleToggleTheme(),
-            openSettings: (tab) => setSettingsTab((tab ?? 'general') as any),
+            openSettings: (tab) => setSettingsTab((tab ?? 'general') as SettingsTab),
             exportHtml: () => bridge.exportHtml(),
             exportPdf: () => bridge.printPreview(),
             search: () => handleSearch(),

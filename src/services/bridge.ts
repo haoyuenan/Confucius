@@ -168,7 +168,7 @@ export function searchQuery(params: {
 
 /** 导出 HTML：生成 HTML 字符串后写入文件 */
 export async function exportHtml(): Promise<void> {
-  const rawHtml = (window as any).__exportPreviewHTML__?.() || ''
+  const rawHtml = window.__exportPreviewHTML__?.() || ''
   if (typeof rawHtml !== 'string') return
 
   const fullHtml = `<!DOCTYPE html>
@@ -202,8 +202,8 @@ export async function exportPdf(): Promise<void> {
 /** 获取预览 HTML 源码（优先从 DOM，fallback 到即时渲染） */
 function getPreviewHTML(): string | null {
   // 优先取已渲染的预览 DOM（split / preview 模式下有 PreviewPane 实例）
-  if (typeof (window as any).__exportPreviewHTML__ === 'function') {
-    const html = (window as any).__exportPreviewHTML__()
+  if (typeof window.__exportPreviewHTML__ === 'function') {
+    const html = window.__exportPreviewHTML__()
     if (html) return html
   }
   return null

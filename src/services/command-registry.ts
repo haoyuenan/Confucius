@@ -132,8 +132,10 @@ export function searchCommands(
 
 export function mergeAllCommands(
   builtins: PaletteCommand[],
+  plugins: PaletteCommand[] = [],
 ): PaletteCommand[] {
   const merged = new Map<string, PaletteCommand>()
   for (const c of builtins) merged.set(c.id, c)
+  for (const c of plugins) merged.set(c.id, c)
   return Array.from(merged.values())
 }

@@ -19,7 +19,7 @@ describe('ThemeSelector', () => {
 
   test('点击深色模式按钮切换 data-theme', () => {
     const { container } = render(<ThemeSelector />)
-    const btn = container.querySelector('[title="选择主题"]') as HTMLElement | null
+    const btn = container.querySelector('[data-testid="theme-mode-toggle"]') as HTMLElement | null
     expect(btn).toBeTruthy()
     fireEvent.click(btn!)
     expect(document.documentElement.getAttribute('data-theme')).toBe('night-black')
