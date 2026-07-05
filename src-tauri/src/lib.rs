@@ -1,4 +1,5 @@
 mod knowledge;
+mod render;
 mod search;
 mod import;
 
@@ -550,6 +551,9 @@ pub fn run() {
             knowledge::knowledge_reindex,
             import::check_pandoc,
             import::import_file,
+            render::render_markdown,
+            render::open_and_render,
+            render::render_markdown_stream,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

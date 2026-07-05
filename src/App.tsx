@@ -56,13 +56,32 @@ function App() {
     if (!file) return
 
     const large = checkLargeFile(file.content.length)
-    if (large.isLarge) {
+    if (large.useStreaming) {
       setIsLargeFile(true)
       setMode('split')
+      // 大文件：用 Rust 流式渲染预览
+      openFile(file.filePath, file.content)
+      bridge.renderMarkdownStream(
+        file.content,
+        (chunk) => {
+          // Append chunks to preview — the PreviewPane listens to this
+          window.dispatchEvent(new CustomEvent('renderer:chunk', { detail: chunk }))
+        },
+        () => {
+          window.dispatchEvent(new CustomEvent('renderer:done'))
+        },
+      )
     } else {
       setIsLargeFile(false)
+      // 中小文件：Rust 同步渲染 HTML
+      bridge.openAndRender(file.filePath).then(({ text, html }) => {
+        openFile(file.filePath, text)
+        useEditorStore.getState().setPreviewHtml(html)
+      }).catch((err) => {
+        console.error('openAndRender 失败，回退到正常打开:', err)
+        openFile(file.filePath, file.content)
+      })
     }
-    openFile(file.filePath, file.content)
   }, [openFile, setIsLargeFile, setMode])
 
   const handleSaveFile = useCallback(async () => {

@@ -8,6 +8,8 @@ interface EditorState {
   mode: EditorMode
   focusMode: boolean
   typewriterMode: boolean
+  /** 来自 Rust 端渲染的预览 HTML（首次打开大文件时使用） */
+  previewHtml: string | null
 
   setContent: (content: string) => void
   setIsLargeFile: (v: boolean) => void
@@ -17,6 +19,7 @@ interface EditorState {
   toggleFocusMode: () => void
   setTypewriterMode: (v: boolean) => void
   toggleTypewriterMode: () => void
+  setPreviewHtml: (html: string | null) => void
 }
 
 const MODE_KEY = 'confucius-default-mode'
@@ -35,6 +38,7 @@ export const useEditorStore = create<EditorState>((set) => ({
   mode: loadDefaultMode(),
   focusMode: false,
   typewriterMode: false,
+  previewHtml: null,
 
   setContent: (content) => set({ content }),
   setIsLargeFile: (v) => set({ isLargeFile: v }),
@@ -46,4 +50,5 @@ export const useEditorStore = create<EditorState>((set) => ({
   toggleFocusMode: () => set((s) => ({ focusMode: !s.focusMode })),
   setTypewriterMode: (v) => set({ typewriterMode: v }),
   toggleTypewriterMode: () => set((s) => ({ typewriterMode: !s.typewriterMode })),
+  setPreviewHtml: (html) => set({ previewHtml: html }),
 }))

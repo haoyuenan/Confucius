@@ -407,3 +407,37 @@ export function knowledgeGetTagsRust(): Promise<Record<string, string[]>> {
 export function knowledgeReindexRust(workspacePath: string, filePath: string): Promise<void> {
   return invoke('knowledge_reindex', { workspacePath, filePath })
 }
+
+// ─── Markdown 渲染（Rust 端，替换 JS 侧 markdown-it + hljs + DOMPurify）───
+
+export interface OpenAndRenderResult {
+  text: string
+  html: string
+}
+
+/** 同步渲染 Markdown → HTML（中小文件） */
+export function renderMarkdown(text: string): Promise<string> {
+  return invoke('render_markdown', { text })
+}
+
+/** 读文件 + 渲染一步完成（打开文件时使用，消除一次 IPC 往返） */
+export function openAndRender(path: string): Promise<OpenAndRenderResult> {
+  return invoke('open_and_render', { path })
+}
+
+/** 流式渲染 Markdown → HTML（大文件，逐块推送） */
+export function renderMarkdownStream(
+  text: string,
+  onChunk: (html: string) => void,
+  onDone: () => void,
+): Promise<void> {
+  const unsubChunk = listen<string>('renderer:chunk', (e) => {
+    onChunk(e.payload)
+  })
+  const unsubDone = listen('renderer:done', () => {
+    unsubChunk.then(fn => fn())
+    unsubDone.then(fn => fn())
+    onDone()
+  })
+  return invoke('render_markdown_stream', { text })
+}

@@ -31,8 +31,14 @@ function PreviewPane({ content }: PreviewPaneProps) {
   const isFirstRender = useRef(true)
   const zoomRef = useRef(1)
   const activeFilePath = useTabStore((s) => s.activeTab()?.filePath ?? null)
-  const html = useMemo(() => renderMarkdown(content), [content])
   const outlineItems = useSidebarStore((s) => s.outlineItems)
+  const previewHtml = useEditorStore((s) => s.previewHtml)
+
+  const html = useMemo(() => {
+    // 如果有来自 Rust 端的 previewHtml，跳过 JS 侧渲染
+    if (previewHtml !== null) return null
+    return renderMarkdown(content)
+  }, [content, previewHtml])
 
   // Ctrl+滚轮缩放预览区
   const handleWheel = useCallback((e: WheelEvent) => {
@@ -57,7 +63,6 @@ function PreviewPane({ content }: PreviewPaneProps) {
     if (!el) return
 
     const handleClick = (e: MouseEvent) => {
-      // 处理链接点击
       const anchor = (e.target as HTMLElement).closest('a') as HTMLAnchorElement | null
       if (anchor) {
         e.preventDefault()
@@ -66,7 +71,6 @@ function PreviewPane({ content }: PreviewPaneProps) {
         if (/^https?:\/\//i.test(href)) {
           shellOpen(href)
         } else if (href.startsWith('#')) {
-          // 锚点跳转：滚动到预览区内对应 id 元素
           const targetId = decodeURIComponent(href.slice(1))
           const target = el.querySelector(`[id="${CSS.escape(targetId)}"]`)
           target?.scrollIntoView({ behavior: 'smooth' })
@@ -74,7 +78,6 @@ function PreviewPane({ content }: PreviewPaneProps) {
         return
       }
 
-      // 处理标题点击 → 通过 slug 匹配 outline 条目
       const heading = (e.target as HTMLElement).closest('h1, h2, h3, h4, h5, h6') as HTMLElement | null
       if (!heading) return
 
@@ -92,7 +95,6 @@ function PreviewPane({ content }: PreviewPaneProps) {
       })
       view.focus()
 
-      // 等待 sync-scroll 可能干扰后重新确认编辑器位置
       requestAnimationFrame(() => {
         if (view) {
           view.dispatch({ effects: EditorView.scrollIntoView(pos, { y: 'start' }) })
@@ -117,32 +119,71 @@ function PreviewPane({ content }: PreviewPaneProps) {
     initMermaid(themeService.getCurrentDef().mermaid)
   }, [])
 
+  // 流式渲染：监听 renderer:chunk/renderer:done 事件（大文件场景）
+  useEffect(() => {
+    const el = previewRef.current
+    if (!el || !useEditorStore.getState().isLargeFile) return
+
+    const onChunk = (e: Event) => {
+      const detail = (e as CustomEvent).detail as string
+      if (detail) el.innerHTML += detail
+    }
+    const onDone = () => {
+      renderMermaidDiagrams(el)
+      // 重置 previewHtml 标记，后续增量更新走 JS 渲染
+      useEditorStore.getState().setPreviewHtml(null)
+    }
+
+    window.addEventListener('renderer:chunk', onChunk)
+    window.addEventListener('renderer:done', onDone)
+    return () => {
+      window.removeEventListener('renderer:chunk', onChunk)
+      window.removeEventListener('renderer:done', onDone)
+    }
+  }, [])
+
+  // 内容渲染：previewHtml（来自 Rust）或 JS 侧渲染
   useEffect(() => {
     if (!previewRef.current) return
 
-    if (isFirstRender.current) {
-      previewRef.current.innerHTML = html
+    const el = previewRef.current
+
+    // 首次渲染使用 Rust 端 HTML
+    if (previewHtml !== null && isFirstRender.current) {
+      el.innerHTML = previewHtml
       isFirstRender.current = false
-    } else {
-      updatePreviewContent(previewRef.current, html)
+      // 渲染完成后清除 store 中的 HTML，后续增量更新走 JS
+      useEditorStore.getState().setPreviewHtml(null)
+      const isLarge = useEditorStore.getState().isLargeFile
+      if (!isLarge) {
+        renderMermaidDiagrams(el)
+      }
+      return
     }
 
-    // 大文件跳过 Mermaid 渲染（性能开销大）
+    // 后续渲染使用 JS 侧渲染（增量更新）
+    if (html === null) return // previewHtml 模式下 html 为 null
+
+    if (isFirstRender.current) {
+      el.innerHTML = html
+      isFirstRender.current = false
+    } else {
+      updatePreviewContent(el, html)
+    }
+
     const isLarge = useEditorStore.getState().isLargeFile
     if (!isLarge) {
-      renderMermaidDiagrams(previewRef.current)
+      renderMermaidDiagrams(el)
     }
 
     // 异步加载本地图片为 base64 data URI（绕过 Tauri asset 协议限制）
     if (activeFilePath) {
       const dirPath = activeFilePath.replace(/[\\/][^\\/]*$/, '')
-      const imgs = previewRef.current.querySelectorAll('img')
+      const imgs = el.querySelectorAll('img')
       imgs.forEach((img) => {
         const src = img.getAttribute('src')
         if (!src) return
-        // 跳过网络图片 / data URI / asset 协议
         if (/^(?:https?:|data:|asset:)/i.test(src)) return
-        // 跳过已转换的（来自上一次渲染）
         if (img.dataset.b64Loaded) return
 
         const normalized = src.replace(/\\/g, '/')
@@ -153,7 +194,6 @@ function PreviewPane({ content }: PreviewPaneProps) {
 
         img.dataset.b64Loading = '1'
         bridge.readFileBase64(absPath).then((dataUri) => {
-          // 组件可能已卸载或内容已变
           if (!document.body.contains(img)) return
           img.setAttribute('src', dataUri)
           img.dataset.b64Loaded = '1'
@@ -163,7 +203,7 @@ function PreviewPane({ content }: PreviewPaneProps) {
         })
       })
     }
-  }, [html, activeFilePath])
+  }, [html, previewHtml, activeFilePath])
 
   return <div ref={previewRef} data-testid="preview-pane" className="preview-pane markdown-body" />
 }
