@@ -1,6 +1,6 @@
 import { open } from '@tauri-apps/plugin-dialog'
 import { invoke } from '@tauri-apps/api/core'
-import { writeFile, readFile } from './bridge'
+import { writeFile, readFile, fileExists } from './bridge'
 
 const IMPORT_FILTERS = [
   { name: '支持的文件', extensions: ['docx', 'pdf', 'html', 'htm', 'epub'] },
@@ -50,15 +50,6 @@ export async function importFileDialog(
   await writeFile(targetPath, result.content)
   const file = await readFile(targetPath)
   openFile(file.filePath, file.content)
-}
-
-async function fileExists(path: string): Promise<boolean> {
-  try {
-    await invoke('stat_file', { path })
-    return true
-  } catch {
-    return false
-  }
 }
 
 export { IMPORT_FILTERS }

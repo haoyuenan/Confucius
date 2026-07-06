@@ -32,13 +32,8 @@ function PreviewPane({ content }: PreviewPaneProps) {
   const zoomRef = useRef(1)
   const activeFilePath = useTabStore((s) => s.activeTab()?.filePath ?? null)
   const outlineItems = useSidebarStore((s) => s.outlineItems)
-  const previewHtml = useEditorStore((s) => s.previewHtml)
 
-  const html = useMemo(() => {
-    // 如果有来自 Rust 端的 previewHtml，跳过 JS 侧渲染
-    if (previewHtml !== null) return null
-    return renderMarkdown(content)
-  }, [content, previewHtml])
+  const html = useMemo(() => renderMarkdown(content), [content])
 
   // Ctrl+滚轮缩放预览区
   const handleWheel = useCallback((e: WheelEvent) => {
@@ -119,50 +114,11 @@ function PreviewPane({ content }: PreviewPaneProps) {
     initMermaid(themeService.getCurrentDef().mermaid)
   }, [])
 
-  // 流式渲染：监听 renderer:chunk/renderer:done 事件（大文件场景）
-  useEffect(() => {
-    const el = previewRef.current
-    if (!el || !useEditorStore.getState().isLargeFile) return
-
-    const onChunk = (e: Event) => {
-      const detail = (e as CustomEvent).detail as string
-      if (detail) el.innerHTML += detail
-    }
-    const onDone = () => {
-      renderMermaidDiagrams(el)
-      // 重置 previewHtml 标记，后续增量更新走 JS 渲染
-      useEditorStore.getState().setPreviewHtml(null)
-    }
-
-    window.addEventListener('renderer:chunk', onChunk)
-    window.addEventListener('renderer:done', onDone)
-    return () => {
-      window.removeEventListener('renderer:chunk', onChunk)
-      window.removeEventListener('renderer:done', onDone)
-    }
-  }, [])
-
-  // 内容渲染：previewHtml（来自 Rust）或 JS 侧渲染
+  // 内容渲染（JS 侧统一渲染，增量更新）
   useEffect(() => {
     if (!previewRef.current) return
 
     const el = previewRef.current
-
-    // 首次渲染使用 Rust 端 HTML
-    if (previewHtml !== null && isFirstRender.current) {
-      el.innerHTML = previewHtml
-      isFirstRender.current = false
-      // 渲染完成后清除 store 中的 HTML，后续增量更新走 JS
-      useEditorStore.getState().setPreviewHtml(null)
-      const isLarge = useEditorStore.getState().isLargeFile
-      if (!isLarge) {
-        renderMermaidDiagrams(el)
-      }
-      return
-    }
-
-    // 后续渲染使用 JS 侧渲染（增量更新）
-    if (html === null) return // previewHtml 模式下 html 为 null
 
     if (isFirstRender.current) {
       el.innerHTML = html
@@ -171,6 +127,7 @@ function PreviewPane({ content }: PreviewPaneProps) {
       updatePreviewContent(el, html)
     }
 
+    // 大文件跳过 Mermaid 渲染（性能开销大）
     const isLarge = useEditorStore.getState().isLargeFile
     if (!isLarge) {
       renderMermaidDiagrams(el)
@@ -203,7 +160,7 @@ function PreviewPane({ content }: PreviewPaneProps) {
         })
       })
     }
-  }, [html, previewHtml, activeFilePath])
+  }, [html, activeFilePath])
 
   return <div ref={previewRef} data-testid="preview-pane" className="preview-pane markdown-body" />
 }

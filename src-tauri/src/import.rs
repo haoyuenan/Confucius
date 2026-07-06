@@ -170,6 +170,8 @@ pub fn check_pandoc() -> bool {
 
 #[tauri::command]
 pub fn import_file(source_path: String) -> Result<serde_json::Value, String> {
+    // 与其它文件命令保持一致的路径校验（拒绝 `..` 遍历和空字节）
+    crate::sanitize_path(&source_path)?;
     let (content, suggested_name) = convert_file(&source_path)?;
     Ok(serde_json::json!({
         "content": content,

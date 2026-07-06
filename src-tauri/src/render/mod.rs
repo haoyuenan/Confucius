@@ -27,16 +27,8 @@ pub fn render_markdown(text: String) -> Result<String, String> {
 /// Returns both the raw text (for CM6 editor) and rendered HTML (for preview).
 #[tauri::command]
 pub fn open_and_render(path: String) -> Result<OpenAndRenderResult, String> {
-    // Use the existing sanitize_path logic
-    if path.is_empty() {
-        return Err("路径为空".into());
-    }
-    if path.contains("..") {
-        return Err(format!("路径包含非法序列 \"..\": {}", path));
-    }
-    if path.contains('\0') {
-        return Err("路径包含空字节".into());
-    }
+    // 复用统一的路径校验逻辑，避免与 lib.rs::sanitize_path 出现两套不同步的实现
+    crate::sanitize_path(&path)?;
 
     let text = std::fs::read_to_string(&path)
         .map_err(|e| format!("读取文件失败: {}", e))?;
@@ -60,14 +52,17 @@ pub fn render_markdown_stream(app: AppHandle, text: String) -> Result<(), String
     // We'll use pulldown-cmark's event stream to accumulate HTML in chunks
     let html = markdown::render_markdown(&text, &|code, lang| syntax::highlight_code(code, lang));
 
-    // Sanitize and chunk the output
+    // Sanitize and chunk the output.
+    // IMPORTANT: chunk by `char` boundaries, not raw bytes — slicing `as_bytes()`
+    // at a fixed byte offset can split a multi-byte UTF-8 character (e.g. any CJK
+    // character) in half. `String::from_utf8_lossy` would then replace both the
+    // truncated tail and the orphaned head with U+FFFD ("�"), permanently
+    // corrupting the text even after all chunks are concatenated back together.
     let sanitized = sanitize::sanitize_html(&html);
 
-    for chunk in sanitized.as_bytes().chunks(STREAM_CHUNK_SIZE) {
-        let fragment = String::from_utf8_lossy(chunk).to_string();
-        pending.push_str(&fragment);
+    for ch in sanitized.chars() {
+        pending.push(ch);
 
-        // Emit on paragraph/section boundaries by checking for newlines
         if pending.len() >= STREAM_CHUNK_SIZE {
             app.emit("renderer:chunk", &pending)
                 .map_err(|e| format!("发送渲染块失败: {}", e))?;
