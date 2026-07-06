@@ -1,4 +1,5 @@
 mod knowledge;
+mod render;
 mod search;
 mod import;
 
@@ -12,7 +13,7 @@ fn is_md_file(name: &str) -> bool {
 }
 
 /// 路径安全校验：拒绝 `..` 遍历和空字节注入
-fn sanitize_path(input: &str) -> Result<PathBuf, String> {
+pub(crate) fn sanitize_path(input: &str) -> Result<PathBuf, String> {
     if input.is_empty() {
         return Err("路径为空".into());
     }
@@ -501,7 +502,9 @@ fn stop_file_watcher(app: AppHandle) -> Result<(), String> {
         ws.stop_flag.store(true, Ordering::Relaxed);
         // Drop the watcher to close the notification channel
         drop(ws._watcher.take());
-        // Wait for the thread to finish (with 3s timeout)
+        // Wait for the thread to finish. stop_flag + dropping the watcher
+        // (closing the channel) make the loop exit promptly, so this join
+        // returns quickly.
         if let Some(handle) = ws._thread.take() {
             let _ = handle.join();
         }
@@ -550,6 +553,7 @@ pub fn run() {
             knowledge::knowledge_reindex,
             import::check_pandoc,
             import::import_file,
+            render::render_markdown,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

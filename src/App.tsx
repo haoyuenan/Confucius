@@ -55,13 +55,11 @@ function App() {
     const file = await bridge.openFileDialog()
     if (!file) return
 
+    // 统一走 JS 渲染路径：与文件树、会话恢复、系统关联打开保持一致，
+    // 避免同一文件因打开入口不同而使用不同渲染引擎。
     const large = checkLargeFile(file.content.length)
-    if (large.isLarge) {
-      setIsLargeFile(true)
-      setMode('split')
-    } else {
-      setIsLargeFile(false)
-    }
+    setIsLargeFile(large.isLarge)
+    if (large.isLarge) setMode('split')
     openFile(file.filePath, file.content)
   }, [openFile, setIsLargeFile, setMode])
 

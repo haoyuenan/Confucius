@@ -407,3 +407,20 @@ export function knowledgeGetTagsRust(): Promise<Record<string, string[]>> {
 export function knowledgeReindexRust(workspacePath: string, filePath: string): Promise<void> {
   return invoke('knowledge_reindex', { workspacePath, filePath })
 }
+
+// ─── 导入（多格式 → Markdown）───
+
+export interface ImportResult {
+  content: string
+  suggestedName: string
+}
+
+/** 检测 pandoc 是否可用 */
+export function checkPandoc(): Promise<boolean> {
+  return invoke('check_pandoc')
+}
+
+/** 将 Word/PDF/HTML/EPUB 转换为 Markdown */
+export function importFile(sourcePath: string): Promise<ImportResult> {
+  return invoke('import_file', { sourcePath })
+}

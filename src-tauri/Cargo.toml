@@ -29,6 +29,9 @@ tantivy = "0.22"
 docx-rs = "0.4"
 html2text = "0.6"
 zip = "0.6"
+pulldown-cmark = "0.13"
+syntect = { version = "5.3", default-features = false, features = ["default-syntaxes", "default-themes", "default-fancy"] }
+ammonia = "4.0"
 
 [dev-dependencies]
 tempfile = "3"

@@ -31,8 +31,9 @@ function PreviewPane({ content }: PreviewPaneProps) {
   const isFirstRender = useRef(true)
   const zoomRef = useRef(1)
   const activeFilePath = useTabStore((s) => s.activeTab()?.filePath ?? null)
-  const html = useMemo(() => renderMarkdown(content), [content])
   const outlineItems = useSidebarStore((s) => s.outlineItems)
+
+  const html = useMemo(() => renderMarkdown(content), [content])
 
   // Ctrl+滚轮缩放预览区
   const handleWheel = useCallback((e: WheelEvent) => {
@@ -57,7 +58,6 @@ function PreviewPane({ content }: PreviewPaneProps) {
     if (!el) return
 
     const handleClick = (e: MouseEvent) => {
-      // 处理链接点击
       const anchor = (e.target as HTMLElement).closest('a') as HTMLAnchorElement | null
       if (anchor) {
         e.preventDefault()
@@ -66,7 +66,6 @@ function PreviewPane({ content }: PreviewPaneProps) {
         if (/^https?:\/\//i.test(href)) {
           shellOpen(href)
         } else if (href.startsWith('#')) {
-          // 锚点跳转：滚动到预览区内对应 id 元素
           const targetId = decodeURIComponent(href.slice(1))
           const target = el.querySelector(`[id="${CSS.escape(targetId)}"]`)
           target?.scrollIntoView({ behavior: 'smooth' })
@@ -74,7 +73,6 @@ function PreviewPane({ content }: PreviewPaneProps) {
         return
       }
 
-      // 处理标题点击 → 通过 slug 匹配 outline 条目
       const heading = (e.target as HTMLElement).closest('h1, h2, h3, h4, h5, h6') as HTMLElement | null
       if (!heading) return
 
@@ -92,7 +90,6 @@ function PreviewPane({ content }: PreviewPaneProps) {
       })
       view.focus()
 
-      // 等待 sync-scroll 可能干扰后重新确认编辑器位置
       requestAnimationFrame(() => {
         if (view) {
           view.dispatch({ effects: EditorView.scrollIntoView(pos, { y: 'start' }) })
@@ -117,32 +114,33 @@ function PreviewPane({ content }: PreviewPaneProps) {
     initMermaid(themeService.getCurrentDef().mermaid)
   }, [])
 
+  // 内容渲染（JS 侧统一渲染，增量更新）
   useEffect(() => {
     if (!previewRef.current) return
 
+    const el = previewRef.current
+
     if (isFirstRender.current) {
-      previewRef.current.innerHTML = html
+      el.innerHTML = html
       isFirstRender.current = false
     } else {
-      updatePreviewContent(previewRef.current, html)
+      updatePreviewContent(el, html)
     }
 
     // 大文件跳过 Mermaid 渲染（性能开销大）
     const isLarge = useEditorStore.getState().isLargeFile
     if (!isLarge) {
-      renderMermaidDiagrams(previewRef.current)
+      renderMermaidDiagrams(el)
     }
 
     // 异步加载本地图片为 base64 data URI（绕过 Tauri asset 协议限制）
     if (activeFilePath) {
       const dirPath = activeFilePath.replace(/[\\/][^\\/]*$/, '')
-      const imgs = previewRef.current.querySelectorAll('img')
+      const imgs = el.querySelectorAll('img')
       imgs.forEach((img) => {
         const src = img.getAttribute('src')
         if (!src) return
-        // 跳过网络图片 / data URI / asset 协议
         if (/^(?:https?:|data:|asset:)/i.test(src)) return
-        // 跳过已转换的（来自上一次渲染）
         if (img.dataset.b64Loaded) return
 
         const normalized = src.replace(/\\/g, '/')
@@ -153,7 +151,6 @@ function PreviewPane({ content }: PreviewPaneProps) {
 
         img.dataset.b64Loading = '1'
         bridge.readFileBase64(absPath).then((dataUri) => {
-          // 组件可能已卸载或内容已变
           if (!document.body.contains(img)) return
           img.setAttribute('src', dataUri)
           img.dataset.b64Loaded = '1'
