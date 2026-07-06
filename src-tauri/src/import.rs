@@ -178,3 +178,65 @@ pub fn import_file(source_path: String) -> Result<serde_json::Value, String> {
         "suggestedName": suggested_name
     }))
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn detect_format_recognizes_known_extensions() {
+        assert_eq!(detect_format("a.docx").unwrap(), "docx");
+        assert_eq!(detect_format("a.html").unwrap(), "html");
+        assert_eq!(detect_format("a.htm").unwrap(), "html");
+        assert_eq!(detect_format("a.epub").unwrap(), "epub");
+        assert_eq!(detect_format("a.pdf").unwrap(), "pdf");
+    }
+
+    #[test]
+    fn detect_format_is_case_insensitive() {
+        assert_eq!(detect_format("REPORT.DOCX").unwrap(), "docx");
+        assert_eq!(detect_format("Page.HTML").unwrap(), "html");
+    }
+
+    #[test]
+    fn detect_format_rejects_unknown() {
+        assert!(detect_format("notes.txt").is_err());
+        assert!(detect_format("no_extension").is_err());
+        assert!(detect_format("archive.zip").is_err());
+    }
+
+    #[test]
+    fn suggested_name_uses_stem_with_md_extension() {
+        assert_eq!(suggested_name("report.docx"), "report.md");
+        assert_eq!(suggested_name("/tmp/dir/我的文档.epub"), "我的文档.md");
+    }
+
+    #[test]
+    fn suggested_name_handles_no_stem() {
+        // 无文件名部分时回退到默认名
+        assert_eq!(suggested_name("/"), "导入文档.md");
+    }
+
+    #[test]
+    fn pdf_fallback_without_pandoc_returns_error() {
+        assert!(pdf_to_md_fallback("x.pdf").is_err());
+    }
+
+    #[test]
+    fn import_file_rejects_path_traversal() {
+        let err = import_file("../../etc/passwd.docx".to_string()).unwrap_err();
+        assert!(err.contains(".."));
+    }
+
+    #[test]
+    fn import_file_rejects_null_byte() {
+        assert!(import_file("evil\0.docx".to_string()).is_err());
+    }
+
+    #[test]
+    fn import_file_rejects_unsupported_format() {
+        // 路径合法但扩展名不支持：应在读取文件前就报错
+        let err = import_file("notes.txt".to_string()).unwrap_err();
+        assert!(err.contains("不支持的导入格式"));
+    }
+}

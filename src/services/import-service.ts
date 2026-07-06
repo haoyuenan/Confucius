@@ -1,6 +1,12 @@
 import { open } from '@tauri-apps/plugin-dialog'
-import { invoke } from '@tauri-apps/api/core'
-import { writeFile, readFile, fileExists } from './bridge'
+import {
+  writeFile,
+  readFile,
+  fileExists,
+  checkPandoc,
+  importFile as bridgeImportFile,
+  type ImportResult,
+} from './bridge'
 
 const IMPORT_FILTERS = [
   { name: '支持的文件', extensions: ['docx', 'pdf', 'html', 'htm', 'epub'] },
@@ -11,16 +17,13 @@ const IMPORT_FILTERS = [
 ]
 
 export async function checkPandocAvailable(): Promise<boolean> {
-  return invoke('check_pandoc')
+  return checkPandoc()
 }
 
-export interface ImportResult {
-  content: string
-  suggestedName: string
-}
+export type { ImportResult }
 
 export async function importFile(sourcePath: string): Promise<ImportResult> {
-  return invoke('import_file', { sourcePath })
+  return bridgeImportFile(sourcePath)
 }
 
 export async function importFileDialog(

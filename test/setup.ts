@@ -43,10 +43,10 @@ vi.mock('@tauri-apps/api/core', () => ({
         return undefined
       case 'render_markdown':
         return '<p>rendered</p>'
-      case 'open_and_render':
-        return { text: '# mock\ncontent', html: '<h1 id="mock">mock</h1>\n<p>content</p>' }
-      case 'render_markdown_stream':
-        return undefined
+      case 'check_pandoc':
+        return false
+      case 'import_file':
+        return { content: '# imported', suggestedName: 'imported.md' }
       default:
         throw new Error(`unmocked invoke: ${cmd}`)
     }

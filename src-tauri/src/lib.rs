@@ -554,8 +554,6 @@ pub fn run() {
             import::check_pandoc,
             import::import_file,
             render::render_markdown,
-            render::open_and_render,
-            render::render_markdown_stream,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
