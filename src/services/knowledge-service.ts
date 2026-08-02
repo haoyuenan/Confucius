@@ -5,7 +5,7 @@
  * 解析 wikilinks、tags、YAML frontmatter，维护反向链接索引。
  */
 
-import { readFileRaw, writeFile as bridgeWriteFile, fileExists as bridgeFileExists, readDir as bridgeReadDir, statFile as bridgeStatFile, createDir } from './bridge'
+import { readFileRaw, writeFile as bridgeWriteFile, fileExists as bridgeFileExists, readDir as bridgeReadDir, statFile as bridgeStatFile, createDir, renameItem } from './bridge'
 
 // ── Types ──
 
@@ -35,7 +35,7 @@ interface KnowledgeIndex {
 
 // ── Parsers ──
 
-function parseWikiLinks(content: string): string[] {
+export function parseWikiLinks(content: string): string[] {
   const cleaned = content.replace(/```[\s\S]*?```/g, '').replace(/`[^`]*`/g, '')
   const regex = /\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/g
   const links: string[] = []
@@ -46,7 +46,7 @@ function parseWikiLinks(content: string): string[] {
   return [...new Set(links)]
 }
 
-function parseTags(content: string): string[] {
+export function parseTags(content: string): string[] {
   const cleaned = content.replace(/```[\s\S]*?```/g, '').replace(/`[^`]*`/g, '')
   const regex = /(?:^|\s)#([\w\u4e00-\u9fff/-]+)/g
   const tags: string[] = []
@@ -66,7 +66,7 @@ function parseTags(content: string): string[] {
   return [...new Set(tags)]
 }
 
-function parseFrontmatter(content: string): { title?: string; created?: string } {
+export function parseFrontmatter(content: string): { title?: string; created?: string } {
   const match = content.match(/^---\n([\s\S]*?)\n---/)
   if (!match) return {}
   const fm: Record<string, string> = {}
@@ -80,7 +80,7 @@ function parseFrontmatter(content: string): { title?: string; created?: string }
   return { title: fm.title, created: fm.created }
 }
 
-function extractTitle(filePath: string, content: string): string {
+export function extractTitle(filePath: string, content: string): string {
   const fm = parseFrontmatter(content)
   if (fm.title) return fm.title
   const h1 = content.match(/^#\s+(.+)/m)
@@ -171,6 +171,8 @@ export class KnowledgeService {
       try {
         const text = await readFileBytes(this.indexPath)
         this.index = JSON.parse(text)
+        // 先置 ready 再同步增量，否则 syncChanges 调用的 updateFile 会被门禁跳过
+        this.ready = true
         await this.syncChanges()
       } catch {
         await this.fullScan()
@@ -244,7 +246,9 @@ export class KnowledgeService {
     this.index.links = []
     const titleToPath: Record<string, string> = {}
     for (const [filePath, meta] of Object.entries(this.index.files)) {
-      titleToPath[meta.title.toLowerCase()] = filePath
+      // 与 Rust 引擎的 or_insert 语义一致：先写保留，后写不覆盖
+      const titleKey = meta.title.toLowerCase()
+      if (!titleToPath[titleKey]) titleToPath[titleKey] = filePath
       const baseName = basename(filePath, '.md').toLowerCase()
       if (!titleToPath[baseName]) titleToPath[baseName] = filePath
     }
@@ -287,7 +291,16 @@ export class KnowledgeService {
     } catch {
       // Directory may already exist
     }
-    await writeFile(this.indexPath, JSON.stringify(this.index, null, 2))
+    const json = JSON.stringify(this.index, null, 2)
+    // 原子写：先写临时文件再 rename 替换，避免写盘中断损坏索引
+    const tmpPath = `${this.indexPath}.tmp`
+    try {
+      await writeFile(tmpPath, json)
+      await renameItem(tmpPath, basename(this.indexPath))
+    } catch {
+      // rename 异常环境（如跨设备）时退回直接写
+      await writeFile(this.indexPath, json)
+    }
   }
 
   private async syncChanges(): Promise<void> {
@@ -349,25 +362,6 @@ export class KnowledgeService {
   async reindex(filePath: string): Promise<boolean> {
     await this.updateFile(filePath)
     return true
-  }
-
-  async renameFile(oldPath: string, newPath: string): Promise<void> {
-    const oldRel = relative(this.workspacePath, oldPath)
-    const newRel = relative(this.workspacePath, newPath)
-    const meta = this.index.files[oldRel]
-    if (meta) {
-      meta.path = newRel
-      this.index.files[newRel] = meta
-      delete this.index.files[oldRel]
-      for (const link of this.index.links) {
-        if (link.source === oldRel) link.source = newRel
-        if (link.targetPath === oldRel) { link.targetPath = newRel; link.resolved = true }
-      }
-      for (const m of Object.values(this.index.files)) {
-        m.linkedFrom = m.linkedFrom.map(p => p === oldRel ? newRel : p)
-      }
-      await this.save()
-    }
   }
 
   getBacklinks(filePath: string): { linked: Link[]; unlinked: string[] } {
@@ -440,9 +434,5 @@ export class KnowledgeService {
     }
 
     return filePath
-  }
-
-  notifyRename(oldPath: string, newPath: string): void {
-    this.renameFile(oldPath, newPath).catch(() => {})
   }
 }

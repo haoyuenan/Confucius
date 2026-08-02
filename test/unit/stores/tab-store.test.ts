@@ -1,7 +1,9 @@
-import { describe, test, expect, beforeEach } from 'vitest'
+import { describe, test, expect, beforeEach, vi } from 'vitest'
 import { useTabStore } from '../../../src/stores/tab-store'
+import { save as dialogSave } from '@tauri-apps/plugin-dialog'
 
 beforeEach(() => {
+  vi.clearAllMocks()
   useTabStore.setState({ tabs: [], activeTabId: null })
 })
 
@@ -106,5 +108,62 @@ describe('tab-store', () => {
 
   test('activeTab tabs 为空时返回 null', () => {
     expect(useTabStore.getState().activeTab()).toBeNull()
+  })
+
+  test('saveTabToDisk 未命名标签弹另存为并更新标签路径', async () => {
+    vi.mocked(dialogSave).mockResolvedValueOnce('/new/path.md' as any)
+    useTabStore.getState().newUntitledTab()
+    const id = useTabStore.getState().activeTabId!
+    useTabStore.getState().updateContent(id, 'draft content')
+
+    const ok = await useTabStore.getState().saveTabToDisk(id)
+
+    expect(ok).toBe(true)
+    const tab = useTabStore.getState().tabs[0]
+    expect(tab.filePath).toBe('/new/path.md')
+    expect(tab.fileName).toBe('path.md')
+    expect(tab.isModified).toBe(false)
+    expect(tab.savedContent).toBe('draft content')
+  })
+
+  test('saveTabToDisk 未命名标签取消另存为时不保存', async () => {
+    vi.mocked(dialogSave).mockResolvedValueOnce(null)
+    useTabStore.getState().newUntitledTab()
+    const id = useTabStore.getState().activeTabId!
+    useTabStore.getState().updateContent(id, 'draft')
+
+    const ok = await useTabStore.getState().saveTabToDisk(id)
+
+    expect(ok).toBe(false)
+    const tab = useTabStore.getState().tabs[0]
+    expect(tab.filePath).toBeNull()
+    expect(tab.isModified).toBe(true)
+  })
+
+  test('closeTab 未命名修改标签点保存时转另存为并关闭', async () => {
+    vi.mocked(dialogSave).mockResolvedValueOnce('/saved/note.md' as any)
+    useTabStore.getState().openFile('/a.md', 'x')
+    useTabStore.getState().newUntitledTab()
+    const id = useTabStore.getState().activeTabId!
+    useTabStore.getState().updateContent(id, 'draft')
+
+    const ok = await useTabStore.getState().closeTab(id)
+
+    expect(ok).toBe(true)
+    expect(useTabStore.getState().tabs).toHaveLength(1)
+    expect(useTabStore.getState().tabs[0].filePath).toBe('/a.md')
+  })
+
+  test('closeTab 未命名修改标签取消另存为时不关闭', async () => {
+    vi.mocked(dialogSave).mockResolvedValueOnce(null)
+    useTabStore.getState().newUntitledTab()
+    const id = useTabStore.getState().activeTabId!
+    useTabStore.getState().updateContent(id, 'draft')
+
+    const ok = await useTabStore.getState().closeTab(id)
+
+    expect(ok).toBe(false)
+    expect(useTabStore.getState().tabs).toHaveLength(1)
+    expect(useTabStore.getState().tabs[0].filePath).toBeNull()
   })
 })

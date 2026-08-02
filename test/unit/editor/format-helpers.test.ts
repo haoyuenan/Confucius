@@ -158,6 +158,14 @@ describe('format-helpers', () => {
       fmt.insertImage(view)
       expect(view.state.doc.toString()).toBe('![图片描述](url)')
     })
+
+    test('光标选中 url 部分而非硬编码偏移', () => {
+      const view = createView('')
+      fmt.insertImage(view)
+      const { from, to } = view.state.selection.main
+      // `![图片描述](url)`：'图片描述' 4 字符，url 起点 = 4 + 4
+      expect(view.state.doc.sliceString(from, to)).toBe('url')
+    })
   })
 
   describe('insertHorizontalRule', () => {

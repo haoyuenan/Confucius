@@ -4,6 +4,7 @@ import { themeService, getThemesByMode, type ThemeMode, type ThemeId } from '../
 import { useEditorStore } from '../../stores/editor-store'
 import { useAppStore } from '../../stores/app-store'
 import { useTranslation } from 'react-i18next'
+import { SHORTCUTS } from '../../config/shortcuts'
 
 // ─── Types ───
 
@@ -299,41 +300,18 @@ function SettingsDialog({ onClose, initialTab = 'general' }: Props) {
               <div className="settings-section">
                 <h3 className="settings-section-title">{t('settings.shortcuts.title')}</h3>
 
-                <ShortcutGroup title={t('settings.shortcuts.file')} shortcuts={[
-                  { keys: ['Ctrl', 'N'], desc: t('settings.shortcuts.desc.newFile') },
-                  { keys: ['Ctrl', 'O'], desc: t('settings.shortcuts.desc.openFile') },
-                  { keys: ['Ctrl', 'S'], desc: t('settings.shortcuts.desc.save') },
-                  { keys: ['Ctrl', 'Shift', 'S'], desc: t('settings.shortcuts.desc.saveAs') },
-                  { keys: ['Ctrl', 'Shift', 'H'], desc: t('settings.shortcuts.desc.exportHtml') },
-                  { keys: ['Ctrl', 'Shift', 'E'], desc: t('settings.shortcuts.desc.exportPdf') },
-                  { keys: ['Ctrl', 'W'], desc: t('settings.shortcuts.desc.closeWindow') },
-                ]} />
-
-                <ShortcutGroup title={t('settings.shortcuts.edit')} shortcuts={[
-                  { keys: ['Ctrl', 'B'], desc: t('settings.shortcuts.desc.bold') },
-                  { keys: ['Ctrl', 'I'], desc: t('settings.shortcuts.desc.italic') },
-                  { keys: ['Ctrl', 'K'], desc: t('settings.shortcuts.desc.link') },
-                  { keys: ['Ctrl', '`'], desc: t('settings.shortcuts.desc.inlineCode') },
-                  { keys: ['Ctrl', 'Shift', '`'], desc: t('settings.shortcuts.desc.codeBlock') },
-                  { keys: ['Ctrl', 'Shift', 'M'], desc: t('settings.shortcuts.desc.mathBlock') },
-                  { keys: ['Ctrl', 'Shift', 'L'], desc: t('settings.shortcuts.desc.unorderedList') },
-                  { keys: ['Ctrl', 'Shift', '['], desc: t('settings.shortcuts.desc.blockquote') },
-                  { keys: ['Ctrl', 'Shift', 'O'], desc: t('settings.shortcuts.desc.orderedList') },
-                ]} />
-
-                <ShortcutGroup title={t('settings.shortcuts.view')} shortcuts={[
-                  { keys: ['Ctrl', 'Shift', 'P'], desc: t('settings.shortcuts.desc.toggleMode') },
-                  { keys: ['Ctrl', 'Shift', 'O'], desc: t('settings.shortcuts.desc.togglePreview') },
-                  { keys: ['Ctrl', '\\'], desc: t('settings.shortcuts.desc.toggleSidebar') },
-                  { keys: ['Ctrl', 'Shift', 'F'], desc: t('settings.shortcuts.desc.globalSearch') },
-                  { keys: ['F11'], desc: t('settings.shortcuts.desc.focusMode') },
-                  { keys: ['F12'], desc: t('settings.shortcuts.desc.typewriter') },
-                ]} />
+                {(['file', 'edit', 'view', 'other'] as const).map((group) => (
+                  <ShortcutGroup
+                    key={group}
+                    title={t(`settings.shortcuts.${group}`)}
+                    shortcuts={SHORTCUTS.filter((s) => s.group === group).map((s) => ({
+                      keys: s.keys,
+                      desc: t(`settings.shortcuts.desc.${s.descriptionKey}`),
+                    }))}
+                  />
+                ))}
 
                 <ShortcutGroup title={t('settings.shortcuts.other')} shortcuts={[
-                  { keys: ['Ctrl', 'Z'], desc: t('settings.shortcuts.desc.undo') },
-                  { keys: ['Ctrl', 'Y'], desc: t('settings.shortcuts.desc.redo') },
-                  { keys: ['Esc'], desc: t('settings.shortcuts.desc.closeDialog') },
                   { keys: ['Ctrl', t('settings.shortcuts.key.scroll')], desc: t('settings.shortcuts.desc.previewZoom') },
                 ]} />
               </div>

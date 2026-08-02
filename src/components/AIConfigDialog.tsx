@@ -77,8 +77,8 @@ export function AIConfigDialog({ onClose }: AIConfigDialogProps) {
             <button className="dialog-btn" onClick={handleTest} disabled={testing}>
               {testing ? '...' : t('ai.config.test')}
             </button>
-            {status === 'ok' && <span style={{ color: 'green', marginLeft: 8 }}>✓ 连接成功</span>}
-            {status === 'fail' && <span style={{ color: 'red', marginLeft: 8 }}>✗ 连接失败</span>}
+            {status === 'ok' && <span style={{ color: 'green', marginLeft: 8 }}>{t('ai.config.connected')}</span>}
+            {status === 'fail' && <span style={{ color: 'red', marginLeft: 8 }}>{t('ai.config.connectFailed')}</span>}
           </div>
         </div>
 

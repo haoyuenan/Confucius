@@ -1,14 +1,54 @@
 use regex::Regex;
+use std::sync::OnceLock;
+
+// 正则一次性编译缓存（全量扫描时每文件复用，避免每文件重复编译）
+fn code_block_re() -> &'static Regex {
+    static RE: OnceLock<Regex> = OnceLock::new();
+    RE.get_or_init(|| Regex::new(r"```[\s\S]*?```").unwrap())
+}
+
+fn inline_code_re() -> &'static Regex {
+    static RE: OnceLock<Regex> = OnceLock::new();
+    RE.get_or_init(|| Regex::new(r"`[^`]*`").unwrap())
+}
+
+fn wikilink_re() -> &'static Regex {
+    static RE: OnceLock<Regex> = OnceLock::new();
+    RE.get_or_init(|| Regex::new(r"\[\[([^\]|]+)(?:\|([^\]]+))?\]\]").unwrap())
+}
+
+fn tag_re() -> &'static Regex {
+    static RE: OnceLock<Regex> = OnceLock::new();
+    RE.get_or_init(|| Regex::new(r"(?:^|\s)#([\w\u{4e00}-\u{9fff}/-]+)").unwrap())
+}
+
+fn digits_only_re() -> &'static Regex {
+    static RE: OnceLock<Regex> = OnceLock::new();
+    RE.get_or_init(|| Regex::new(r"^\d+$").unwrap())
+}
+
+fn frontmatter_re() -> &'static Regex {
+    static RE: OnceLock<Regex> = OnceLock::new();
+    RE.get_or_init(|| Regex::new(r"^---\n([\s\S]*?)\n---").unwrap())
+}
+
+fn frontmatter_tags_re() -> &'static Regex {
+    static RE: OnceLock<Regex> = OnceLock::new();
+    RE.get_or_init(|| Regex::new(r##"(?m)^tags:\s*\[(.+?)\]"##).unwrap())
+}
+
+fn h1_re() -> &'static Regex {
+    static RE: OnceLock<Regex> = OnceLock::new();
+    RE.get_or_init(|| Regex::new(r"^#\s+(.+)").unwrap())
+}
+
 
 pub fn parse_wikilinks(content: &str) -> Vec<String> {
-    let cleaned = Regex::new(r"```[\s\S]*?```")
-        .unwrap()
-        .replace_all(content, "");
-    let cleaned = Regex::new(r"`[^`]*`").unwrap().replace_all(&cleaned, "");
+    let cleaned = code_block_re().replace_all(content, "");
+    let cleaned = inline_code_re().replace_all(&cleaned, "");
 
-    let re = Regex::new(r"\[\[([^\]|]+)(?:\|([^\]]+))?\]\]").unwrap();
     let mut links = Vec::new();
-    for cap in re.captures_iter(&cleaned) {
+    for cap in wikilink_re().captures_iter(&cleaned) {
         let link = cap[1].trim().to_string();
         if !links.contains(&link) {
             links.push(link);
@@ -18,16 +58,13 @@ pub fn parse_wikilinks(content: &str) -> Vec<String> {
 }
 
 pub fn parse_tags(content: &str) -> Vec<String> {
-    let cleaned = Regex::new(r"```[\s\S]*?```")
-        .unwrap()
-        .replace_all(content, "");
-    let cleaned = Regex::new(r"`[^`]*`").unwrap().replace_all(&cleaned, "");
+    let cleaned = code_block_re().replace_all(content, "");
+    let cleaned = inline_code_re().replace_all(&cleaned, "");
 
-    let re = Regex::new(r"(?:^|\s)#([\w\u{4e00}-\u{9fff}/-]+)").unwrap();
     let mut tags: Vec<String> = Vec::new();
-    for cap in re.captures_iter(&cleaned) {
+    for cap in tag_re().captures_iter(&cleaned) {
         let tag = cap[1].trim().to_string();
-        if !tag.is_empty() && !Regex::new(r"^\d+$").unwrap().is_match(&tag) {
+        if !tag.is_empty() && !digits_only_re().is_match(&tag) {
             if !tags.contains(&tag) {
                 tags.push(tag);
             }
@@ -35,15 +72,9 @@ pub fn parse_tags(content: &str) -> Vec<String> {
     }
 
     // Frontmatter tags: line matching `tags: [...]`
-    if let Some(fm_match) = Regex::new(r"^---\n([\s\S]*?)\n---")
-        .unwrap()
-        .captures(content)
-    {
+    if let Some(fm_match) = frontmatter_re().captures(content) {
         let fm = &fm_match[1];
-        if let Some(tag_line) = Regex::new(r##"(?m)^tags:\s*\[(.+?)\]"##)
-            .unwrap()
-            .captures(fm)
-        {
+        if let Some(tag_line) = frontmatter_tags_re().captures(fm) {
             for t in tag_line[1].split(',') {
                 let tag = t.trim().trim_matches('"').trim_matches('\'').to_string();
                 if !tag.is_empty() && !tags.contains(&tag) {
@@ -58,9 +89,8 @@ pub fn parse_tags(content: &str) -> Vec<String> {
 
 /// Returns (title, created) from YAML frontmatter
 pub fn parse_frontmatter(content: &str) -> (Option<String>, Option<String>) {
-    let re = Regex::new(r"^---\n([\s\S]*?)\n---").unwrap();
     let (mut title, mut created) = (None, None);
-    if let Some(caps) = re.captures(content) {
+    if let Some(caps) = frontmatter_re().captures(content) {
         let fm = &caps[1];
         for line in fm.lines() {
             if let Some((key, value)) = line.split_once(':') {
@@ -83,7 +113,7 @@ pub fn extract_title(file_path: &str, content: &str) -> String {
             return title;
         }
     }
-    if let Some(caps) = Regex::new(r"^#\s+(.+)").unwrap().captures(content) {
+    if let Some(caps) = h1_re().captures(content) {
         return caps[1].trim().to_string();
     }
     let path = file_path.replace('\\', "/");

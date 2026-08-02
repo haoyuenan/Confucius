@@ -39,6 +39,8 @@ export async function renderMermaidDiagrams(container: HTMLElement): Promise<voi
         .then(({ svg }) => {
           pre.innerHTML = svg
           pre.classList.add('mermaid-rendered')
+          // 记录源码，供增量更新判断图表是否需要重渲染
+          pre.dataset.mermaidSrc = definition
         })
         .catch((err: Error) => {
           pre.innerHTML = `<div class="mermaid-error">图表渲染失败: ${escapeHtml(err.message)}</div>`

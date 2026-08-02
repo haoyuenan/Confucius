@@ -34,7 +34,7 @@ npm run version:bump -- 0.7.0  # Bump version in package.json + Cargo.toml + tau
 
 **Theme system**: Twelve CSS files in `themes/` define light/dark mode variables via `html[data-theme='<id>']` selectors. ThemeService manages switching and per-mode memory (localStorage key `confucius-theme`).
 
-**Knowledge base**: Dual-engine architecture. JS engine (`src/services/knowledge-service.ts`) and Rust engine (`src-tauri/src/knowledge/`). Parses `[[wikilinks]]`, `#tags`, and YAML frontmatter. Index stored in `.confucius/index.json`. Backend switchable via localStorage `confucius-knowledge-backend` (`"rust"` or default JS).
+**Knowledge base**: Dual-engine architecture with **Rust as the primary engine (default)** and JS engine (`src/services/knowledge-service.ts`) as fallback only. Rust engine in `src-tauri/src/knowledge/` parses `[[wikilinks]]`, `#tags`, and YAML frontmatter; index stored in `.confucius/index.json`. Backend is switchable via localStorage `confucius-knowledge-backend` — unset or `"rust"` uses Rust; explicit `"js"` uses the JS fallback. `bridge.knowledgeSearchFiles`/`knowledgeResolveLink` route to Tantivy (`search_text`) under the Rust backend.
 
 **Full-text search**: Tantivy inverted index in `src-tauri/src/search/` replaces the old regex linear scan for non-regex, non-case-sensitive queries. Index stored in `.confucius/tantivy/`. Regex search falls back to the original parallel-scan implementation.
 
@@ -87,7 +87,7 @@ npm run version:bump -- 0.7.0  # Bump version in package.json + Cargo.toml + tau
 
 - `sidebar-store.ts` uses `Set<string>` for `expandedPaths` — careful with serialization/persistence
 - `tab-store` directly calls `useEditorStore.getState().setContent()` — modifying one store may require updating the other
-- Knowledge base has dual backend (JS + Rust). JS path calls `knowledge-service.ts` methods directly (no `invoke()`). Rust path uses `invoke('knowledge_init_loaded')` etc. Switching is controlled by localStorage key `confucius-knowledge-backend`.
+- Knowledge base has dual backend with **Rust as default** (unset localStorage or `"rust"`); JS fallback only when localStorage `confucius-knowledge-backend` = `"js"`. JS path calls `knowledge-service.ts` methods directly (no `invoke()`). Rust path uses `invoke('knowledge_init_loaded')` etc. Under Rust backend, `knowledgeSearchFiles`/`knowledgeResolveLink` route to Tantivy `search_text`.
 - `readFile()` in bridge strips BOM client-side; `readFileRaw()` does NOT strip BOM
 - `search_text` Rust command delegates to Tantivy for non-regex, non-case-sensitive searches. Regex searches still use the old parallel regex scan.
 - Tantivy index lives in `.confucius/tantivy/`; knowledge index in `.confucius/index.json`. Both share the same workspace root.

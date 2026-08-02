@@ -149,6 +149,8 @@ function PreviewPane({ content }: PreviewPaneProps) {
           ? normalized
           : dirNorm + '/' + normalized
 
+        // 记录原始引用路径，供增量更新判断引用是否变化
+        img.dataset.b64Src = normalized
         img.dataset.b64Loading = '1'
         bridge.readFileBase64(absPath).then((dataUri) => {
           if (!document.body.contains(img)) return

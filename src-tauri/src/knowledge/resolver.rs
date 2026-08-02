@@ -42,22 +42,6 @@ pub fn get_tags(index: &KnowledgeIndex) -> HashMap<String, Vec<String>> {
     index.tags.clone()
 }
 
-#[allow(dead_code)]
-pub fn resolve_link(index: &KnowledgeIndex, link_title: &str) -> Option<String> {
-    let lower = link_title.to_lowercase();
-    for (fp, meta) in &index.files {
-        if meta.title.to_lowercase() == lower {
-            return Some(fp.clone());
-        }
-    }
-    for (fp, meta) in &index.files {
-        if meta.title.to_lowercase().contains(&lower) {
-            return Some(fp.clone());
-        }
-    }
-    None
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -144,23 +128,5 @@ mod tests {
         let tags = get_tags(&idx);
         assert_eq!(tags.len(), 2);
         assert_eq!(tags.get("tag1").unwrap().len(), 2);
-    }
-
-    #[test]
-    fn resolve_link_exact() {
-        let idx = make_index();
-        assert_eq!(resolve_link(&idx, "笔记B"), Some("b.md".into()));
-    }
-
-    #[test]
-    fn resolve_link_case_insensitive() {
-        let idx = make_index();
-        assert_eq!(resolve_link(&idx, "笔记b"), Some("b.md".into()));
-    }
-
-    #[test]
-    fn resolve_link_not_found() {
-        let idx = make_index();
-        assert_eq!(resolve_link(&idx, "不存在的"), None);
     }
 }

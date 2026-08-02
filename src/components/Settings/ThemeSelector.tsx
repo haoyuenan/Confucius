@@ -26,15 +26,15 @@ function ThemeSelector() {
   return (
     <div className={styles.wrapper}>
       <div className={styles.themeSelector}>
-        {currentThemes.map((t) => (
+        {currentThemes.map((theme) => (
           <button
-            key={t.id}
-            className={`${styles.themeBtn}${currentId === t.id ? ` ${styles.active}` : ''}`}
-            onClick={() => { themeService.switchTheme(t.id); setCurrentId(t.id) }}
-            title={t.label}
+            key={theme.id}
+            className={`${styles.themeBtn}${currentId === theme.id ? ` ${styles.active}` : ''}`}
+            onClick={() => { themeService.switchTheme(theme.id); setCurrentId(theme.id) }}
+            title={t(`theme.name.${theme.id}`)}
           >
-            <span className={styles.themeIcon}>{t.icon}</span>
-            <span className={styles.themeLabel}>{t.label}</span>
+            <span className={styles.themeIcon}>{theme.icon}</span>
+            <span className={styles.themeLabel}>{t(`theme.name.${theme.id}`)}</span>
           </button>
         ))}
       </div>

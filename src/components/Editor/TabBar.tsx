@@ -1,3 +1,4 @@
+import { useCallback } from 'react'
 import { useTabStore } from '../../stores/tab-store'
 import { useAppStore } from '../../stores/app-store'
 import { useTranslation } from 'react-i18next'
@@ -13,6 +14,35 @@ function TabBar() {
   const sidebarVisible = useAppStore((s) => s.sidebarVisible)
   const toggleSidebar = useAppStore((s) => s.toggleSidebar)
 
+  const handleTabKeyDown = useCallback(
+    (e: React.KeyboardEvent, tabId: string) => {
+      const idx = tabs.findIndex((t) => t.id === tabId)
+      switch (e.key) {
+        case 'ArrowLeft':
+          e.preventDefault()
+          if (idx > 0) activateTab(tabs[idx - 1].id)
+          break
+        case 'ArrowRight':
+          e.preventDefault()
+          if (idx < tabs.length - 1) activateTab(tabs[idx + 1].id)
+          break
+        case 'Home':
+          e.preventDefault()
+          if (tabs.length > 0) activateTab(tabs[0].id)
+          break
+        case 'End':
+          e.preventDefault()
+          if (tabs.length > 0) activateTab(tabs[tabs.length - 1].id)
+          break
+        case 'Delete':
+          e.preventDefault()
+          closeTab(tabId)
+          break
+      }
+    },
+    [tabs, activateTab, closeTab],
+  )
+
   return (
     <div className={styles.tabBar}>
       <button
@@ -26,13 +56,17 @@ function TabBar() {
           <rect className={styles.leftFill} x="2.5" y="2.5" width="2.5" height="11" rx="0.8" fill="currentColor" stroke="none" />
         </svg>
       </button>
-      <div className={styles.tabList}>
+      <div className={styles.tabList} role="tablist">
         {tabs.map((tab) => (
           <div
             key={tab.id}
             data-testid="tab-item"
+            role="tab"
+            aria-selected={tab.id === activeTabId}
+            tabIndex={tab.id === activeTabId ? 0 : -1}
             className={`${styles.tabItem}${tab.id === activeTabId ? ` ${styles.active}` : ''}`}
             onClick={() => activateTab(tab.id)}
+            onKeyDown={(e) => handleTabKeyDown(e, tab.id)}
           >
             <span className={styles.tabIcon}>📄</span>
             <span data-testid="tab-name" className={styles.tabName}>{tab.fileName}</span>
@@ -40,6 +74,7 @@ function TabBar() {
             <button
               data-testid="tab-close"
               className={styles.tabClose}
+              aria-label={t('editor.tab.closeTab')}
               onClick={(e) => { e.stopPropagation(); closeTab(tab.id) }}
             >✕</button>
           </div>

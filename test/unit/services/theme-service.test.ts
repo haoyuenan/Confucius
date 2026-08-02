@@ -70,4 +70,17 @@ describe('theme-service', () => {
     expect(themeService.getCurrentTheme()).toBe('night-black')
     expect(document.documentElement.getAttribute('data-theme')).toBe('night-black')
   })
+
+  test('本地已保存无效主题 id 时回退默认主题且不抛错', async () => {
+    localStorage.setItem('confucius-theme', 'not-a-real-theme')
+    const { themeService } = await import('../../../src/services/theme-service')
+    expect(themeService.getCurrentTheme()).toBe('plain-white')
+    expect(document.documentElement.getAttribute('data-theme')).toBe('plain-white')
+  })
+
+  test('本地保存空字符串时回退默认主题', async () => {
+    localStorage.setItem('confucius-theme', '')
+    const { themeService } = await import('../../../src/services/theme-service')
+    expect(themeService.getCurrentTheme()).toBe('plain-white')
+  })
 })

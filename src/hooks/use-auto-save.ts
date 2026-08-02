@@ -1,6 +1,5 @@
 import { useEffect } from 'react'
 import { useTabStore } from '../stores/tab-store'
-import * as bridge from '../services/bridge'
 
 const AUTOSAVE_KEY = 'confucius-autosave-interval'
 
@@ -15,16 +14,16 @@ function getAutoSaveInterval(): number {
 export function useAutoSave() {
   useEffect(() => {
     let timer: ReturnType<typeof setTimeout>
+    // 串行化写入链：同一时刻只有一个写盘在途，
+    // 避免慢写入期间旧快照覆盖新内容（乱序写入）
+    let chain: Promise<unknown> = Promise.resolve()
 
     const tick = () => {
       const tab = useTabStore.getState().activeTab()
       if (tab && tab.filePath && tab.isModified) {
-        bridge.writeFile(tab.filePath, tab.content)
-          .then(() => {
-            const s = useTabStore.getState()
-            const t = s.tabs.find(t2 => t2.id === tab.id)
-            if (t) s.markTabSaved(tab.id)
-          })
+        const tabId = tab.id
+        chain = chain
+          .then(() => useTabStore.getState().saveTabToDisk(tabId))
           .catch((err) => console.error('自动保存失败:', err))
       }
       // 每轮结束后重新读取间隔，使设置修改即时生效（避免闭包捕获旧值）

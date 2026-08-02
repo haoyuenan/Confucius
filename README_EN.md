@@ -88,9 +88,7 @@ Split editing mode: CodeMirror 6 editor on the left, markdown-it live preview on
 | `Ctrl+Shift+F` | Global search |
 | `Ctrl+\` | Toggle sidebar |
 | `Ctrl+Shift+P` | Toggle editing mode (split ↔ wysiwyg) |
-| `Ctrl+Shift+O` | Toggle preview mode |
 | `Ctrl+Shift+D` | Create/open today's daily note |
-| `Ctrl+Shift+G` | Open knowledge graph |
 | `F11` | Focus mode |
 | `F12` | Typewriter mode |
 | `Ctrl+B` | Bold `**text**` |
@@ -100,6 +98,7 @@ Split editing mode: CodeMirror 6 editor on the left, markdown-it live preview on
 | `` Ctrl+Shift+` `` | Code block |
 | `Ctrl+Shift+M` | Formula block |
 | `Ctrl+Shift+L` | Unordered list |
+| `Ctrl+Shift+O` | Ordered list |
 | `Ctrl+Shift+[` | Quote block |
 | `Ctrl+Shift+H` | Export HTML |
 | `Ctrl+Shift+E` | Export PDF |
@@ -203,6 +202,31 @@ confucius/
 
 ## Changelog
 
+### v1.0.0
+
+**Data Safety & Stability** (consolidating the v0.8+ series fixes):
+- **Auto-save race fix**: typing during a write no longer marks content as saved — no data loss; writes are serialized to prevent out-of-order overwrites
+- **Tantivy index dedup**: re-saving the same file no longer creates duplicate index documents
+- **Atomic knowledge index**: `index.json` written via temp-file + rename; corrupt index auto-recovers via full rescan (no more index wipe)
+- **Save As for untitled tabs**: closing a modified untitled tab prompts for a path; cancel keeps the tab
+- **Live index sync**: file changes (watcher) incrementally update backlinks / graph / tags / full-text search — no restart needed
+- **Theme guard**: invalid localStorage theme values fall back to default (fixes white-screen on startup)
+
+**Architecture**:
+- **Rust knowledge engine is now the default backend**; JS engine kept as fallback only; Quick Open and wikilink navigation route through Tantivy under the Rust backend
+- Resolved JS/Rust parser behavior divergence (link resolution unified to first-write-wins)
+
+**UX & Accessibility**:
+- **Toast notifications**: save / open / import / AI / image failures now show visible feedback (replacing silent console.error and alert)
+- **Keyboard accessibility**: file tree arrow-key navigation, tab bar ←→/Delete, command palette focus trap and ARIA semantics
+- **Single source of truth for shortcuts**: `src/config/shortcuts.ts`; fixed the Ctrl+Shift+O conflict (now bound to ordered list)
+- Pasted image links now respect the configured image directory
+
+**Engineering**:
+- **GitHub Actions CI**: typecheck / lint / vitest / cargo test on every push & PR
+- **Performance**: regex one-time compilation cache in the parser; removed full-HashMap deep copies during indexing
+- **Tests**: 102 Rust + 207 frontend tests; fixed the JS knowledge engine "fake test" (now tests production code directly)
+
 ### v0.7.0
 
 **Knowledge Engine**:
@@ -250,7 +274,7 @@ v0.5.0 migrates from Electron 28 to Tauri 2:
 
 ## Development Status
 
-v0.7.0 introduces Rust knowledge engine, Tantivy full-text search, AI writing assistant, template system, multi-format import, and virtual scrolling.
+v1.0.0 builds on v0.7.0's feature set with stability hardening (data safety, index reliability, live sync), the Rust engine becoming the default, accessibility & feedback improvements, CI, and performance optimizations — meeting the 1.0 release bar.
 
 ## License
 
