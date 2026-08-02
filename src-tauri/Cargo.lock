@@ -456,7 +456,7 @@ dependencies = [
 
 [[package]]
 name = "confucius"
-version = "0.7.0"
+version = "1.0.0"
 dependencies = [
  "ammonia",
  "base64 0.22.1",
@@ -477,7 +477,6 @@ dependencies = [
  "tauri-plugin-shell",
  "tempfile",
  "tokio",
- "walkdir",
  "zip",
 ]
 

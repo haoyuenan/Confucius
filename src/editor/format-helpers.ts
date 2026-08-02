@@ -132,9 +132,14 @@ export function insertLink(view: EditorView): boolean {
 export function insertImage(view: EditorView): boolean {
   const t = i18n.t
   const { from } = view.state.selection.main
+  const desc = t('editor.placeholder.imageDesc')
+  const inserted = `![${desc}](url)`
+  // 选中 url 部分：![desc](url) → url 起点 = from + desc 长度 + 4
+  const urlStart = from + desc.length + 4
+  const urlEnd = urlStart + 3
   view.dispatch({
-    changes: { from, insert: `![${t('editor.placeholder.imageDesc')}](url)` },
-    selection: { anchor: from + 7, head: from + 10 },
+    changes: { from, insert: inserted },
+    selection: { anchor: urlStart, head: urlEnd },
   })
   return true
 }

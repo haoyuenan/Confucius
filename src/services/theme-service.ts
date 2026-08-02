@@ -62,7 +62,10 @@ class ThemeServiceImpl {
 
   constructor() {
     const saved = localStorage.getItem('confucius-theme') as string | null
-    const migrated: ThemeId = LEGACY_MAP[saved ?? ''] ?? (saved as ThemeId | null) ?? 'plain-white'
+    const legacy = LEGACY_MAP[saved ?? '']
+    // 无效 id 一律回退默认主题，避免 getThemeDef 的 ! 断言抛 TypeError 导致白屏
+    const isKnown = !!saved && THEMES.some((t) => t.id === saved)
+    const migrated: ThemeId = legacy ?? (isKnown ? (saved as ThemeId) : 'plain-white')
     this.currentTheme = migrated
     if (getThemeDef(migrated).mode === 'light') this.lastLight = migrated
     else this.lastDark = migrated
@@ -82,12 +85,15 @@ class ThemeServiceImpl {
   }
 
   switchTheme(id: ThemeId): void {
-    const def = getThemeDef(id)
-    if (def.mode === 'light') this.lastLight = id
-    else this.lastDark = id
-    this.currentTheme = id
-    localStorage.setItem('confucius-theme', id)
-    this.applyTheme(id)
+    // 防御：无效 id（旧版本 localStorage/会话残留，如 'sepia'/'light'）
+    // 一律回退默认主题，避免 getThemeDef 断言抛 TypeError 导致白屏
+    const validId: ThemeId = THEMES.some((t) => t.id === id) ? id : 'plain-white'
+    const def = getThemeDef(validId)
+    if (def.mode === 'light') this.lastLight = validId
+    else this.lastDark = validId
+    this.currentTheme = validId
+    localStorage.setItem('confucius-theme', validId)
+    this.applyTheme(validId)
   }
 
   toggleTheme(): void {

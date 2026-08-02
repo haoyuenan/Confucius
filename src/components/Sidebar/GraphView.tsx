@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import * as d3 from 'd3'
+import { useTranslation } from 'react-i18next'
 import { useKnowledgeStore } from '../../stores/knowledge-store'
 import { useTabStore } from '../../stores/tab-store'
 import * as bridge from '../../services/bridge'
@@ -14,6 +15,7 @@ interface GraphLink extends d3.SimulationLinkDatum<GraphNode> {
 }
 
 export function GraphView() {
+  const { t } = useTranslation()
   const svgRef = useRef<SVGSVGElement>(null)
   const { graphData, loadGraph } = useKnowledgeStore()
   const activeTab = useTabStore(s => s.activeTab())
@@ -129,13 +131,13 @@ export function GraphView() {
           className={`sidebar-graph-toggle ${mode === 'global' ? 'active' : ''}`}
           onClick={() => setMode('global')}
         >
-          全局
+          {t('graph.modeGlobal')}
         </button>
         <button
           className={`sidebar-graph-toggle ${mode === 'local' ? 'active' : ''}`}
           onClick={() => setMode('local')}
         >
-          局部
+          {t('graph.modeLocal')}
         </button>
       </div>
       <svg ref={svgRef} width="100%" height={500} style={{ overflow: 'visible' }} />

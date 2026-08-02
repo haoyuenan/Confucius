@@ -84,12 +84,17 @@ export function stopFileWatcher(): Promise<void> {
   return invoke('stop_file_watcher')
 }
 
-export function onFileTreeChanged(callback: () => void): () => void {
-  const unlistenPromise = listen('file-tree-changed', () => {
-    callback()
+export interface FileChangeEvent {
+  paths: string[]
+}
+
+export function onFileTreeChanged(callback: (paths: string[]) => void): () => void {
+  const unlistenPromise = listen<FileChangeEvent>('file-tree-changed', (event) => {
+    const paths = event.payload?.paths
+    callback(Array.isArray(paths) ? paths : [])
   })
   return () => {
-    unlistenPromise.then((fn) => fn())
+    unlistenPromise.then((fn) => fn()).catch(() => {})
   }
 }
 
@@ -344,39 +349,85 @@ export async function getEnv(): Promise<{ tauri: string; platform: string; arch:
 // ─── 知识库 ───
 
 import { KnowledgeService } from './knowledge-service'
+import { useSidebarStore } from '../stores/sidebar-store'
 
-const _knowledgeService = new KnowledgeService()
+// 惰性单例：避免顶层构造触发 knowledge-service ↔ bridge 的循环初始化
+let _knowledgeService: KnowledgeService | null = null
+function getKnowledgeService(): KnowledgeService {
+  if (!_knowledgeService) _knowledgeService = new KnowledgeService()
+  return _knowledgeService
+}
+
+/**
+ * 后端选择：Rust 为正式引擎（默认），JS 引擎仅作回退
+ * （localStorage 'confucius-knowledge-backend' = 'js' 时使用 JS）
+ */
+function isRustBackend(): boolean {
+  return localStorage.getItem('confucius-knowledge-backend') !== 'js'
+}
+
+function joinPaths(base: string, rel: string): string {
+  const b = base.replace(/\\/g, '/').replace(/\/+$/, '')
+  return `${b}/${rel.replace(/^\/+/, '')}`
+}
 
 export function knowledgeInitialize(workspacePath: string): Promise<boolean> {
-  return _knowledgeService.initialize(workspacePath)
+  return getKnowledgeService().initialize(workspacePath)
 }
 
 export function knowledgeGetBacklinks(filePath: string) {
-  return _knowledgeService.getBacklinks(filePath)
+  return getKnowledgeService().getBacklinks(filePath)
 }
 
 export function knowledgeGetGraph(filePath?: string) {
-  return _knowledgeService.getGraphData(filePath)
+  return getKnowledgeService().getGraphData(filePath)
 }
 
 export function knowledgeGetTags() {
-  return _knowledgeService.getTags()
+  return getKnowledgeService().getTags()
 }
 
-export function knowledgeSearchFiles(query: string) {
-  return _knowledgeService.searchFiles(query)
+export async function knowledgeSearchFiles(query: string) {
+  const root = useSidebarStore.getState().rootPath
+  if (!root) {
+    return getKnowledgeService().searchFiles(query)
+  }
+  if (isRustBackend()) {
+    // Rust 后端：Tantivy 索引（文件名/标题/内容）
+    const results = await invoke<SearchResult[]>('search_text', { rootPath: root, query })
+    return results.map((r) => ({
+      path: joinPaths(root, r.filePath),
+      title: r.fileName,
+      mtime: '',
+    }))
+  }
+  // JS 回退引擎：内存索引返回相对路径，转为绝对路径
+  return getKnowledgeService().searchFiles(query).map((r) => ({
+    ...r,
+    path: joinPaths(root, r.path),
+  }))
 }
 
 export function knowledgeCreateDailyNote(): Promise<string> {
-  return _knowledgeService.createDailyNote()
+  return getKnowledgeService().createDailyNote()
 }
 
-export function knowledgeResolveLink(linkTitle: string) {
-  return Promise.resolve(_knowledgeService.resolveLink(linkTitle))
+export async function knowledgeResolveLink(linkTitle: string) {
+  const root = useSidebarStore.getState().rootPath
+  if (isRustBackend() && root) {
+    // Rust 后端：Tantivy 精确匹配标题字段
+    const safeTitle = linkTitle.replace(/"/g, '')
+    const results = await invoke<SearchResult[]>('search_text', {
+      rootPath: root,
+      query: `title:"${safeTitle}"`,
+    })
+    return results.length > 0 ? joinPaths(root, results[0].filePath) : null
+  }
+  return getKnowledgeService().resolveLink(linkTitle)
 }
 
 export function knowledgeReindex(filePath: string): Promise<boolean> {
-  return _knowledgeService.reindex(filePath)
+  return getKnowledgeService().reindex(filePath)
 }
 
 // ─── 知识库 Rust 版（新 IPC 命令）───

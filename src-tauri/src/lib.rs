@@ -442,6 +442,11 @@ struct WatcherState {
     _thread: Option<JoinHandle<()>>,
 }
 
+#[derive(Clone, serde::Serialize)]
+struct FileChangeEvent {
+    paths: Vec<String>,
+}
+
 #[tauri::command]
 fn start_file_watcher(app: AppHandle, root_path: String) -> Result<(), String> {
     let (tx, rx) = mpsc::channel::<notify::Result<notify::Event>>();
@@ -460,19 +465,40 @@ fn start_file_watcher(app: AppHandle, root_path: String) -> Result<(), String> {
     let stop_flag = Arc::new(AtomicBool::new(false));
     let flag_clone = Arc::clone(&stop_flag);
 
-    // Spawn a thread that reads events and emits Tauri events (debounced)
+    // Spawn a thread that collects changed paths and emits Tauri events (debounced)
     let handle = std::thread::spawn(move || {
-        let mut last_emit = std::time::Instant::now();
+        use std::collections::HashSet;
+
+        let mut pending: HashSet<String> = HashSet::new();
+        let mut last_flush = std::time::Instant::now();
+
         loop {
             match rx.recv_timeout(Duration::from_millis(500)) {
-                Ok(_) => {
+                Ok(event) => {
+                    if let Ok(ev) = event {
+                        for p in ev.paths {
+                            let s = p.to_string_lossy().to_string();
+                            if is_md_file(&s) {
+                                pending.insert(s);
+                            }
+                        }
+                    }
                     let now = std::time::Instant::now();
-                    if now.duration_since(last_emit) >= Duration::from_millis(500) {
-                        let _ = app_clone.emit("file-tree-changed", ());
-                        last_emit = now;
+                    if now.duration_since(last_flush) >= Duration::from_millis(500)
+                        && !pending.is_empty()
+                    {
+                        let paths: Vec<String> = pending.drain().collect();
+                        let _ = app_clone.emit("file-tree-changed", FileChangeEvent { paths });
+                        last_flush = now;
                     }
                 }
                 Err(mpsc::RecvTimeoutError::Timeout) => {
+                    // 空闲时冲刷积压的变更，避免低频变更滞留
+                    if !pending.is_empty() {
+                        let paths: Vec<String> = pending.drain().collect();
+                        let _ = app_clone.emit("file-tree-changed", FileChangeEvent { paths });
+                        last_flush = std::time::Instant::now();
+                    }
                     if flag_clone.load(Ordering::Relaxed) {
                         break;
                     }

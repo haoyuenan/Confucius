@@ -87,6 +87,42 @@ describe('useAutoSave', () => {
     expect(bridge.writeFile).toHaveBeenCalledTimes(1)
   })
 
+  it('写入期间继续输入不会误标已保存，下一轮会保存最新内容', async () => {
+    const id = openModifiedTab()
+    renderHook(() => useAutoSave())
+
+    // 第一次写盘挂起（模拟慢写入）
+    let resolveWrite!: (v: unknown) => void
+    ;(bridge.writeFile as ReturnType<typeof vi.fn>)
+      .mockImplementationOnce(() => new Promise((r) => { resolveWrite = r }))
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(5000)
+    })
+    expect(bridge.writeFile).toHaveBeenCalledWith('/note.md', 'edited')
+
+    // 写入进行中，用户继续输入
+    act(() => {
+      useTabStore.getState().updateContent(id, 'edited-while-saving')
+    })
+    expect(useTabStore.getState().tabs.find(t => t.id === id)!.isModified).toBe(true)
+
+    // 写入完成：内容已变化 → 不得标记已保存
+    await act(async () => {
+      resolveWrite(undefined)
+    })
+    const tab = useTabStore.getState().tabs.find(t => t.id === id)!
+    expect(tab.isModified).toBe(true)
+    expect(tab.savedContent).toBe('original')
+
+    // 下一轮自动保存最新内容并标记已保存
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(5000)
+    })
+    expect(bridge.writeFile).toHaveBeenLastCalledWith('/note.md', 'edited-while-saving')
+    expect(useTabStore.getState().tabs.find(t => t.id === id)!.isModified).toBe(false)
+  })
+
   it('运行中修改间隔设置会在下一轮重新读取', async () => {
     const id = openModifiedTab()
     renderHook(() => useAutoSave())

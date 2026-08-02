@@ -1,5 +1,15 @@
 {
   "app.title": "Confucius — A Quiet Writing Space",
+  "graph.modeGlobal": "Global",
+  "graph.modeLocal": "Local",
+  "commandPalette.fileHeader": "Files",
+  "ai.config.connected": "✓ Connected",
+  "ai.config.connectFailed": "✗ Connection failed",
+  "template.picker.errorNoFolder": "Open a folder before creating a note",
+  "template.picker.errorNoFolderHint": "⚠ Open a folder in the sidebar before creating a note from a template",
+  "template.picker.errorNoTemplate": "Please select a template",
+  "template.picker.errorEmptyTemplate": "Template is empty",
+  "template.picker.errorCreate": "Create failed: {msg}",
   "app.toolbar.new": "New (Ctrl+N)",
   "app.toolbar.newLabel": "New",
   "app.toolbar.open": "Open (Ctrl+O)",
@@ -28,13 +38,11 @@
   "app.toolbar.dailyNoteTitle": "Daily Note (Ctrl+Shift+D)",
   "app.toolbar.newNote": "New Note",
   "app.toolbar.newNoteTitle": "Create from template",
-
   "editor.status.unsaved": "● Unsaved",
   "editor.status.saved": "✓ Saved",
   "editor.status.selected": " ({count} selected)",
   "editor.status.words": "{count} words",
   "editor.status.chars": " · {count} chars",
-
   "editor.tab.hideSidebar": "Hide Sidebar",
   "editor.tab.showSidebar": "Show Sidebar",
   "editor.tab.newTab": "New Tab",
@@ -42,7 +50,7 @@
   "editor.table.cols": "Cols:",
   "editor.table.rows": "Rows:",
   "editor.table.preview": "{rows} rows × {cols} cols",
-
+  "editor.tab.closeTab": "Close tab",
   "editor.format.undo": "Undo (Ctrl+Z)",
   "editor.format.redo": "Redo (Ctrl+Y)",
   "editor.format.heading1": "Heading 1 (Ctrl+1)",
@@ -71,7 +79,6 @@
   "editor.format.groupInsert": "Insert",
   "editor.format.groupAux": "Tools",
   "editor.format.groupInsertLabel": "Insert",
-
   "editor.placeholder.bold": "bold text",
   "editor.placeholder.italic": "italic text",
   "editor.placeholder.strikethrough": "text",
@@ -80,7 +87,6 @@
   "editor.placeholder.listItem": "list item",
   "editor.placeholder.linkText": "link text",
   "editor.placeholder.imageDesc": "image description",
-
   "commandPalette.placeholder": "Search commands…",
   "commandPalette.placeholderFile": "Search notes…",
   "commandPalette.noMatchFile": "No match for 「{query}」",
@@ -122,7 +128,6 @@
   "commandPalette.cat.import": "Import",
   "commandPalette.cat.export": "Export",
   "commandPalette.cat.settings": "Settings",
-
   "sidebar.tab.files": "Files",
   "sidebar.tab.outline": "Outline",
   "sidebar.tab.search": "Search",
@@ -134,7 +139,8 @@
   "sidebar.welcome.openFolder": "Open Folder",
   "sidebar.welcome.newNote": "New Note",
   "sidebar.welcome.recent": "Recent",
-  "sidebar.fileTree.empty": "Folder is empty",
+  "sidebar.fileTree.empty": "Folder is empty",  "sidebar.fileTree.title": "File tree",
+
   "sidebar.fileTree.scanning": "Scanning folder…",
   "sidebar.fileTree.closeFolder": "Close Folder",
   "sidebar.backlinks.empty": "No backlinks",
@@ -150,7 +156,6 @@
   "sidebar.search.results": "{count} results found",
   "sidebar.search.noFolder": "Open a folder to enable search",
   "sidebar.search.noResults": "No matching results",
-
   "settings.tab.general": "General",
   "settings.tab.display": "Display",
   "settings.tab.shortcuts": "Shortcuts",
@@ -197,6 +202,9 @@
   "settings.shortcuts.desc.toggleMode": "Toggle Edit Mode (Split ↔ WYSIWYG)",
   "settings.shortcuts.desc.togglePreview": "Toggle Preview",
   "settings.shortcuts.desc.toggleSidebar": "Toggle Sidebar",
+  "settings.shortcuts.desc.find": "Find in document",
+  "settings.shortcuts.desc.plugins": "Plugin settings",
+  "settings.shortcuts.desc.commandPalette": "Command palette",
   "settings.shortcuts.desc.globalSearch": "Global Search",
   "settings.shortcuts.desc.focusMode": "Focus Mode",
   "settings.shortcuts.desc.typewriter": "Typewriter Mode",
@@ -226,10 +234,8 @@
   "settings.about.platform": "Platform",
   "settings.about.license": "License",
   "settings.language.title": "Language",
-
   "plugin.name.docTemplates": "Templates",
   "plugin.name.codeRunner": "Code Runner",
-
   "theme.name.plain-white": "Plain White",
   "theme.name.warm-sun": "Warm Sun",
   "theme.name.cloud": "Cloud",
@@ -244,10 +250,8 @@
   "theme.name.rose-pine": "Rose Pine",
   "settings.language.zh": "中文",
   "settings.language.en": "English",
-
   "app.notification.exportDone": "Export complete",
   "app.notification.exportBody": "{format} exported to: {path}",
-
   "plugin.success.loaded": "✅ Loaded: {name}",
   "plugin.error.load": "❌ Load failed: {name}\n{error}",
   "plugin.success.loadPkg": "✅ Loaded: {name}",
@@ -256,12 +260,10 @@
   "plugin.success.enabled": "Enabled: {name}",
   "plugin.success.uninstalled": "Uninstalled: {name}",
   "plugin.error.engine": "Engine not initialized",
-
   "template.picker.title": "Select Template",
   "template.picker.fileName": "File name",
   "template.picker.create": "Create",
   "template.picker.cancel": "Cancel",
-
   "ai.menu.translate": "Translate",
   "ai.menu.summarize": "Summarize",
   "ai.menu.rewrite": "Rewrite",
@@ -277,9 +279,14 @@
   "ai.later": "Later",
   "ai.noModel": "No models found",
   "ai.loading": "AI processing...",
-
   "import.noPandoc": "Pandoc not detected, using basic conversion (quality may degrade)",
   "import.noPandocHint": "Install pandoc for best conversion quality: https://pandoc.org",
   "import.failed": "Import failed",
-  "import.success": "Import complete: {name}"
+  "import.success": "Import complete: {name}",
+  "toast.saveFailed": "Save failed: {msg}",
+  "toast.openFailed": "Failed to open file: {name}",
+  "toast.folderOpenFailed": "Failed to open folder: {msg}",
+  "toast.importFailed": "Import failed: {msg}",
+  "toast.imageSaveFailed": "Failed to save image: {msg}",
+  "toast.aiError": "AI request failed: {msg}"
 }

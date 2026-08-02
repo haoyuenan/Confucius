@@ -10,9 +10,12 @@ import { getThemeDef, getThemesByMode, type ThemeId } from './services/theme-ser
 import { checkLargeFile } from './editor/large-file-handler'
 import SettingsDialog, { type SettingsTab, THEME_SWATCHES } from './components/Settings/SettingsDialog'
 import CommandPalette from './components/CommandPalette/CommandPalette'
+import ToastContainer from './components/Notification/ToastContainer'
+import { useNotificationStore } from './stores/notification-store'
 import { getActiveView } from './editor/active-view'
 import * as bridge from './services/bridge'
 import { useTranslation } from 'react-i18next'
+import i18n from './i18n/i18n'
 import { DailyNoteButton } from './components/DailyNoteButton'
 import { importFileDialog } from './services/import-service'
 import { useKeyboardShortcuts } from './hooks/use-keyboard-shortcuts'
@@ -31,7 +34,6 @@ function App() {
   const toggleSidebar = useAppStore((s) => s.toggleSidebar)
 
   const newUntitledTab = useTabStore((s) => s.newUntitledTab)
-  const markTabSaved = useTabStore((s) => s.markTabSaved)
   const openFile = useTabStore((s) => s.openFile)
 
   const setMode = useEditorStore((s) => s.setMode)
@@ -65,14 +67,9 @@ function App() {
 
   const handleSaveFile = useCallback(async () => {
     const tab = useTabStore.getState().activeTab()
-    if (!tab || !tab.filePath) return
-    try {
-      await bridge.writeFile(tab.filePath, tab.content)
-      markTabSaved(tab.id)
-    } catch (err) {
-      console.error('保存文件失败:', err)
-    }
-  }, [markTabSaved])
+    if (!tab) return
+    await useTabStore.getState().saveTabToDisk(tab.id)
+  }, [])
 
   const handleSaveAs = useCallback(async () => {
     const tab = useTabStore.getState().activeTab()
@@ -161,7 +158,13 @@ function App() {
   const handleImport = useCallback(async () => {
     const root = useSidebarStore.getState().rootPath
     if (!root) return
-    await importFileDialog(root, openFile)
+    try {
+      await importFileDialog(root, openFile)
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err)
+      console.error('导入失败:', err)
+      useNotificationStore.getState().showToast(i18n.t('toast.importFailed', { msg }), 'error')
+    }
   }, [openFile])
 
   const handlePrint = useCallback(() => {
@@ -263,6 +266,7 @@ function App() {
         <main className="app-main"><EditorLayout /></main>
       </div>
       <StatusBar />
+      <ToastContainer />
       {settingsTab && <SettingsDialog initialTab={settingsTab} onClose={() => setSettingsTab(null)} />}
       {showCommandPalette && (
         <CommandPalette

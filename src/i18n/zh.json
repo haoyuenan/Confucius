@@ -1,5 +1,15 @@
 {
   "app.title": "Confucius：一个安静的写作/阅读空间",
+  "graph.modeGlobal": "全局",
+  "graph.modeLocal": "局部",
+  "commandPalette.fileHeader": "文件",
+  "ai.config.connected": "✓ 连接成功",
+  "ai.config.connectFailed": "✗ 连接失败",
+  "template.picker.errorNoFolder": "请先打开一个文件夹再创建笔记",
+  "template.picker.errorNoFolderHint": "⚠ 请先在侧边栏打开一个文件夹，再使用模板创建笔记",
+  "template.picker.errorNoTemplate": "请选择一个模板",
+  "template.picker.errorEmptyTemplate": "模板内容为空",
+  "template.picker.errorCreate": "创建失败：{msg}",
   "app.toolbar.new": "新建 (Ctrl+N)",
   "app.toolbar.newLabel": "新建",
   "app.toolbar.open": "打开 (Ctrl+O)",
@@ -28,13 +38,11 @@
   "app.toolbar.dailyNoteTitle": "今日笔记 (Ctrl+Shift+D)",
   "app.toolbar.newNote": "新建笔记",
   "app.toolbar.newNoteTitle": "从模板创建新笔记",
-
   "editor.status.unsaved": "● 未保存",
   "editor.status.saved": "✓ 已保存",
   "editor.status.selected": " (选中 {count})",
   "editor.status.words": "{count} 词",
   "editor.status.chars": " · {count} 字",
-
   "editor.tab.hideSidebar": "隐藏侧边栏",
   "editor.tab.showSidebar": "显示侧边栏",
   "editor.tab.newTab": "新建标签",
@@ -42,7 +50,7 @@
   "editor.table.cols": "列:",
   "editor.table.rows": "行:",
   "editor.table.preview": "{rows} 行 × {cols} 列",
-
+  "editor.tab.closeTab": "关闭标签",
   "editor.format.undo": "撤销 (Ctrl+Z)",
   "editor.format.redo": "重做 (Ctrl+Y)",
   "editor.format.heading1": "一级标题 (Ctrl+1)",
@@ -71,7 +79,6 @@
   "editor.format.groupInsert": "插入",
   "editor.format.groupAux": "辅助",
   "editor.format.groupInsertLabel": "插入",
-
   "editor.placeholder.bold": "粗体",
   "editor.placeholder.italic": "斜体",
   "editor.placeholder.strikethrough": "文本",
@@ -80,7 +87,6 @@
   "editor.placeholder.listItem": "列表项",
   "editor.placeholder.linkText": "链接文本",
   "editor.placeholder.imageDesc": "图片描述",
-
   "commandPalette.placeholder": "搜索命令…",
   "commandPalette.placeholderFile": "搜索笔记…",
   "commandPalette.noMatchFile": "未找到「{query}」",
@@ -122,7 +128,6 @@
   "commandPalette.cat.import": "导入",
   "commandPalette.cat.export": "导出",
   "commandPalette.cat.settings": "设置",
-
   "sidebar.tab.files": "文件",
   "sidebar.tab.outline": "大纲",
   "sidebar.tab.search": "搜索",
@@ -134,7 +139,8 @@
   "sidebar.welcome.openFolder": "打开文件夹",
   "sidebar.welcome.newNote": "新建笔记",
   "sidebar.welcome.recent": "最近打开",
-  "sidebar.fileTree.empty": "文件夹为空",
+  "sidebar.fileTree.empty": "文件夹为空",  "sidebar.fileTree.title": "文件树",
+
   "sidebar.fileTree.scanning": "正在遍历文件夹…",
   "sidebar.fileTree.closeFolder": "关闭文件夹",
   "sidebar.backlinks.empty": "无反向链接",
@@ -150,7 +156,6 @@
   "sidebar.search.results": "找到 {count} 个结果",
   "sidebar.search.noFolder": "先打开文件夹以启用搜索",
   "sidebar.search.noResults": "未找到匹配结果",
-
   "settings.tab.general": "通用",
   "settings.tab.display": "显示",
   "settings.tab.shortcuts": "快捷键",
@@ -197,6 +202,9 @@
   "settings.shortcuts.desc.toggleMode": "切换编辑模式 (分屏 ↔ WYSIWYG)",
   "settings.shortcuts.desc.togglePreview": "切换预览模式",
   "settings.shortcuts.desc.toggleSidebar": "切换侧边栏",
+  "settings.shortcuts.desc.find": "查找文档",
+  "settings.shortcuts.desc.plugins": "插件设置",
+  "settings.shortcuts.desc.commandPalette": "命令面板",
   "settings.shortcuts.desc.globalSearch": "全局搜索",
   "settings.shortcuts.desc.focusMode": "专注模式",
   "settings.shortcuts.desc.typewriter": "打字机模式",
@@ -226,10 +234,8 @@
   "settings.about.platform": "平台",
   "settings.about.license": "许可",
   "settings.language.title": "语言",
-
   "plugin.name.docTemplates": "文档模板",
   "plugin.name.codeRunner": "代码运行器",
-
   "theme.name.plain-white": "素白纸",
   "theme.name.warm-sun": "暖阳",
   "theme.name.cloud": "云白",
@@ -244,10 +250,8 @@
   "theme.name.rose-pine": "玫瑰松",
   "settings.language.zh": "中文",
   "settings.language.en": "English",
-
   "app.notification.exportDone": "导出完成",
   "app.notification.exportBody": "{format} 已导出到: {path}",
-
   "plugin.success.loaded": "✅ 已加载: {name}",
   "plugin.error.load": "❌ 加载失败: {name}\n{error}",
   "plugin.success.loadPkg": "✅ 已加载: {name}",
@@ -256,12 +260,10 @@
   "plugin.success.enabled": "已启用: {name}",
   "plugin.success.uninstalled": "已卸载: {name}",
   "plugin.error.engine": "引擎未初始化",
-
   "template.picker.title": "选择模板",
   "template.picker.fileName": "文件名",
   "template.picker.create": "创建",
   "template.picker.cancel": "取消",
-
   "ai.menu.translate": "翻译",
   "ai.menu.summarize": "摘要",
   "ai.menu.rewrite": "改写",
@@ -277,9 +279,14 @@
   "ai.later": "稍后",
   "ai.noModel": "未找到可用模型",
   "ai.loading": "AI 处理中...",
-
   "import.noPandoc": "未检测到 pandoc，将使用基础转换（质量可能下降）",
   "import.noPandocHint": "安装 pandoc 可获得最佳转换质量：https://pandoc.org",
   "import.failed": "导入失败",
-  "import.success": "导入完成：{name}"
+  "import.success": "导入完成：{name}",
+  "toast.saveFailed": "保存失败：{msg}",
+  "toast.openFailed": "打开文件失败：{name}",
+  "toast.folderOpenFailed": "打开文件夹失败：{msg}",
+  "toast.importFailed": "导入失败：{msg}",
+  "toast.imageSaveFailed": "图片保存失败：{msg}",
+  "toast.aiError": "AI 请求失败：{msg}"
 }

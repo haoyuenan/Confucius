@@ -103,6 +103,10 @@ pub fn add_document(
         Err(_) => return Ok(()),
     };
 
+    // 先删除该路径的旧文档再写入，避免同一文件重复索引（搜索结果翻倍）
+    let term = tantivy::Term::from_field_text(fields.file_path, rel_path);
+    writer.delete_term(term);
+
     let mut doc = tantivy::TantivyDocument::new();
     doc.add_text(fields.file_path, rel_path);
     doc.add_text(fields.file_name, &file_name);
@@ -110,7 +114,9 @@ pub fn add_document(
     doc.add_text(fields.title, title);
     doc.add_text(fields.tags, &tags.join(", "));
     doc.add_text(fields.modified, modified);
-    let _ = writer.add_document(doc);
+    writer
+        .add_document(doc)
+        .map_err(|e| format!("写入索引失败: {}", e))?;
 
     writer.commit().map_err(|e| format!("提交索引失败: {}", e))?;
     Ok(())
@@ -137,4 +143,60 @@ pub fn remove_document(workspace: &str, rel_path: &str) -> Result<(), String> {
     writer.delete_term(term);
     writer.commit().map_err(|e| format!("删除文档失败: {}", e))?;
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::knowledge::types::FileMeta;
+    use crate::search::searcher::search;
+    use std::collections::HashMap;
+
+    fn meta(title: &str) -> FileMeta {
+        FileMeta {
+            path: String::new(),
+            title: title.to_string(),
+            links: Vec::new(),
+            linked_from: Vec::new(),
+            tags: Vec::new(),
+            created: String::new(),
+            modified: "2026-01-01".to_string(),
+        }
+    }
+
+    #[test]
+    fn add_document_twice_does_not_duplicate() {
+        let dir = tempfile::tempdir().unwrap();
+        let ws = dir.path().to_string_lossy().to_string();
+        fs::write(format!("{}/a.md", ws), "# Alpha\n\nunique-dup-token body").unwrap();
+
+        let mut files = HashMap::new();
+        files.insert("a.md".to_string(), meta("Alpha"));
+        build_search_index(&ws, &files).unwrap();
+
+        add_document(&ws, "a.md", "Alpha", &[], "2026-01-01").unwrap();
+        add_document(&ws, "a.md", "Alpha", &[], "2026-01-02").unwrap();
+
+        let results = search(&ws, "unique-dup-token", 10).unwrap();
+        assert_eq!(results.len(), 1, "同一文件重复 add 不应产生重复文档");
+        assert_eq!(results[0].file_path, "a.md");
+    }
+
+    #[test]
+    fn add_after_remove_is_indexed_once() {
+        let dir = tempfile::tempdir().unwrap();
+        let ws = dir.path().to_string_lossy().to_string();
+        fs::write(format!("{}/a.md", ws), "# Alpha\n\nreappear-token body").unwrap();
+
+        let mut files = HashMap::new();
+        files.insert("a.md".to_string(), meta("Alpha"));
+        build_search_index(&ws, &files).unwrap();
+
+        remove_document(&ws, "a.md").unwrap();
+        assert!(search(&ws, "reappear-token", 10).unwrap().is_empty());
+
+        add_document(&ws, "a.md", "Alpha", &[], "2026-01-03").unwrap();
+        let results = search(&ws, "reappear-token", 10).unwrap();
+        assert_eq!(results.len(), 1);
+    }
 }

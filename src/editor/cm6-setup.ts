@@ -9,6 +9,8 @@ import { editorKeyBindings } from './keybindings'
 import { wrapSelectionAsLink, insertImageFromPath } from './format-helpers'
 import * as bridge from '../services/bridge'
 import { useTabStore } from '../stores/tab-store'
+import { useNotificationStore } from '../stores/notification-store'
+import i18n from '../i18n/i18n'
 import { wysiwygMode } from './wysiwyg-plugin'
 import { typewriterScrollListener } from './typewriter-mode'
 import { wikiLinkExtensions, wikiLinkCompletion } from './wikilinks-plugin'
@@ -65,7 +67,8 @@ export function createEditorView(
                 if (!activeFilePath) return
 
                 const dirPath = activeFilePath.replace(/[\\/][^\\/]*$/, '')
-                const assetsDir = dirPath + '/' + (localStorage.getItem('confucius-image-path') || 'assets')
+                const imagePath = (localStorage.getItem('confucius-image-path') || 'assets').replace(/[\\/]+$/, '')
+                const assetsDir = dirPath + '/' + imagePath
                 // 文件名：时间戳 + 原始扩展名
                 const ts = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19)
                 const ext = file.name?.split('.').pop() || 'png'
@@ -74,14 +77,16 @@ export function createEditorView(
                   await bridge.saveImageFile(base64, fileName, assetsDir)
                   const { from } = view.state.selection.main
                   const alt = file.name?.replace(/\.[^.]+$/, '') || 'image'
-                  const relPath = `assets/${fileName}`
+                  const relPath = `${imagePath}/${fileName}`
                   const markdown = `![${alt}](${relPath})`
                   view.dispatch({
                     changes: { from, insert: markdown },
                     selection: { anchor: from + markdown.length },
                   })
                 } catch (err) {
+                  const msg = err instanceof Error ? err.message : String(err)
                   console.error('保存剪贴板图片失败:', err)
+                  useNotificationStore.getState().showToast(i18n.t('toast.imageSaveFailed', { msg }), 'error')
                 }
               }
               reader.readAsDataURL(file)

@@ -88,7 +88,9 @@ fn resolve_links(files: &mut HashMap<String, FileMeta>, links: &mut Vec<Link>) {
             .or_insert_with(|| fp.clone());
     }
 
-    for (src_path, meta) in files.clone().iter() {
+    // 先收集所有链接（借用 files），再统一写回 linked_from，避免整表克隆
+    let mut outbound: Vec<(String, String)> = Vec::new();
+    for (src_path, meta) in files.iter() {
         for target in &meta.links {
             let lower = target.to_lowercase();
             let resolved = title_to_path.contains_key(&lower);
@@ -102,11 +104,14 @@ fn resolve_links(files: &mut HashMap<String, FileMeta>, links: &mut Vec<Link>) {
             });
 
             if let Some(tp) = title_to_path.get(&lower) {
-                if let Some(target_meta) = files.get_mut(tp) {
-                    if !target_meta.linked_from.contains(src_path) {
-                        target_meta.linked_from.push(src_path.clone());
-                    }
-                }
+                outbound.push((src_path.clone(), tp.clone()));
+            }
+        }
+    }
+    for (src, tp) in outbound {
+        if let Some(target_meta) = files.get_mut(&tp) {
+            if !target_meta.linked_from.contains(&src) {
+                target_meta.linked_from.push(src);
             }
         }
     }
@@ -131,7 +136,10 @@ pub fn save_index(workspace: &str, index: &KnowledgeIndex) -> Result<(), String>
     }
     let json = serde_json::to_string_pretty(index)
         .map_err(|e| format!("序列化失败: {}", e))?;
-    fs::write(&path_str, json).map_err(|e| format!("写入索引失败: {}", e))?;
+    // 原子写：先写临时文件再 rename 替换，避免写盘中断导致索引损坏
+    let tmp = format!("{}.tmp", path_str);
+    fs::write(&tmp, &json).map_err(|e| format!("写入索引失败: {}", e))?;
+    fs::rename(&tmp, &path_str).map_err(|e| format!("替换索引文件失败: {}", e))?;
     Ok(())
 }
 
@@ -146,13 +154,23 @@ pub fn load_index(workspace: &str) -> Result<KnowledgeIndex, String> {
 }
 
 pub fn reindex_file(workspace: &str, file_path: &str) -> Result<(), String> {
-    let mut index =
-        load_index(workspace).unwrap_or_else(|_| KnowledgeIndex {
-            version: 1,
-            files: HashMap::new(),
-            links: Vec::new(),
-            tags: HashMap::new(),
-        });
+    let mut index = match load_index(workspace) {
+        Ok(i) => i,
+        Err(e) => {
+            if Path::new(&index_path(workspace)).exists() {
+                // 索引损坏或版本不兼容：全量重建，避免空索引覆盖导致全库索引丢失
+                full_scan(workspace)
+                    .map_err(|_| format!("索引文件损坏且全量重建失败: {}", e))?
+            } else {
+                KnowledgeIndex {
+                    version: 1,
+                    files: HashMap::new(),
+                    links: Vec::new(),
+                    tags: HashMap::new(),
+                }
+            }
+        }
+    };
 
     let rel = relative(workspace, file_path);
     let path = Path::new(file_path);
@@ -318,6 +336,40 @@ mod tests {
         let loaded = load_index(&d).unwrap();
         assert_eq!(loaded.files.len(), 2);
         assert!(loaded.tags.contains_key("tag"));
+    }
+
+    #[test]
+    fn reindex_with_corrupt_index_recovers_by_full_scan() {
+        let (_dir, d) = setup_tmp();
+        write_file(&d, "a.md", "# A");
+        write_file(&d, "b.md", "# B");
+
+        // 先写入一个损坏的 index.json
+        let index_path = format!("{}/.confucius/index.json", d);
+        fs::create_dir_all(Path::new(&index_path).parent().unwrap()).unwrap();
+        fs::write(&index_path, "not-valid-json{").unwrap();
+
+        reindex_file(&d, &format!("{}/a.md", d)).unwrap();
+
+        // 损坏索引应触发全量重建，而不是只剩 a.md
+        let loaded = load_index(&d).unwrap();
+        assert_eq!(loaded.files.len(), 2);
+        assert!(loaded.files.contains_key("a.md"));
+        assert!(loaded.files.contains_key("b.md"));
+    }
+
+    #[test]
+    fn save_index_leaves_no_tmp_file() {
+        let (_dir, d) = setup_tmp();
+        write_file(&d, "test.md", "# Hello");
+
+        let index = full_scan(&d).unwrap();
+        save_index(&d, &index).unwrap();
+
+        // 原子写后不应残留临时文件
+        assert!(!Path::new(&format!("{}/.confucius/index.json.tmp", d)).exists());
+        let loaded = load_index(&d).unwrap();
+        assert_eq!(loaded.files.len(), 1);
     }
 
     #[test]

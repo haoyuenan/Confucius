@@ -1,8 +1,10 @@
-import { useEffect, useCallback, useRef, useState } from 'react'
+import { useEffect, useCallback, useRef, useState, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
+import i18n from '../../i18n/i18n'
 import { useSidebarStore } from '../../stores/sidebar-store'
 import { useTabStore } from '../../stores/tab-store'
 import { useKnowledgeStore } from '../../stores/knowledge-store'
+import { useNotificationStore } from '../../stores/notification-store'
 import { flattenTree, type FileTreeNode } from '../../types/file-tree'
 import { fileNameFromPath } from '../../utils/path'
 import * as bridge from '../../services/bridge'
@@ -122,12 +124,14 @@ function FileTreePanel() {
 
   // 监听文件变更
   useEffect(() => {
-    const cleanup = bridge.onFileTreeChanged(() => {
+    const cleanup = bridge.onFileTreeChanged((paths) => {
       const currentRoot = useSidebarStore.getState().rootPath
       if (currentRoot) {
         bridge.buildFileTree(currentRoot).then((tree) => {
           useSidebarStore.getState().refreshFileTree(tree)
         })
+        // 增量更新知识索引（反链/图谱/标签/全文搜索）
+        useKnowledgeStore.getState().reindex(paths)
       }
     })
     return () => cleanup?.()
@@ -139,12 +143,19 @@ function FileTreePanel() {
     if (!folderPath) return
     setRootPath(folderPath)
     setFileTreeLoading(true)
-    const tree = await bridge.buildFileTree(folderPath)
-    setFileTree(tree)
-    setFileTreeLoading(false)
-    await bridge.startFileWatcher(folderPath)
-    // 初始化知识库索引
-    useKnowledgeStore.getState().initialize(folderPath)
+    try {
+      const tree = await bridge.buildFileTree(folderPath)
+      setFileTree(tree)
+      await bridge.startFileWatcher(folderPath)
+      // 初始化知识库索引
+      useKnowledgeStore.getState().initialize(folderPath)
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err)
+      console.error('打开文件夹失败:', err)
+      useNotificationStore.getState().showToast(i18n.t('toast.folderOpenFailed', { msg }), 'error')
+    } finally {
+      setFileTreeLoading(false)
+    }
   }, [setRootPath, setFileTree, setFileTreeLoading])
 
   /** 关闭文件夹 */
@@ -169,6 +180,7 @@ function FileTreePanel() {
         addRecentFile(node.path)
       } catch (err) {
         console.error('打开文件失败:', err)
+        useNotificationStore.getState().showToast(i18n.t('toast.openFailed', { name: node.name }), 'error')
       }
     },
     [toggleExpand, selectFile, openFile],
@@ -183,13 +195,65 @@ function FileTreePanel() {
     [],
   )
 
-  const flatItems = fileTree ? flattenTree(fileTree, expandedPaths, 0) : []
+  const flatItems = useMemo(
+    () => (fileTree ? flattenTree(fileTree, expandedPaths, 0) : []),
+    [fileTree, expandedPaths],
+  )
 
   const listRef = useRef<HTMLDivElement>(null)
   const { visibleIndices, totalHeight, offsetY, onScroll } = useVirtualList({
     itemHeight: 28,
     totalCount: flatItems.length,
   })
+
+  // 键盘导航后 focus 目标节点（虚拟列表渲染完成后执行）
+  const focusTreeRef = useRef(false)
+  useEffect(() => {
+    if (!focusTreeRef.current || !selectedPath) return
+    focusTreeRef.current = false
+    const el = listRef.current?.querySelector<HTMLElement>(
+      `[data-path="${CSS.escape(selectedPath)}"]`,
+    )
+    el?.focus()
+  }, [selectedPath, flatItems.length])
+
+  /** 文件树键盘导航：↑↓ 移动、←→ 展开/折叠、Enter 打开 */
+  const handleTreeKeyDown = useCallback(
+    (e: React.KeyboardEvent, index: number) => {
+      const item = flatItems[index]
+      if (!item) return
+      const { node } = item
+      switch (e.key) {
+        case 'ArrowDown':
+          e.preventDefault()
+          if (index < flatItems.length - 1) {
+            focusTreeRef.current = true
+            selectFile(flatItems[index + 1].node.path)
+          }
+          break
+        case 'ArrowUp':
+          e.preventDefault()
+          if (index > 0) {
+            focusTreeRef.current = true
+            selectFile(flatItems[index - 1].node.path)
+          }
+          break
+        case 'ArrowRight':
+          e.preventDefault()
+          if (node.type === 'directory' && !expandedPaths.has(node.path)) toggleExpand(node.path)
+          break
+        case 'ArrowLeft':
+          e.preventDefault()
+          if (node.type === 'directory' && expandedPaths.has(node.path)) toggleExpand(node.path)
+          break
+        case 'Enter':
+          e.preventDefault()
+          handleFileClick(node)
+          break
+      }
+    },
+    [flatItems, expandedPaths, selectFile, toggleExpand, handleFileClick],
+  )
 
   useEffect(() => {
     const el = listRef.current
@@ -215,7 +279,7 @@ function FileTreePanel() {
         <button className="toolbar-btn" onClick={handleCloseFolder} title={t('sidebar.fileTree.closeFolder')}>✕</button>
       </div>
 
-      <div className="file-tree-list" ref={listRef} onScroll={handleListScroll}>
+      <div className="file-tree-list" ref={listRef} onScroll={handleListScroll} role="tree" aria-label={t('sidebar.fileTree.title')}>
         {flatItems.length === 0 && !isFileTreeLoading ? (
           <div className="sidebar-empty">{t('sidebar.fileTree.empty')}</div>
         ) : flatItems.length === 0 && isFileTreeLoading ? (
@@ -225,16 +289,23 @@ function FileTreePanel() {
             <div style={{ transform: `translateY(${offsetY}px)` }}>
               {visibleIndices.map((i) => {
                 const { depth, node } = flatItems[i]
+                const isDir = node.type === 'directory'
                 return (
                   <div
                     key={node.path}
+                    data-path={node.path}
+                    role="treeitem"
+                    aria-selected={selectedPath === node.path}
+                    aria-expanded={isDir ? expandedPaths.has(node.path) : undefined}
+                    tabIndex={0}
                     className={`file-tree-item ${selectedPath === node.path ? 'selected' : ''}`}
                     style={{ paddingLeft: 12 + depth * 16, height: 28 }}
                     onClick={() => handleFileClick(node)}
+                    onKeyDown={(e) => handleTreeKeyDown(e, i)}
                     onContextMenu={(e) => handleContextMenu(e, node)}
                   >
                     <span className="file-icon">
-                      {node.type === 'directory'
+                      {isDir
                         ? expandedPaths.has(node.path) ? '▼' : '▶'
                         : '📄'}
                     </span>

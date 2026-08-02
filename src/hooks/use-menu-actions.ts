@@ -3,6 +3,7 @@ import { useEditorStore } from '../stores/editor-store'
 import { useTabStore } from '../stores/tab-store'
 import { useSidebarStore } from '../stores/sidebar-store'
 import { checkLargeFile } from '../editor/large-file-handler'
+import i18n from '../i18n/i18n'
 import * as bridge from '../services/bridge'
 
 interface MenuActionOptions {
@@ -55,7 +56,9 @@ export function useMenuActions({
   useEffect(() => {
     const cleanup = bridge.onExportDone((info) => {
       if (window.Notification?.permission === 'granted') {
-        new window.Notification('导出完成', { body: `${info.format} 已保存到 ${info.path}` })
+        new window.Notification(i18n.t('app.notification.exportDone'), {
+          body: i18n.t('app.notification.exportBody', { format: info.format, path: info.path }),
+        })
       }
     })
     return () => cleanup?.()

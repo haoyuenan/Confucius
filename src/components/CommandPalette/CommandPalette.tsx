@@ -41,6 +41,7 @@ export default function CommandPalette({ context, onClose, initialMode = 'comman
   const [mode] = useState<'command' | 'file'>(initialMode)
   const inputRef = useRef<HTMLInputElement>(null)
   const listRef = useRef<HTMLDivElement>(null)
+  const panelRef = useRef<HTMLDivElement>(null)
   const { t } = useTranslation()
   const { searchResults, searchFiles } = useKnowledgeStore()
   const openFile = useTabStore((s) => s.openFile)
@@ -133,6 +134,21 @@ export default function CommandPalette({ context, onClose, initialMode = 'comman
         e.preventDefault()
         onClose()
         break
+      case 'Tab': {
+        // 焦点陷阱：Tab 在面板内循环，不逃逸到背景页面
+        e.preventDefault()
+        const focusables = panelRef.current?.querySelectorAll<HTMLElement>(
+          'input, button, [href], [tabindex]:not([tabindex="-1"])',
+        )
+        if (!focusables || focusables.length === 0) break
+        const list = Array.from(focusables)
+        const idx = list.indexOf(document.activeElement as HTMLElement)
+        const next = e.shiftKey
+          ? (idx <= 0 ? list[list.length - 1] : list[idx - 1])
+          : (idx === -1 || idx === list.length - 1 ? list[0] : list[idx + 1])
+        next.focus()
+        break
+      }
     }
   }, [mode, flatItems, selectedIndex, onClose, searchResults, handleOpenFile])
 
@@ -142,7 +158,14 @@ export default function CommandPalette({ context, onClose, initialMode = 'comman
 
   return (
     <div className={styles.overlay} onClick={handleOverlayClick}>
-      <div className={styles.panel} onKeyDown={handleKeyDown}>
+      <div
+        ref={panelRef}
+        className={styles.panel}
+        role="dialog"
+        aria-modal="true"
+        aria-label={mode === 'file' ? t('commandPalette.placeholderFile') : t('commandPalette.placeholder')}
+        onKeyDown={handleKeyDown}
+      >
         <div className={styles.searchBox}>
           <span className={styles.searchPrefix}>{mode === 'file' ? '📄' : '>'}</span>
           <input
@@ -163,7 +186,7 @@ export default function CommandPalette({ context, onClose, initialMode = 'comman
               </div>
             ) : (
               <div>
-                <div className={styles.categoryHeader}>文件</div>
+                <div className={styles.categoryHeader}>{t('commandPalette.fileHeader')}</div>
                 {searchResults.map((item, idx) => (
                   <div
                     key={item.path}

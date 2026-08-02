@@ -1,5 +1,7 @@
 import { create } from 'zustand'
 import * as bridge from '../services/bridge'
+import { useSidebarStore } from './sidebar-store'
+import { useTabStore } from './tab-store'
 
 const BACKEND_KEY = 'confucius-knowledge-backend'
 
@@ -25,6 +27,8 @@ interface KnowledgeState {
   searchResults: Array<{ path: string; title: string; mtime: string }>
 
   initialize: (workspacePath: string) => Promise<void>
+  /** 文件变更后增量更新索引（watcher 事件触发） */
+  reindex: (paths: string[]) => Promise<void>
   loadBacklinks: (filePath: string) => Promise<void>
   loadGraph: (filePath?: string) => Promise<void>
   loadTags: () => Promise<void>
@@ -32,7 +36,8 @@ interface KnowledgeState {
 }
 
 function getUseRust(): boolean {
-  return localStorage.getItem(BACKEND_KEY) === 'rust'
+  // Rust 为正式引擎（默认）；localStorage 显式设为 'js' 时回退 JS 引擎
+  return localStorage.getItem(BACKEND_KEY) !== 'js'
 }
 
 export const useKnowledgeStore = create<KnowledgeState>((set, get) => ({
@@ -55,6 +60,33 @@ export const useKnowledgeStore = create<KnowledgeState>((set, get) => ({
       set({ initialized: true, useRustBackend: useRust })
     } catch (err) {
       console.error('知识库初始化失败:', err)
+    }
+  },
+
+  reindex: async (paths) => {
+    const { initialized, useRustBackend } = get()
+    if (!initialized || paths.length === 0) return
+    const root = useSidebarStore.getState().rootPath
+    if (!root) return
+    try {
+      if (useRustBackend) {
+        for (const p of paths) {
+          await bridge.knowledgeReindexRust(root, p)
+        }
+      } else {
+        for (const p of paths) {
+          await bridge.knowledgeReindex(p)
+        }
+      }
+      // 刷新当前视图：反链 / 局部图谱 / 标签
+      const activeTab = useTabStore.getState().activeTab()
+      if (activeTab?.filePath) {
+        await get().loadBacklinks(activeTab.filePath)
+        await get().loadGraph(activeTab.filePath)
+      }
+      await get().loadTags()
+    } catch (err) {
+      console.error('知识库索引更新失败:', err)
     }
   },
 

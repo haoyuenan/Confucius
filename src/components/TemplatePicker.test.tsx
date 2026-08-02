@@ -5,7 +5,7 @@ import { expandTemplate, getDefaultVariables, PRESET_TEMPLATES } from '../servic
 
 // Mock stores
 vi.mock('../stores/sidebar-store', () => ({
-  useSidebarStore: (selector: (s: any) => any) => {
+  useSidebarStore: (selector: (s: unknown) => unknown) => {
     const state = {
       rootPath: '/mock/workspace',
       setRootPath: vi.fn(),
@@ -16,7 +16,7 @@ vi.mock('../stores/sidebar-store', () => ({
 }))
 
 vi.mock('../stores/tab-store', () => ({
-  useTabStore: (selector: (s: any) => any) => {
+  useTabStore: (selector: (s: unknown) => unknown) => {
     const state = {
       openFile: vi.fn(),
     }

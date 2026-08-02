@@ -1,6 +1,7 @@
 import { EditorView, ViewPlugin, ViewUpdate, showTooltip } from '@codemirror/view'
 import { StateField, StateEffect } from '@codemirror/state'
 import { loadConfig, streamGenerate, checkHealth, type AIAction } from '../services/ai-service'
+import { useNotificationStore } from '../stores/notification-store'
 import i18n from '../i18n/i18n'
 
 const _tooltipViews = new WeakMap<Node, EditorView>()
@@ -64,7 +65,10 @@ export function aiTooltipPlugin() {
           const config = loadConfig()
           const healthy = await checkHealth(config.endpoint)
           if (!healthy) {
-            alert(t('ai.noConnection') + '\n' + t('ai.noConnectionHint'))
+            useNotificationStore.getState().showToast(
+              t('ai.noConnection') + ' ' + t('ai.noConnectionHint'),
+              'error',
+            )
             return
           }
 
@@ -81,7 +85,9 @@ export function aiTooltipPlugin() {
               })
             },
             onError(err) {
+              const msg = err instanceof Error ? err.message : String(err)
               console.error('AI 操作失败:', err)
+              useNotificationStore.getState().showToast(i18n.t('toast.aiError', { msg }), 'error')
             },
           })
         })

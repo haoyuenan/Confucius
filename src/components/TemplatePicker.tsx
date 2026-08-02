@@ -27,11 +27,11 @@ export function TemplatePicker({ onClose }: { onClose: () => void }) {
     setError('')
 
     if (!rootPath) {
-      setError('请先打开一个文件夹再创建笔记')
+      setError(t('template.picker.errorNoFolder'))
       return
     }
     if (!selected) {
-      setError('请选择一个模板')
+      setError(t('template.picker.errorNoTemplate'))
       return
     }
     if (creating) return
@@ -41,7 +41,7 @@ export function TemplatePicker({ onClose }: { onClose: () => void }) {
     try {
       const content = PRESET_TEMPLATES[selected]
       if (!content) {
-        setError('模板内容为空')
+        setError(t('template.picker.errorEmptyTemplate'))
         return
       }
 
@@ -79,7 +79,7 @@ export function TemplatePicker({ onClose }: { onClose: () => void }) {
         <div className="dialog-body">
           {noFolder && (
             <div className="template-error">
-              ⚠ 请先在侧边栏打开一个文件夹，再使用模板创建笔记
+              {t('template.picker.errorNoFolderHint')}
             </div>
           )}
 
