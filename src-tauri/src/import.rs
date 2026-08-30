@@ -169,14 +169,18 @@ pub fn check_pandoc() -> bool {
 }
 
 #[tauri::command]
-pub fn import_file(source_path: String) -> Result<serde_json::Value, String> {
+pub async fn import_file(source_path: String) -> Result<serde_json::Value, String> {
     // 与其它文件命令保持一致的路径校验（拒绝 `..` 遍历和空字节）
     crate::sanitize_path(&source_path)?;
-    let (content, suggested_name) = convert_file(&source_path)?;
-    Ok(serde_json::json!({
-        "content": content,
-        "suggestedName": suggested_name
-    }))
+    tauri::async_runtime::spawn_blocking(move || {
+        let (content, suggested_name) = convert_file(&source_path)?;
+        Ok(serde_json::json!({
+            "content": content,
+            "suggestedName": suggested_name
+        }))
+    })
+    .await
+    .map_err(|e| format!("导入任务失败: {}", e))?
 }
 
 #[cfg(test)]
@@ -222,21 +226,21 @@ mod tests {
         assert!(pdf_to_md_fallback("x.pdf").is_err());
     }
 
-    #[test]
-    fn import_file_rejects_path_traversal() {
-        let err = import_file("../../etc/passwd.docx".to_string()).unwrap_err();
+    #[tokio::test]
+    async fn import_file_rejects_path_traversal() {
+        let err = import_file("../../etc/passwd.docx".to_string()).await.unwrap_err();
         assert!(err.contains(".."));
     }
 
-    #[test]
-    fn import_file_rejects_null_byte() {
-        assert!(import_file("evil\0.docx".to_string()).is_err());
+    #[tokio::test]
+    async fn import_file_rejects_null_byte() {
+        assert!(import_file("evil\0.docx".to_string()).await.is_err());
     }
 
-    #[test]
-    fn import_file_rejects_unsupported_format() {
+    #[tokio::test]
+    async fn import_file_rejects_unsupported_format() {
         // 路径合法但扩展名不支持：应在读取文件前就报错
-        let err = import_file("notes.txt".to_string()).unwrap_err();
+        let err = import_file("notes.txt".to_string()).await.unwrap_err();
         assert!(err.contains("不支持的导入格式"));
     }
 }

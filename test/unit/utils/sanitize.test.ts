@@ -35,4 +35,34 @@ describe('sanitize', () => {
     const result = sanitizeHtml('<img src="x" onerror="alert(1)">')
     expect(result).not.toContain('onerror')
   })
+
+  test('保留 wiki-link 标签及 data-title', () => {
+    const result = sanitizeHtml('<wiki-link data-title="目标">label</wiki-link>')
+    expect(result).toContain('<wiki-link')
+    expect(result).toContain('data-title="目标"')
+  })
+
+  test('保留任务列表 input checkbox', () => {
+    const result = sanitizeHtml('<ul><li><input type="checkbox" disabled> task</li></ul>')
+    expect(result).toContain('<input')
+    expect(result).toContain('type="checkbox"')
+  })
+
+  test('保留 KaTeX 的 data-tex 属性', () => {
+    const result = sanitizeHtml('<span class="katex" data-tex="E=mc^2">x</span>')
+    expect(result).toContain('data-tex="E=mc^2"')
+  })
+
+  test('保留 Mermaid SVG 的 style / transform 属性', () => {
+    const result = sanitizeHtml(
+      '<svg viewBox="0 0 100 100"><g transform="translate(1,2)"><text style="fill:#333">h</text></g></svg>',
+    )
+    expect(result).toContain('transform="translate(1,2)"')
+    expect(result).toContain('style="fill:#333"')
+  })
+
+  test('未列入白名单的 data-* 属性仍被过滤', () => {
+    const result = sanitizeHtml('<span data-xss="evil">text</span>')
+    expect(result).not.toContain('data-xss')
+  })
 })

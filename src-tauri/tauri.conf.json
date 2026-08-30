@@ -24,7 +24,18 @@
     "security": {
       "csp": "default-src 'self'; img-src 'self' asset: http: https: data: asset.localhost; style-src 'self' 'unsafe-inline'; connect-src 'self' ipc: http://ipc.localhost http://localhost:* http://127.0.0.1:*",
       "assetProtocol": {
-        "scope": ["**"]
+        "scope": [
+          "**/*.md",
+          "**/*.markdown",
+          "**/*.png",
+          "**/*.jpg",
+          "**/*.jpeg",
+          "**/*.gif",
+          "**/*.svg",
+          "**/*.webp",
+          "**/*.ico",
+          "**/*.bmp"
+        ]
       }
     }
   },

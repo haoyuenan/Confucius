@@ -15,46 +15,49 @@ pub fn sanitize_html(html: &str) -> String {
 
     tag_attrs.insert("a", HashSet::from(["href", "title", "target"]));
     tag_attrs.insert("img", HashSet::from(["src", "alt", "title", "width", "height"]));
-    tag_attrs.insert("span", HashSet::from(["class", "data-tex", "id"]));
-    tag_attrs.insert("div", HashSet::from(["class", "id"]));
-    tag_attrs.insert("pre", HashSet::from(["class"]));
-    tag_attrs.insert("code", HashSet::from(["class"]));
-    tag_attrs.insert("td", HashSet::from(["class"]));
-    tag_attrs.insert("th", HashSet::from(["class"]));
-    tag_attrs.insert("wiki-link", HashSet::from(["data-title"]));
-    tag_attrs.insert("sup", HashSet::from(["class"]));
+    tag_attrs.insert("span", HashSet::from(["class", "data-tex", "id", "style"]));
+    tag_attrs.insert("div", HashSet::from(["class", "id", "style"]));
+    tag_attrs.insert("pre", HashSet::from(["class", "style"]));
+    tag_attrs.insert("code", HashSet::from(["class", "style"]));
+    tag_attrs.insert("td", HashSet::from(["class", "style"]));
+    tag_attrs.insert("th", HashSet::from(["class", "style"]));
+    tag_attrs.insert("p", HashSet::from(["style"]));
+    tag_attrs.insert("li", HashSet::from(["style"]));
+    tag_attrs.insert("wiki-link", HashSet::from(["data-title", "style"]));
+    tag_attrs.insert("sup", HashSet::from(["class", "style"]));
     tag_attrs.insert("input", HashSet::from(["type", "checked", "disabled"]));
     tag_attrs.insert(
         "svg",
-        HashSet::from(["xmlns", "viewBox", "width", "height", "class"]),
+        HashSet::from(["xmlns", "viewBox", "width", "height", "class", "style"]),
     );
     tag_attrs.insert(
         "path",
-        HashSet::from(["d", "fill", "stroke", "stroke-width"]),
+        HashSet::from(["d", "fill", "stroke", "stroke-width", "style", "transform"]),
     );
-    tag_attrs.insert("g", HashSet::from(["fill", "stroke"]));
+    tag_attrs.insert("g", HashSet::from(["fill", "stroke", "style", "transform"]));
     tag_attrs.insert(
         "rect",
-        HashSet::from(["x", "y", "width", "height", "rx", "ry", "fill"]),
+        HashSet::from(["x", "y", "width", "height", "rx", "ry", "fill", "style", "transform"]),
     );
-    tag_attrs.insert("circle", HashSet::from(["cx", "cy", "r", "fill"]));
+    tag_attrs.insert("circle", HashSet::from(["cx", "cy", "r", "fill", "style", "transform"]));
     tag_attrs.insert(
         "text",
-        HashSet::from(["x", "y", "fill", "font-size"]),
+        HashSet::from(["x", "y", "fill", "font-size", "style", "transform"]),
     );
-    tag_attrs.insert("tspan", HashSet::from(["x", "dy", "fill"]));
+    tag_attrs.insert("tspan", HashSet::from(["x", "dy", "fill", "style", "transform"]));
     tag_attrs.insert(
         "line",
-        HashSet::from(["x1", "y1", "x2", "y2", "stroke", "stroke-width"]),
+        HashSet::from(["x1", "y1", "x2", "y2", "stroke", "stroke-width", "style", "transform"]),
     );
     tag_attrs.insert(
         "polyline",
-        HashSet::from(["points", "fill", "stroke"]),
+        HashSet::from(["points", "fill", "stroke", "style", "transform"]),
     );
     tag_attrs.insert(
         "polygon",
-        HashSet::from(["points", "fill", "stroke"]),
+        HashSet::from(["points", "fill", "stroke", "style", "transform"]),
     );
+    tag_attrs.insert("defs", HashSet::from(["style", "transform"]));
 
     Builder::default()
         .tags(tags)
@@ -92,6 +95,22 @@ mod tests {
         let result = sanitize_html("<wiki-link data-title=\"page\">text</wiki-link>");
         assert!(result.contains("<wiki-link"));
         assert!(result.contains("data-title"));
+    }
+
+    #[test]
+    fn test_allows_input_checkbox() {
+        let result = sanitize_html("<input type=\"checkbox\" disabled>");
+        assert!(result.contains("<input"));
+        assert!(result.contains("type=\"checkbox\""));
+    }
+
+    #[test]
+    fn test_allows_style_and_transform_for_svg() {
+        let result = sanitize_html(
+            "<svg viewBox=\"0 0 100 100\"><g transform=\"translate(1,2)\"><text style=\"fill:#333\">h</text></g></svg>",
+        );
+        assert!(result.contains("transform=\"translate(1,2)\""));
+        assert!(result.contains("style=\"fill:#333\""));
     }
 
     #[test]
