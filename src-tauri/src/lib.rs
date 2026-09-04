@@ -1,5 +1,4 @@
 mod knowledge;
-mod render;
 mod search;
 mod import;
 
@@ -617,10 +616,8 @@ pub fn run() {
     tauri::Builder::default()
         .manage(Mutex::new(None::<WatcherState>))
         .manage(Mutex::new(None::<knowledge::types::KnowledgeIndex>))
-        .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_shell::init())
-        .plugin(tauri_plugin_process::init())
         .invoke_handler(tauri::generate_handler![
             build_file_tree,
             search_text,
@@ -637,7 +634,6 @@ pub fn run() {
             start_file_watcher,
             stop_file_watcher,
             get_app_version,
-            knowledge::knowledge_init,
             knowledge::knowledge_init_loaded,
             knowledge::knowledge_get_backlinks,
             knowledge::knowledge_get_graph,
@@ -645,7 +641,6 @@ pub fn run() {
             knowledge::knowledge_reindex,
             import::check_pandoc,
             import::import_file,
-            render::render_markdown,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

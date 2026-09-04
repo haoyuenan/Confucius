@@ -61,7 +61,6 @@ Rust 后端 (src-tauri/src/lib.rs)
 │   └── large-file-handler.ts # 大文件检测
 ├── services/
 │   ├── bridge.ts  # Tauri invoke() 封装层
-│   ├── knowledge-service.ts # 知识库引擎（维基链接/标签/图谱）
 │   ├── theme-service.ts    # 主题切换
 │   ├── workspace-store.ts  # 工作区会话持久化
 │   ├── command-registry.ts # 命令注册与模糊搜索
@@ -166,11 +165,11 @@ ThemeService 通过 `document.documentElement.dataset.theme` 切换，同时联�
 
 ## 知识库引擎
 
-`src/services/knowledge-service.ts` — 纯前端实现：
+由 Rust 引擎（`src-tauri/src/knowledge/`）实现，前端通过 `bridge.ts` 调用 IPC 命令：
 - 解析 `[[维基链接]]`、`#标签`、YAML frontmatter
 - 索引存储在 `.confucius/index.json`（工作区隐藏目录）
-- 打开工作区时全量扫描，文件变更时增量更新
-- 提供反链、图谱数据、标签浏览、文件搜索、维基链接解析
+- 打开工作区时全量扫描（`knowledge_init_loaded`），文件变更时增量更新（`knowledge_reindex`）
+- 提供反链、图谱数据、标签浏览、文件搜索（Tantivy `search_text`）、维基链接解析
 
 ## 构建与部署
 

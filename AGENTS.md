@@ -21,12 +21,13 @@ npm run version:bump -- 0.7.0  # Bump version in package.json + Cargo.toml + tau
 
 **IPC flow**: React component → `src/services/bridge.ts` (the only file that calls `invoke()`) → Rust command → direct `std::fs` operations. Channel naming follows the original Electron IPC: `<domain>:<action>` (e.g. `file:read`, `search:query`).
 
-**State management**: Five Zustand stores in `src/stores/`:
+**State management**: Six Zustand stores in `src/stores/`:
 - `app-store.ts` — app info, sidebar toggle/width
 - `editor-store.ts` — editor mode (split/wysiwyg/preview), content, loading state
 - `sidebar-store.ts` — active tab, root path, file tree, expanded paths, outline, search
 - `tab-store.ts` — tab management (open/close/active/modification)
-- `knowledge-store.ts` — backlinks, graph data, tags, file search (supports JS/Rust dual backend)
+- `knowledge-store.ts` — backlinks, graph data, tags, file search (Rust backend)
+- `notification-store.ts` — toast notifications
 
 **Editor pipeline**: Three modes — `split` (dual-pane with draggable divider), `wysiwyg` (single-pane with syntax marker hiding), `preview` (full-screen reading). CM6 extensions composed in `src/editor/cm6-setup.ts`. Key custom extensions: `wikilinks-plugin.ts` (`[[` autocomplete + Ctrl+Click), `tags-plugin.ts` (`#` autocomplete), `ai-tooltip-plugin.ts` (AI floating menu on text selection).
 
@@ -34,7 +35,7 @@ npm run version:bump -- 0.7.0  # Bump version in package.json + Cargo.toml + tau
 
 **Theme system**: Twelve CSS files in `themes/` define light/dark mode variables via `html[data-theme='<id>']` selectors. ThemeService manages switching and per-mode memory (localStorage key `confucius-theme`).
 
-**Knowledge base**: Dual-engine architecture with **Rust as the primary engine (default)** and JS engine (`src/services/knowledge-service.ts`) as fallback only. Rust engine in `src-tauri/src/knowledge/` parses `[[wikilinks]]`, `#tags`, and YAML frontmatter; index stored in `.confucius/index.json`. Backend is switchable via localStorage `confucius-knowledge-backend` — unset or `"rust"` uses Rust; explicit `"js"` uses the JS fallback. `bridge.knowledgeSearchFiles`/`knowledgeResolveLink` route to Tantivy (`search_text`) under the Rust backend.
+**Knowledge base**: Single-engine architecture backed entirely by Rust. `src-tauri/src/knowledge/` parses `[[wikilinks]]`, `#tags`, and YAML frontmatter; index stored in `.confucius/index.json`. `bridge.knowledgeSearchFiles`/`knowledgeResolveLink` route to Tantivy (`search_text`). There is no JS knowledge engine — all knowledge/backlink/graph/tag operations go through the Rust IPC commands.
 
 **Full-text search**: Tantivy inverted index in `src-tauri/src/search/` replaces the old regex linear scan for non-regex, non-case-sensitive queries. Index stored in `.confucius/tantivy/`. Regex search falls back to the original parallel-scan implementation.
 
@@ -63,7 +64,7 @@ npm run version:bump -- 0.7.0  # Bump version in package.json + Cargo.toml + tau
 
 **Naming trap**: Rust commands use `snake_case`, bridge exports use `camelCase`. The `invoke()` string must match the Rust function name exactly.
 
-**serde camelCase**: All Rust types returned via IPC must have `#[serde(rename_all = "camelCase")]` to match frontend TypeScript interfaces. Types read/written to `index.json` must also use camelCase for compatibility with the JS knowledge service.
+**serde camelCase**: All Rust types returned via IPC must have `#[serde(rename_all = "camelCase")]` to match frontend TypeScript interfaces. Types read/written to `index.json` must also use camelCase (the Rust knowledge index reads them back).
 
 ## Adding a new Rust module
 
@@ -87,7 +88,7 @@ npm run version:bump -- 0.7.0  # Bump version in package.json + Cargo.toml + tau
 
 - `sidebar-store.ts` uses `Set<string>` for `expandedPaths` — careful with serialization/persistence
 - `tab-store` directly calls `useEditorStore.getState().setContent()` — modifying one store may require updating the other
-- Knowledge base has dual backend with **Rust as default** (unset localStorage or `"rust"`); JS fallback only when localStorage `confucius-knowledge-backend` = `"js"`. JS path calls `knowledge-service.ts` methods directly (no `invoke()`). Rust path uses `invoke('knowledge_init_loaded')` etc. Under Rust backend, `knowledgeSearchFiles`/`knowledgeResolveLink` route to Tantivy `search_text`.
+- Knowledge base is Rust-only: all knowledge operations use `invoke('knowledge_init_loaded')`, `knowledge_get_backlinks`, `knowledge_get_graph`, `knowledge_get_tags`, `knowledge_reindex`, and `search_text` (Tantivy). There is no JS fallback engine.
 - `readFile()` in bridge strips BOM client-side; `readFileRaw()` does NOT strip BOM
 - `search_text` Rust command delegates to Tantivy for non-regex, non-case-sensitive searches. Regex searches still use the old parallel regex scan.
 - Tantivy index lives in `.confucius/tantivy/`; knowledge index in `.confucius/index.json`. Both share the same workspace root.
@@ -111,7 +112,6 @@ npm run version:bump -- 0.7.0  # Bump version in package.json + Cargo.toml + tau
 | `src/hooks/` | Custom hooks (virtual-list, auto-save, session-restore, etc.) |
 | `src/editor/cm6-setup.ts` | CM6 extension composition (includes ai-tooltip-plugin) |
 | `src/editor/ai-tooltip-plugin.ts` | AI floating menu on text selection |
-| `src/services/knowledge-service.ts` | Knowledge base engine (JS fallback) |
 | `src/services/theme-service.ts` | Theme switching and persistence |
 | `test/setup.ts` | Global Vitest mocks |
 | `test/e2e/helpers.ts` | Playwright fixtures and helpers |

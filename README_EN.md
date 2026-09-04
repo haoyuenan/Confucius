@@ -24,7 +24,7 @@ Split editing mode: CodeMirror 6 editor on the left, markdown-it live preview on
 - **Global Knowledge Graph**: D3.js force-directed graph with global/local modes, drag, zoom, and click-to-navigate
 - **Quick Open**: `Ctrl+O` fuzzy search across filenames and titles
 - **Daily Notes**: One-click create today's note, auto-archived to `journal/YYYY/MM/YYYY-MM-DD.md` with frontmatter
-- **Rust Knowledge Engine**: Knowledge base indexing migrated to Rust backend, 1000+ file scan < 3s
+- **Rust Knowledge Engine**: Knowledge base indexing, backlinks, graph, and tags handled by a single Rust engine, 1000+ file scan < 3s
 - **Tantivy Full-Text Search**: Inverted index search engine replaces linear scanning, sub-100ms search for large vaults
 
 ### Editor
@@ -176,18 +176,16 @@ confucius/
 │   │   ├── Sidebar/                # Sidebar (file tree/outline/search/backlinks/tags/graph)
 │   │   ├── Settings/               # Settings panel
 │   │   ├── TemplatePicker.tsx      # Template selection dialog
-│   │   ├── AIConfigDialog.tsx      # AI config dialog
 │   │   └── DailyNoteButton.tsx     # New note button
 │   ├── services/
 │   │   ├── bridge.ts               # Tauri IPC wrapper
 │   │   ├── command-registry.ts     # Built-in commands + fuzzy search
-│   │   ├── knowledge-service.ts    # Knowledge base engine (JS, being phased out)
 │   │   ├── theme-service.ts        # Theme management (12 themes)
 │   │   ├── template-service.ts     # Template system
 │   │   ├── import-service.ts       # Multi-format import service
 │   │   ├── ai-service.ts           # Ollama AI service
 │   │   └── recent-files.ts         # Recent files tracking
-│   ├── stores/                     # Zustand stores (5 stores)
+│   ├── stores/                     # Zustand stores (6 stores)
 │   ├── editor/                     # CM6 extensions (ai-tooltip, wikilinks, tags, wysiwyg, etc.)
 │   ├── hooks/                      # Custom hooks (virtual scrolling, etc.)
 │   └── styles/                     # CSS styles
@@ -201,6 +199,14 @@ confucius/
 ```
 
 ## Changelog
+
+### v1.1.0 (unreleased)
+
+**Architecture consolidation & dead-code cleanup**:
+- **Single knowledge engine**: removed the JS knowledge engine (`knowledge-service.ts`); all index/backlinks/graph/tags are now handled by the Rust engine + Tantivy. Removed the dual-backend switch (`confucius-knowledge-backend`).
+- **Single render pipeline**: removed the Rust Markdown render pipeline (`src-tauri/src/render/`) and its unused `render_markdown` command; only the frontend markdown-it renderer remains.
+- **Dead-code cleanup**: removed the never-invoked `knowledge_init` command, the `AIConfigDialog` component, and `types/file.ts` (`FileResult`).
+- **Dependency cleanup**: removed unused `@tauri-apps/plugin-fs` and `@tauri-apps/plugin-process` (plus their Rust init and capability grants), and the `syntect`/`ammonia`/`pulldown-cmark` crates used only by the removed render module.
 
 ### v1.0.0
 

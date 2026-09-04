@@ -259,56 +259,58 @@ describe('bridge app info', () => {
   })
 })
 
-describe('bridge knowledge (JS fallback wrapper)', () => {
-  it('knowledgeInitialize 初始化索引并返回 true', async () => {
-    await expect(bridge.knowledgeInitialize('/ws')).resolves.toBe(true)
-  })
-
-  it('knowledgeGetBacklinks / knowledgeGetGraph / knowledgeGetTags 返回结构', () => {
-    expect(bridge.knowledgeGetBacklinks('/ws/a.md')).toEqual({ linked: [], unlinked: [] })
-    const graph = bridge.knowledgeGetGraph()
-    expect(Array.isArray(graph.nodes)).toBe(true)
-    expect(bridge.knowledgeGetTags()).toEqual({})
-  })
-
-  it('knowledgeCreateDailyNote 返回文件路径', async () => {
-    const path = await bridge.knowledgeCreateDailyNote()
-    expect(path).toMatch(/\.md$/)
-  })
-
-  it('knowledgeReindex 返回 true', async () => {
-    await expect(bridge.knowledgeReindex('/ws/a.md')).resolves.toBe(true)
-  })
-
-  it('knowledgeSearchFiles 在空根路径时走 JS 回退', async () => {
+describe('bridge knowledge (Rust-only routing)', () => {
+  it('knowledgeSearchFiles 无根路径时返回空数组', async () => {
     useSidebarStore.setState({ rootPath: '' })
     await expect(bridge.knowledgeSearchFiles('query')).resolves.toEqual([])
   })
 
-  it('knowledgeSearchFiles 在 JS 后端将相对路径转绝对路径', async () => {
-    localStorage.setItem('confucius-knowledge-backend', 'js')
+  it('knowledgeSearchFiles 走 Tantivy 并转绝对路径', async () => {
     useSidebarStore.setState({ rootPath: '/ws' })
-    await expect(bridge.knowledgeSearchFiles('query')).resolves.toEqual([])
-  })
-
-  it('knowledgeSearchFiles 在 Rust 后端走 Tantivy', async () => {
-    localStorage.removeItem('confucius-knowledge-backend')
-    useSidebarStore.setState({ rootPath: '/ws' })
-    mockedInvoke.mockResolvedValueOnce([])
-    await expect(bridge.knowledgeSearchFiles('query')).resolves.toEqual([])
+    mockedInvoke.mockResolvedValueOnce([
+      { filePath: 'a.md', fileName: 'A', content: 'x', lineNumber: 0, lineContent: '', matchStart: 0, matchEnd: 0 },
+    ])
+    const results = await bridge.knowledgeSearchFiles('query')
     expect(mockedInvoke).toHaveBeenCalledWith('search_text', expect.objectContaining({ rootPath: '/ws' }))
+    expect(results[0]).toMatchObject({ path: '/ws/a.md', title: 'A', mtime: '' })
   })
 
-  it('knowledgeResolveLink 在 Rust 后端无结果时返回 null', async () => {
-    localStorage.removeItem('confucius-knowledge-backend')
-    useSidebarStore.setState({ rootPath: '/ws' })
-    mockedInvoke.mockResolvedValueOnce([])
-    await expect(bridge.knowledgeResolveLink('My"Title')).resolves.toBeNull()
-  })
-
-  it('knowledgeResolveLink 在空根路径走 JS 回退', async () => {
+  it('knowledgeResolveLink 无根路径时返回 null', async () => {
     useSidebarStore.setState({ rootPath: '' })
     await expect(bridge.knowledgeResolveLink('Note')).resolves.toBeNull()
+  })
+
+  it('knowledgeResolveLink 走 Rust 精确匹配标题', async () => {
+    useSidebarStore.setState({ rootPath: '/ws' })
+    mockedInvoke.mockResolvedValueOnce([
+      { filePath: 'note.md', fileName: 'note', content: '', lineNumber: 0, lineContent: '', matchStart: 0, matchEnd: 0 },
+    ])
+    await expect(bridge.knowledgeResolveLink('My"Title')).resolves.toBe('/ws/note.md')
+  })
+
+  it('knowledgeResolveLink 无结果时返回 null', async () => {
+    useSidebarStore.setState({ rootPath: '/ws' })
+    mockedInvoke.mockResolvedValueOnce([])
+    await expect(bridge.knowledgeResolveLink('Note')).resolves.toBeNull()
+  })
+
+  it('knowledgeCreateDailyNote 经 Rust fs 命令创建并写入', async () => {
+    useSidebarStore.setState({ rootPath: '/ws' })
+    mockedInvoke
+      .mockResolvedValueOnce('/ws/日记')                      // create_dir
+      .mockRejectedValueOnce(new Error('ENOENT'))             // stat_file → 不存在
+    const path = await bridge.knowledgeCreateDailyNote()
+    expect(path).toMatch(/\.md$/)
+    expect(mockedInvoke.mock.calls.some((c) => c[0] === 'write_file_utf8')).toBe(true)
+  })
+
+  it('knowledgeCreateDailyNote 文件已存在时不重复写入', async () => {
+    useSidebarStore.setState({ rootPath: '/ws' })
+    mockedInvoke
+      .mockResolvedValueOnce('/ws/日记')                      // create_dir
+      .mockResolvedValueOnce({ size: 1, modified: '0', is_dir: false }) // stat_file → 已存在
+    await bridge.knowledgeCreateDailyNote()
+    expect(mockedInvoke.mock.calls.some((c) => c[0] === 'write_file_utf8')).toBe(false)
   })
 })
 

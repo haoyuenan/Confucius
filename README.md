@@ -24,7 +24,7 @@
 - **全局知识图谱**：D3.js 力导向图，支持全局/局部模式、拖拽、缩放、点击跳转
 - **快速打开**：`Ctrl+O` 模糊搜索文件名和标题
 - **每日笔记**：一键创建今日笔记，按 `日记/YYYY/MM/YYYY-MM-DD.md` 归档，自动填充 frontmatter
-- **Rust 知识库引擎**：知识库索引以 Rust 为默认后端（JS 引擎仅作回退），1000+ 文件扫描 < 3s
+- **Rust 知识库引擎**：知识库索引与反链/图谱/标签由单一 Rust 引擎处理，1000+ 文件扫描 < 3s
 - **Tantivy 全文搜索**：倒排索引搜索引擎替代线性扫描，大知识库搜索从秒级到毫秒级
 
 ### 编辑器
@@ -176,18 +176,16 @@ confucius/
 │   │   ├── Sidebar/                # 侧边栏（文件树/大纲/搜索/反链/标签/图谱）
 │   │   ├── Settings/               # 设置面板
 │   │   ├── TemplatePicker.tsx      # 模板选择对话框
-│   │   ├── AIConfigDialog.tsx      # AI 配置对话框
 │   │   └── DailyNoteButton.tsx     # 新建笔记按钮
 │   ├── services/
 │   │   ├── bridge.ts               # Tauri IPC 封装层
 │   │   ├── command-registry.ts     # 内置命令 + 模糊搜索
-│   │   ├── knowledge-service.ts    # 知识库索引引擎（JS 回退版，Rust 为正式）
 │   │   ├── theme-service.ts        # 主题管理（12 套主题）
 │   │   ├── template-service.ts     # 模板系统
 │   │   ├── import-service.ts       # 多格式导入服务
 │   │   ├── ai-service.ts           # Ollama AI 服务
 │   │   └── recent-files.ts         # 最近文件
-│   ├── stores/                     # Zustand 状态（5 个 Store）
+│   ├── stores/                     # Zustand 状态（6 个 Store）
 │   ├── editor/                     # CM6 扩展（ai-tooltip, wikilinks, tags, wysiwyg 等）
 │   ├── hooks/                      # 自定义 hooks（虚拟滚动等）
 │   └── styles/                     # CSS 样式
@@ -201,6 +199,14 @@ confucius/
 ```
 
 ## 更新日志
+
+### v1.1.0（未发布）
+
+**架构收敛与死代码清理**：
+- **知识引擎单一化**：移除 JS 知识库引擎（`knowledge-service.ts`），统一由 Rust 引擎与 Tantivy 处理索引/反链/图谱/标签；删除双后端切换（localStorage `confucius-knowledge-backend`）。
+- **渲染管线单一化**：移除 Rust 版 Markdown 渲染管线（`src-tauri/src/render/`）及其未使用的命令 `render_markdown`，仅保留前端 markdown-it 渲染。
+- **死代码清理**：删除从未被调用的 `knowledge_init` 命令、`AIConfigDialog` 组件、`types/file.ts`（`FileResult`）。
+- **依赖收敛**：移除未使用的前端插件 `@tauri-apps/plugin-fs`、`@tauri-apps/plugin-process` 及其 Rust 初始化与 capability 授权；移除仅被旧渲染模块使用的 `syntect`/`ammonia`/`pulldown-cmark` crate。
 
 ### v1.0.0
 
@@ -274,7 +280,7 @@ v0.5.0 从 Electron 28 迁移至 Tauri 2，主要变化：
 
 ## 开发状态
 
-v1.0.0 在 v0.7.0 的功能基础上完成稳定性加固（数据安全、索引可靠性、实时同步）、Rust 引擎正式化、无障碍与反馈体系完善，并落地 CI 与性能优化，达到 1.0 发布标准。
+v1.0.0 在 v0.7.0 的功能基础上完成稳定性加固（数据安全、索引可靠性、实时同步）、Rust 引擎正式化、无障碍与反馈体系完善，并落地 CI 与性能优化，达到 1.0 发布标准。当前主线上已完成架构收敛（移除 JS 知识引擎与 Rust 渲染管线、清理死代码与冗余插件），知识库以 Rust 引擎为唯一后端。
 
 ## License
 

@@ -3,8 +3,6 @@ import * as bridge from '../services/bridge'
 import { useSidebarStore } from './sidebar-store'
 import { useTabStore } from './tab-store'
 
-const BACKEND_KEY = 'confucius-knowledge-backend'
-
 interface BacklinkEntry {
   source: string
   target: string
@@ -19,7 +17,6 @@ interface GraphData {
 
 interface KnowledgeState {
   initialized: boolean
-  useRustBackend: boolean
   backlinks: BacklinkEntry[]
   unlinkedMentions: string[]
   graphData: GraphData
@@ -35,14 +32,8 @@ interface KnowledgeState {
   searchFiles: (query: string) => Promise<void>
 }
 
-function getUseRust(): boolean {
-  // Rust 为正式引擎（默认）；localStorage 显式设为 'js' 时回退 JS 引擎
-  return localStorage.getItem(BACKEND_KEY) !== 'js'
-}
-
 export const useKnowledgeStore = create<KnowledgeState>((set, get) => ({
   initialized: false,
-  useRustBackend: getUseRust(),
   backlinks: [],
   unlinkedMentions: [],
   graphData: { nodes: [], links: [] },
@@ -50,33 +41,22 @@ export const useKnowledgeStore = create<KnowledgeState>((set, get) => ({
   searchResults: [],
 
   initialize: async (workspacePath) => {
-    const useRust = getUseRust()
     try {
-      if (useRust) {
-        await bridge.knowledgeInitRust(workspacePath)
-      } else {
-        await bridge.knowledgeInitialize(workspacePath)
-      }
-      set({ initialized: true, useRustBackend: useRust })
+      await bridge.knowledgeInitRust(workspacePath)
+      set({ initialized: true })
     } catch (err) {
       console.error('知识库初始化失败:', err)
     }
   },
 
   reindex: async (paths) => {
-    const { initialized, useRustBackend } = get()
+    const { initialized } = get()
     if (!initialized || paths.length === 0) return
     const root = useSidebarStore.getState().rootPath
     if (!root) return
     try {
-      if (useRustBackend) {
-        for (const p of paths) {
-          await bridge.knowledgeReindexRust(root, p)
-        }
-      } else {
-        for (const p of paths) {
-          await bridge.knowledgeReindex(p)
-        }
+      for (const p of paths) {
+        await bridge.knowledgeReindexRust(root, p)
       }
       // 刷新当前视图：反链 / 局部图谱 / 标签
       const activeTab = useTabStore.getState().activeTab()
@@ -91,45 +71,27 @@ export const useKnowledgeStore = create<KnowledgeState>((set, get) => ({
   },
 
   loadBacklinks: async (filePath) => {
-    const { useRustBackend } = get()
     try {
-      if (useRustBackend) {
-        const links = await bridge.knowledgeGetBacklinksRust(filePath)
-        set({ backlinks: links, unlinkedMentions: [] })
-      } else {
-        const result = await bridge.knowledgeGetBacklinks(filePath)
-        set({ backlinks: result.linked, unlinkedMentions: result.unlinked })
-      }
+      const links = await bridge.knowledgeGetBacklinksRust(filePath)
+      set({ backlinks: links, unlinkedMentions: [] })
     } catch (err) {
       console.error('加载反向链接失败:', err)
     }
   },
 
   loadGraph: async (filePath) => {
-    const { useRustBackend } = get()
     try {
-      if (useRustBackend) {
-        const data = await bridge.knowledgeGetGraphRust(filePath)
-        set({ graphData: { nodes: data.nodes, links: data.links } })
-      } else {
-        const data = await bridge.knowledgeGetGraph(filePath)
-        set({ graphData: data })
-      }
+      const data = await bridge.knowledgeGetGraphRust(filePath)
+      set({ graphData: { nodes: data.nodes, links: data.links } })
     } catch (err) {
       console.error('加载知识图谱失败:', err)
     }
   },
 
   loadTags: async () => {
-    const { useRustBackend } = get()
     try {
-      if (useRustBackend) {
-        const tags = await bridge.knowledgeGetTagsRust()
-        set({ tags })
-      } else {
-        const tags = await bridge.knowledgeGetTags()
-        set({ tags })
-      }
+      const tags = await bridge.knowledgeGetTagsRust()
+      set({ tags })
     } catch (err) {
       console.error('加载标签失败:', err)
     }

@@ -25,16 +25,6 @@ pub fn relative(workspace: &str, full_path: &str) -> String {
 type IndexState = Mutex<Option<KnowledgeIndex>>;
 
 #[tauri::command]
-pub async fn knowledge_init(workspace_path: String) -> Result<(), String> {
-    tauri::async_runtime::spawn_blocking(move || {
-        let index = idx::full_scan(&workspace_path)?;
-        idx::save_index(&workspace_path, &index)
-    })
-    .await
-    .map_err(|e| e.to_string())?
-}
-
-#[tauri::command]
 pub async fn knowledge_init_loaded(app: AppHandle, workspace_path: String) -> Result<(), String> {
     let index = tauri::async_runtime::spawn_blocking(move || {
         let index = match idx::load_index(&workspace_path) {
