@@ -41,8 +41,6 @@ vi.mock('@tauri-apps/api/core', () => ({
         return {}
       case 'knowledge_reindex':
         return undefined
-      case 'render_markdown':
-        return '<p>rendered</p>'
       case 'check_pandoc':
         return false
       case 'import_file':

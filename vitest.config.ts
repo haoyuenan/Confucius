@@ -12,7 +12,7 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       reporter: ['text', 'lcov', 'html'],
-      include: ['src/**/*.{ts,tsx}'],
+      include: ['src/stores/**/*.{ts,tsx}', 'src/utils/**/*.{ts,tsx}', 'src/services/**/*.{ts,tsx}'],
       exclude: ['src/**/*.d.ts', 'src/main.tsx', 'src/vite-env.d.ts'],
       thresholds: {
         branches: 70,

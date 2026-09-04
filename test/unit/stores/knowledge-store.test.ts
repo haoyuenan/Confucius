@@ -4,15 +4,12 @@ import { useSidebarStore } from '../../../src/stores/sidebar-store'
 import { useTabStore } from '../../../src/stores/tab-store'
 
 vi.mock('../../../src/services/bridge', () => ({
+  knowledgeInitRust: vi.fn(async () => {}),
   knowledgeReindexRust: vi.fn(async () => {}),
-  knowledgeReindex: vi.fn(async () => true),
   knowledgeSearchFiles: vi.fn(async () => []),
   knowledgeGetBacklinksRust: vi.fn(async () => []),
   knowledgeGetGraphRust: vi.fn(async () => ({ nodes: [], links: [] })),
   knowledgeGetTagsRust: vi.fn(async () => ({})),
-  knowledgeGetBacklinks: vi.fn(async () => ({ linked: [], unlinked: [] })),
-  knowledgeGetGraph: vi.fn(async () => ({ nodes: [], links: [] })),
-  knowledgeGetTags: vi.fn(async () => ({})),
 }))
 
 import * as bridge from '../../../src/services/bridge'
@@ -31,7 +28,7 @@ function makeTab(filePath: string) {
 
 beforeEach(() => {
   vi.clearAllMocks()
-  useKnowledgeStore.setState({ initialized: false, useRustBackend: false })
+  useKnowledgeStore.setState({ initialized: false })
   useSidebarStore.setState({ rootPath: null })
   useTabStore.setState({ tabs: [], activeTabId: null })
 })
@@ -42,14 +39,12 @@ describe('knowledge-store reindex', () => {
     useKnowledgeStore.setState({ initialized: false })
     await useKnowledgeStore.getState().reindex(['/root/a.md'])
     expect(bridge.knowledgeReindexRust).not.toHaveBeenCalled()
-    expect(bridge.knowledgeReindex).not.toHaveBeenCalled()
   })
 
   it('无工作区时直接跳过', async () => {
     useKnowledgeStore.setState({ initialized: true })
     await useKnowledgeStore.getState().reindex(['/root/a.md'])
     expect(bridge.knowledgeReindexRust).not.toHaveBeenCalled()
-    expect(bridge.knowledgeReindex).not.toHaveBeenCalled()
   })
 
   it('空路径列表不触发调用', async () => {
@@ -57,11 +52,10 @@ describe('knowledge-store reindex', () => {
     useSidebarStore.setState({ rootPath: '/root' })
     await useKnowledgeStore.getState().reindex([])
     expect(bridge.knowledgeReindexRust).not.toHaveBeenCalled()
-    expect(bridge.knowledgeReindex).not.toHaveBeenCalled()
   })
 
-  it('Rust 后端逐路径调用 knowledgeReindexRust 并刷新视图', async () => {
-    useKnowledgeStore.setState({ initialized: true, useRustBackend: true })
+  it('逐路径调用 knowledgeReindexRust 并刷新视图', async () => {
+    useKnowledgeStore.setState({ initialized: true })
     useSidebarStore.setState({ rootPath: '/root' })
     useTabStore.setState({ tabs: [makeTab('/root/a.md')], activeTabId: 't1' })
 
@@ -76,19 +70,14 @@ describe('knowledge-store reindex', () => {
     expect(bridge.knowledgeGetTagsRust).toHaveBeenCalled()
   })
 
-  it('JS 后端逐路径调用 knowledgeReindex', async () => {
-    useKnowledgeStore.setState({ initialized: true, useRustBackend: false })
-    useSidebarStore.setState({ rootPath: '/root' })
-
-    await useKnowledgeStore.getState().reindex(['/root/a.md'])
-
-    expect(bridge.knowledgeReindex).toHaveBeenCalledTimes(1)
-    expect(bridge.knowledgeReindex).toHaveBeenCalledWith('/root/a.md')
-    expect(bridge.knowledgeReindexRust).not.toHaveBeenCalled()
+  it('初始化调用 knowledgeInitRust', async () => {
+    await useKnowledgeStore.getState().initialize('/root')
+    expect(bridge.knowledgeInitRust).toHaveBeenCalledWith('/root')
+    expect(useKnowledgeStore.getState().initialized).toBe(true)
   })
 
   it('searchFiles 委托 bridge（Rust 后端走 Tantivy 分流）', async () => {
-    useKnowledgeStore.setState({ initialized: true, useRustBackend: true })
+    useKnowledgeStore.setState({ initialized: true })
     ;(bridge.knowledgeSearchFiles as ReturnType<typeof vi.fn>)
       .mockResolvedValueOnce([{ path: '/root/note.md', title: 'note', mtime: '' }])
 

@@ -7,20 +7,7 @@ on:
 
 jobs:
   release:
-    strategy:
-      matrix:
-        include:
-          - os: windows-latest
-            cmd: pack:win
-            artifact: dist-release/*.exe
-          - os: macos-latest
-            cmd: pack:mac
-            artifact: dist-release/*.dmg
-          - os: ubuntu-latest
-            cmd: pack:linux
-            artifact: dist-release/*.AppImage
-
-    runs-on: ${{ matrix.os }}
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
 
@@ -29,24 +16,19 @@ jobs:
           node-version: 20
           cache: npm
 
+      - uses: dtolnay/rust-toolchain@stable
+
       - name: Install dependencies
         run: npm ci
 
-      # Linux 打包需要额外依赖
-      - name: Install Linux dependencies
-        if: runner.os == 'Linux'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libarchive-tools rpm
-
-      - name: Build & package
-        run: npm run ${{ matrix.cmd }}
+      - name: Build & package (Windows NSIS)
+        run: npm run build:tauri
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Upload artifact
+      - name: Upload installer
         uses: actions/upload-artifact@v4
         with:
-          name: Confucius-${{ runner.os }}
-          path: ${{ matrix.artifact }}
+          name: Confucius-Windows
+          path: src-tauri/target/release/bundle/nsis/*.exe
           retention-days: 30

@@ -348,86 +348,54 @@ export async function getEnv(): Promise<{ tauri: string; platform: string; arch:
 
 // ─── 知识库 ───
 
-import { KnowledgeService } from './knowledge-service'
 import { useSidebarStore } from '../stores/sidebar-store'
-
-// 惰性单例：避免顶层构造触发 knowledge-service ↔ bridge 的循环初始化
-let _knowledgeService: KnowledgeService | null = null
-function getKnowledgeService(): KnowledgeService {
-  if (!_knowledgeService) _knowledgeService = new KnowledgeService()
-  return _knowledgeService
-}
-
-/**
- * 后端选择：Rust 为正式引擎（默认），JS 引擎仅作回退
- * （localStorage 'confucius-knowledge-backend' = 'js' 时使用 JS）
- */
-function isRustBackend(): boolean {
-  return localStorage.getItem('confucius-knowledge-backend') !== 'js'
-}
 
 function joinPaths(base: string, rel: string): string {
   const b = base.replace(/\\/g, '/').replace(/\/+$/, '')
   return `${b}/${rel.replace(/^\/+/, '')}`
 }
 
-export function knowledgeInitialize(workspacePath: string): Promise<boolean> {
-  return getKnowledgeService().initialize(workspacePath)
-}
-
-export function knowledgeGetBacklinks(filePath: string) {
-  return getKnowledgeService().getBacklinks(filePath)
-}
-
-export function knowledgeGetGraph(filePath?: string) {
-  return getKnowledgeService().getGraphData(filePath)
-}
-
-export function knowledgeGetTags() {
-  return getKnowledgeService().getTags()
-}
-
 export async function knowledgeSearchFiles(query: string) {
   const root = useSidebarStore.getState().rootPath
-  if (!root) {
-    return getKnowledgeService().searchFiles(query)
-  }
-  if (isRustBackend()) {
-    // Rust 后端：Tantivy 索引（文件名/标题/内容）
-    const results = await invoke<SearchResult[]>('search_text', { rootPath: root, query })
-    return results.map((r) => ({
-      path: joinPaths(root, r.filePath),
-      title: r.fileName,
-      mtime: '',
-    }))
-  }
-  // JS 回退引擎：内存索引返回相对路径，转为绝对路径
-  return getKnowledgeService().searchFiles(query).map((r) => ({
-    ...r,
-    path: joinPaths(root, r.path),
+  if (!root) return []
+  // 仅 Rust 引擎：Tantivy 索引（文件名/标题/内容）
+  const results = await invoke<SearchResult[]>('search_text', { rootPath: root, query })
+  return results.map((r) => ({
+    path: joinPaths(root, r.filePath),
+    title: r.fileName,
+    mtime: '',
   }))
 }
 
-export function knowledgeCreateDailyNote(): Promise<string> {
-  return getKnowledgeService().createDailyNote()
+export async function knowledgeCreateDailyNote(): Promise<string> {
+  const root = useSidebarStore.getState().rootPath
+  if (!root) throw new Error('请先打开一个工作区')
+  const now = new Date()
+  const y = now.getFullYear()
+  const m = String(now.getMonth() + 1).padStart(2, '0')
+  const d = String(now.getDate()).padStart(2, '0')
+  const rel = `日记/${y}/${m}`
+  const dirPath = joinPaths(root, rel)
+  const filePath = `${dirPath}/${y}-${m}-${d}.md`
+
+  await createDir(root, rel)
+  if (!(await fileExists(filePath))) {
+    const content = `---\ntitle: ${y}-${m}-${d} 日记\ncreated: ${y}-${m}-${d}\ntags: [日记]\n---\n\n# ${y}-${m}-${d}\n\n`
+    await writeFile(filePath, content)
+  }
+  return filePath
 }
 
 export async function knowledgeResolveLink(linkTitle: string) {
   const root = useSidebarStore.getState().rootPath
-  if (isRustBackend() && root) {
-    // Rust 后端：Tantivy 精确匹配标题字段
-    const safeTitle = linkTitle.replace(/"/g, '')
-    const results = await invoke<SearchResult[]>('search_text', {
-      rootPath: root,
-      query: `title:"${safeTitle}"`,
-    })
-    return results.length > 0 ? joinPaths(root, results[0].filePath) : null
-  }
-  return getKnowledgeService().resolveLink(linkTitle)
-}
-
-export function knowledgeReindex(filePath: string): Promise<boolean> {
-  return getKnowledgeService().reindex(filePath)
+  if (!root) return null
+  // 仅 Rust 引擎：Tantivy 精确匹配标题字段
+  const safeTitle = linkTitle.replace(/"/g, '')
+  const results = await invoke<SearchResult[]>('search_text', {
+    rootPath: root,
+    query: `title:"${safeTitle}"`,
+  })
+  return results.length > 0 ? joinPaths(root, results[0].filePath) : null
 }
 
 // ─── 知识库 Rust 版（新 IPC 命令）───

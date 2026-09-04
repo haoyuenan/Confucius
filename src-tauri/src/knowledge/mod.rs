@@ -25,21 +25,20 @@ pub fn relative(workspace: &str, full_path: &str) -> String {
 type IndexState = Mutex<Option<KnowledgeIndex>>;
 
 #[tauri::command]
-pub fn knowledge_init(workspace_path: String) -> Result<(), String> {
-    let index = idx::full_scan(&workspace_path)?;
-    idx::save_index(&workspace_path, &index)
-}
+pub async fn knowledge_init_loaded(app: AppHandle, workspace_path: String) -> Result<(), String> {
+    let index = tauri::async_runtime::spawn_blocking(move || {
+        let index = match idx::load_index(&workspace_path) {
+            Ok(i) => i,
+            Err(_) => idx::full_scan(&workspace_path)?,
+        };
+        idx::save_index(&workspace_path, &index)?;
 
-#[tauri::command]
-pub fn knowledge_init_loaded(app: AppHandle, workspace_path: String) -> Result<(), String> {
-    let index = match idx::load_index(&workspace_path) {
-        Ok(i) => i,
-        Err(_) => idx::full_scan(&workspace_path)?,
-    };
-    idx::save_index(&workspace_path, &index)?;
-
-    // Build Tantivy search index
-    let _ = crate::search::indexer::build_search_index(&workspace_path, &index.files);
+        // Build Tantivy search index
+        let _ = crate::search::indexer::build_search_index(&workspace_path, &index.files);
+        Ok::<_, String>(index)
+    })
+    .await
+    .map_err(|e| e.to_string())??;
 
     let state = app.state::<IndexState>();
     let mut guard = state.lock().map_err(|e| e.to_string())?;
@@ -109,28 +108,34 @@ fn validate_reindex_path(workspace_path: &str, file_path: &str) -> Result<(), St
 }
 
 #[tauri::command]
-pub fn knowledge_reindex(
+pub async fn knowledge_reindex(
     app: AppHandle,
     workspace_path: String,
     file_path: String,
 ) -> Result<(), String> {
     validate_reindex_path(&workspace_path, &file_path)?;
-    idx::reindex_file(&workspace_path, &file_path)?;
-    let updated = idx::load_index(&workspace_path)?;
 
-    // Update Tantivy search index
-    let rel = relative(&workspace_path, &file_path);
-    if let Some(meta) = updated.files.get(&rel) {
-        crate::search::indexer::add_document(
-            &workspace_path,
-            &rel,
-            &meta.title,
-            &meta.tags,
-            &meta.modified,
-        )?;
-    } else {
-        crate::search::indexer::remove_document(&workspace_path, &rel)?;
-    }
+    let updated = tauri::async_runtime::spawn_blocking(move || {
+        idx::reindex_file(&workspace_path, &file_path)?;
+        let updated = idx::load_index(&workspace_path)?;
+
+        // Update Tantivy search index
+        let rel = relative(&workspace_path, &file_path);
+        if let Some(meta) = updated.files.get(&rel) {
+            crate::search::indexer::add_document(
+                &workspace_path,
+                &rel,
+                &meta.title,
+                &meta.tags,
+                &meta.modified,
+            )?;
+        } else {
+            crate::search::indexer::remove_document(&workspace_path, &rel)?;
+        }
+        Ok::<_, String>(updated)
+    })
+    .await
+    .map_err(|e| e.to_string())??;
 
     let state = app.state::<IndexState>();
     let mut guard = state.lock().map_err(|e| e.to_string())?;
