@@ -200,7 +200,7 @@ confucius/
 
 ## 更新日志
 
-### v1.1.0（未发布）
+### v0.1.0（未发布）
 
 **架构收敛与死代码清理**：
 - **知识引擎单一化**：移除 JS 知识库引擎（`knowledge-service.ts`），统一由 Rust 引擎与 Tantivy 处理索引/反链/图谱/标签；删除双后端切换（localStorage `confucius-knowledge-backend`）。

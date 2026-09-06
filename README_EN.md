@@ -200,7 +200,7 @@ confucius/
 
 ## Changelog
 
-### v1.1.0 (unreleased)
+### v0.1.0 (unreleased)
 
 **Architecture consolidation & dead-code cleanup**:
 - **Single knowledge engine**: removed the JS knowledge engine (`knowledge-service.ts`); all index/backlinks/graph/tags are now handled by the Rust engine + Tantivy. Removed the dual-backend switch (`confucius-knowledge-backend`).
