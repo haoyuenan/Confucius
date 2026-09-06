@@ -224,7 +224,7 @@ confucius/
 
 ## 从 Electron 迁移
 
-v0.5.0 从 Electron 28 迁移至 Tauri 2，主要变化：
+从 Electron 28 迁移至 Tauri 2，主要变化：
 
 - **安装包体积**：~72 MB（Electron NSIS）→ **约 8 MB**（Tauri）
 - **内存占用**：~200 MB → **约 60 MB**
@@ -235,10 +235,6 @@ v0.5.0 从 Electron 28 迁移至 Tauri 2，主要变化：
 - **插件系统**：移除（引擎 + 外部插件）
 - **编码检测**：jschardet + iconv-lite → Rust 直接读取 UTF-8
 - **图片路径**：`convertFileSrc` + asset 协议 → Rust base64 data URI
-
-## 开发状态
-
-v1.0.0 在 v0.7.0 的功能基础上完成稳定性加固（数据安全、索引可靠性、实时同步）、Rust 引擎正式化、无障碍与反馈体系完善，并落地 CI 与性能优化，达到 1.0 发布标准。当前主线上已完成架构收敛（移除 JS 知识引擎与 Rust 渲染管线、清理死代码与冗余插件），知识库以 Rust 引擎为唯一后端。
 
 ## License
 

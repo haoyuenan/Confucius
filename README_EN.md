@@ -224,7 +224,7 @@ confucius/
 
 ## Migration from Electron
 
-v0.5.0 migrates from Electron 28 to Tauri 2:
+Migrates from Electron 28 to Tauri 2:
 
 - **Installer size**: ~72 MB (Electron NSIS) → **~8 MB** (Tauri)
 - **Memory usage**: ~200 MB → **~60 MB**
@@ -235,10 +235,6 @@ v0.5.0 migrates from Electron 28 to Tauri 2:
 - **Plugin system**: Removed (engine + external plugins)
 - **Encoding detection**: jschardet + iconv-lite → Rust native UTF-8
 - **Image paths**: `convertFileSrc` + asset protocol → Rust base64 data URI
-
-## Development Status
-
-v1.0.0 builds on v0.7.0's feature set with stability hardening (data safety, index reliability, live sync), the Rust engine becoming the default, accessibility & feedback improvements, CI, and performance optimizations — meeting the 1.0 release bar.
 
 ## License
 
