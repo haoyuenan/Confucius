@@ -200,6 +200,8 @@ confucius/
 
 ## Changelog
 
+> Note: the version was reset to **v0.1.0** for the first public release; earlier iteration history is listed under “History” below.
+
 ### v0.1.0 (unreleased)
 
 **Architecture consolidation & dead-code cleanup**:
@@ -207,6 +209,10 @@ confucius/
 - **Single render pipeline**: removed the Rust Markdown render pipeline (`src-tauri/src/render/`) and its unused `render_markdown` command; only the frontend markdown-it renderer remains.
 - **Dead-code cleanup**: removed the never-invoked `knowledge_init` command, the `AIConfigDialog` component, and `types/file.ts` (`FileResult`).
 - **Dependency cleanup**: removed unused `@tauri-apps/plugin-fs` and `@tauri-apps/plugin-process` (plus their Rust init and capability grants), and the `syntect`/`ammonia`/`pulldown-cmark` crates used only by the removed render module.
+
+---
+
+## History
 
 ### v1.0.0
 

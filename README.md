@@ -200,6 +200,8 @@ confucius/
 
 ## 更新日志
 
+> 注：为面向公开的正式发布，版本号已重置为 **v0.1.0**；更早的迭代记录见下方“历史版本”。
+
 ### v0.1.0（未发布）
 
 **架构收敛与死代码清理**：
@@ -207,6 +209,10 @@ confucius/
 - **渲染管线单一化**：移除 Rust 版 Markdown 渲染管线（`src-tauri/src/render/`）及其未使用的命令 `render_markdown`，仅保留前端 markdown-it 渲染。
 - **死代码清理**：删除从未被调用的 `knowledge_init` 命令、`AIConfigDialog` 组件、`types/file.ts`（`FileResult`）。
 - **依赖收敛**：移除未使用的前端插件 `@tauri-apps/plugin-fs`、`@tauri-apps/plugin-process` 及其 Rust 初始化与 capability 授权；移除仅被旧渲染模块使用的 `syntect`/`ammonia`/`pulldown-cmark` crate。
+
+---
+
+## 历史版本
 
 ### v1.0.0
 
