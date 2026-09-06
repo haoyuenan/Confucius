@@ -200,75 +200,27 @@ confucius/
 
 ## Changelog
 
-> Note: the version was reset to **v0.1.0** for the first public release; earlier iteration history is listed under “History” below.
-
 ### v0.1.0 (unreleased)
 
-**Architecture consolidation & dead-code cleanup**:
-- **Single knowledge engine**: removed the JS knowledge engine (`knowledge-service.ts`); all index/backlinks/graph/tags are now handled by the Rust engine + Tantivy. Removed the dual-backend switch (`confucius-knowledge-backend`).
-- **Single render pipeline**: removed the Rust Markdown render pipeline (`src-tauri/src/render/`) and its unused `render_markdown` command; only the frontend markdown-it renderer remains.
-- **Dead-code cleanup**: removed the never-invoked `knowledge_init` command, the `AIConfigDialog` component, and `types/file.ts` (`FileResult`).
-- **Dependency cleanup**: removed unused `@tauri-apps/plugin-fs` and `@tauri-apps/plugin-process` (plus their Rust init and capability grants), and the `syntect`/`ammonia`/`pulldown-cmark` crates used only by the removed render module.
+**A local knowledge-base Markdown editor** (Tauri 2 + React 18 + TypeScript + Rust).
 
----
+**Core capabilities**:
+- Markdown editing: split / WYSIWYG / preview modes, deeply customized CodeMirror 6, with `[[wikilink]]`, `#tags` and an AI floating menu
+- Built-in knowledge base: `[[wikilinks]]`, tags and frontmatter parsing, backlinks / knowledge graph / tag aggregation, Rust engine + Tantivy full-text search (millisecond)
+- Local-first: file I/O, directory tree, file watching, indexing and math all handled by the Rust backend — no external services
+- AI-assisted writing: select text and call local Ollama for translate / summarize / rewrite / expand
+- Multi-format import: Word (.docx) / PDF / HTML / EPUB → Markdown (pandoc first, built-in fallbacks)
+- Image paste management: Ctrl+V pastes auto-save to `assets/` and inserts; configurable image directory
+- Template system: built-in diary / weekly / meeting / reading templates, with `{{date}}` placeholders
+- Theme system: 12 light/dark themes with per-mode memory
 
-## History
+**Stability & UX**:
+- Auto-save race fix, knowledge index dedup and atomic writes, real-time sync on file change (watcher)
+- Toast error notifications, keyboard accessibility, unified shortcuts, virtual scrolling (smooth at 10000+ items)
 
-### v1.0.0
-
-**Data Safety & Stability** (consolidating the v0.8+ series fixes):
-- **Auto-save race fix**: typing during a write no longer marks content as saved — no data loss; writes are serialized to prevent out-of-order overwrites
-- **Tantivy index dedup**: re-saving the same file no longer creates duplicate index documents
-- **Atomic knowledge index**: `index.json` written via temp-file + rename; corrupt index auto-recovers via full rescan (no more index wipe)
-- **Save As for untitled tabs**: closing a modified untitled tab prompts for a path; cancel keeps the tab
-- **Live index sync**: file changes (watcher) incrementally update backlinks / graph / tags / full-text search — no restart needed
-- **Theme guard**: invalid localStorage theme values fall back to default (fixes white-screen on startup)
-
-**Architecture**:
-- **Rust knowledge engine is now the default backend**; JS engine kept as fallback only; Quick Open and wikilink navigation route through Tantivy under the Rust backend
-- Resolved JS/Rust parser behavior divergence (link resolution unified to first-write-wins)
-
-**UX & Accessibility**:
-- **Toast notifications**: save / open / import / AI / image failures now show visible feedback (replacing silent console.error and alert)
-- **Keyboard accessibility**: file tree arrow-key navigation, tab bar ←→/Delete, command palette focus trap and ARIA semantics
-- **Single source of truth for shortcuts**: `src/config/shortcuts.ts`; fixed the Ctrl+Shift+O conflict (now bound to ordered list)
-- Pasted image links now respect the configured image directory
-
-**Engineering**:
-- **GitHub Actions CI**: typecheck / lint / vitest / cargo test on every push & PR
-- **Performance**: regex one-time compilation cache in the parser; removed full-HashMap deep copies during indexing
-- **Tests**: 102 Rust + 207 frontend tests; fixed the JS knowledge engine "fake test" (now tests production code directly)
-
-### v0.7.0
-
-**Knowledge Engine**:
-- **Rust Knowledge Index**: New `src-tauri/src/knowledge/` module migrates wikilinks/tags/frontmatter parsing and incremental indexing to Rust, 1000+ file full scan < 3s
-- **Tantivy Full-Text Search**: Replaced linear regex scanning with Tantivy inverted index engine, search drops from seconds to milliseconds
-- **Dual Backend**: `knowledge-store.ts` supports JS/Rust dual backend switchable via localStorage `confucius-knowledge-backend`
-
-**Editor Enhancements**:
-- **AI Writing Assistant**: Select text to show AI menu with translate, summarize, rewrite, expand (requires local Ollama)
-- **AI Config Panel**: Configure Ollama endpoint, select model, test connection with one click
-- **Template System**: `.confucius/templates/` directory with 4 preset templates (daily/weekly/meeting/reading notes), supports `{{date}}`/`{{title}}` placeholders
-- **New Note Button**: DailyNoteButton refactored to a generic template picker
-
-**File Management**:
-- **Multi-Format Import**: Import from Word (.docx), PDF, HTML, EPUB and auto-convert to Markdown (pandoc preferred, built-in html2text + docx-rs + zip fallbacks)
-- **Virtual Scrolling**: `use-virtual-list` hook, file tree and search results handle 10,000+ entries smoothly
-
-**Performance**:
-- 45 Rust unit tests covering knowledge/search modules
-- 174 frontend tests, zero type errors and lint violations
-
-### v0.6.0
-
-Image paste management and architecture cleanup:
-
-- **Image paste management**: Ctrl+V screenshots/images → Rust auto-saves to `assets/` → inserts `![](...)`
-- **New Rust command**: `save_image_file` — receives base64, decodes, writes to target directory
-- **New setting**: Configurable image save path (default: `assets`)
-- **File rename**: `electron-bridge.ts` → `bridge.ts`, removing Electron confusion
-- **Dead code cleanup**: Removed never-reached return value `2` from `confirmSave`
+**Engineering quality**:
+- Architecture consolidation: removed the JS knowledge engine and the Rust render pipeline, trimming dependencies and dead code
+- GitHub Actions CI (typecheck / lint / vitest / cargo test) fully automated; 100+ Rust and 200+ frontend tests
 
 ## Migration from Electron
 

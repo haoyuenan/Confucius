@@ -200,75 +200,27 @@ confucius/
 
 ## 更新日志
 
-> 注：为面向公开的正式发布，版本号已重置为 **v0.1.0**；更早的迭代记录见下方“历史版本”。
-
 ### v0.1.0（未发布）
 
-**架构收敛与死代码清理**：
-- **知识引擎单一化**：移除 JS 知识库引擎（`knowledge-service.ts`），统一由 Rust 引擎与 Tantivy 处理索引/反链/图谱/标签；删除双后端切换（localStorage `confucius-knowledge-backend`）。
-- **渲染管线单一化**：移除 Rust 版 Markdown 渲染管线（`src-tauri/src/render/`）及其未使用的命令 `render_markdown`，仅保留前端 markdown-it 渲染。
-- **死代码清理**：删除从未被调用的 `knowledge_init` 命令、`AIConfigDialog` 组件、`types/file.ts`（`FileResult`）。
-- **依赖收敛**：移除未使用的前端插件 `@tauri-apps/plugin-fs`、`@tauri-apps/plugin-process` 及其 Rust 初始化与 capability 授权；移除仅被旧渲染模块使用的 `syntect`/`ammonia`/`pulldown-cmark` crate。
+**本地知识库 Markdown 编辑器**（Tauri 2 + React 18 + TypeScript + Rust）。
 
----
+**核心能力**：
+- Markdown 编辑：分屏 / 所见即所得 / 预览三模式，CodeMirror 6 深度定制，支持 `[[wikilink]]`、`#标签`、AI 浮动菜单
+- 内置知识库：`[[wikilinks]]`、标签、frontmatter 解析，反链 / 知识图谱 / 标签聚合，Rust 引擎 + Tantivy 全文搜索（毫秒级）
+- 本地优先：文件读写、目录树、文件监听、索引、公式等均走 Rust 后端，无外部服务依赖
+- AI 辅助写作：选中文本调用本地 Ollama，翻译 / 摘要 / 改写 / 扩展
+- 多格式导入：Word（.docx）/ PDF / HTML / EPUB → Markdown（pandoc 优先，内置降级方案）
+- 图片粘贴管理：Ctrl+V 粘贴自动保存至 `assets/` 并插入，自定义图片目录
+- 模板系统：内置日记 / 周报 / 会议记录 / 读书笔记模板，支持 `{{date}}` 等占位符
+- 主题系统：12 套明暗主题，深浅模式记忆
 
-## 历史版本
+**稳定性与体验**：
+- 自动保存竞态修复、知识索引去重与原子写入、文件变更实时同步（watcher）
+- toast 错误通知、键盘可达性、统一快捷键、虚拟滚动（10000+ 条目流畅）
 
-### v1.0.0
-
-**数据安全与稳定性**（v0.8+ 系列修复的整合）：
-- **自动保存竞态修复**：写入期间继续输入不再被误标为已保存，内容不会丢失；写入串行化避免乱序覆盖
-- **Tantivy 索引去重**：同一文件多次保存不再产生重复索引文档
-- **知识索引原子写入**：`index.json` 临时文件 + rename 原子替换，损坏时自动全量重建（不再清空索引）
-- **未命名标签另存为**：关闭未命名且已修改的标签时弹出保存对话框，取消则保留标签
-- **索引实时同步**：文件变更（watcher）→ 反链/图谱/标签/全文搜索增量更新，不再需要重启应用
-- **主题防护**：localStorage 无效主题值自动回退默认主题（修复启动白屏）
-
-**架构收敛**：
-- **Rust 知识库引擎为正式后端**（默认），JS 引擎仅作回退；Quick Open 与 wikilink 跳转在 Rust 后端下走 Tantivy
-- 消除 JS/Rust 双引擎的解析行为差异（链接解析统一为先写保留语义）
-
-**体验与无障碍**：
-- **toast 错误通知**：保存/打开/导入/AI/图片失败均有可见反馈（替代静默 console.error 与 alert）
-- **键盘可达性**：文件树方向键导航、标签页 ←→/Delete 操作、命令面板焦点陷阱与 `aria` 语义
-- **快捷键单一事实源**：`src/config/shortcuts.ts` 统一管理，修复 Ctrl+Shift+O 冲突（归有序列表）
-- 粘贴图片链接路径与设置中的图片目录一致
-
-**工程基建**：
-- **GitHub Actions CI**：typecheck / lint / vitest / cargo test 全自动
-- **性能**：知识解析正则一次性编译缓存；索引构建消除整表深拷贝
-- **测试**：Rust 102 个、前端 207 个用例；修复 JS 知识引擎"假测试"（改为直接测生产代码）
-
-### v0.7.0
-
-**知识库引擎**：
-- **Rust 知识库索引**：新增 `src-tauri/src/knowledge/` 模块，wikilinks/tags/frontmatter 解析和增量索引迁移至 Rust，1000+ 文件全量扫描 < 3s
-- **Tantivy 全文搜索**：用 Tantivy 倒排索引引擎替换线性 regex 扫描，搜索从秒级降至毫秒级
-- **前端双后端**：`knowledge-store.ts` 支持 JS/Rust 双后端切换，通过 localStorage `confucius-knowledge-backend` 控制
-
-**编辑器增强**：
-- **AI 辅助写作**：选中文本弹出 AI 菜单，支持翻译、摘要、改写、扩展（需本地运行 Ollama）
-- **AI 配置面板**：设置 Ollama 地址、选择模型、一键测试连接
-- **模板系统**：`.confucius/templates/` 目录 + 预置 4 套模板（日记/周报/会议记录/读书笔记），支持 `{{date}}`/`{{title}}` 等占位符
-- **新建笔记按钮**：DailyNoteButton 重构为通用模板选择器
-
-**文件管理**：
-- **多格式导入**：支持从 Word (.docx)、PDF、HTML、EPUB 导入并转换为 Markdown（pandoc 优先，内置 html2text + docx-rs + zip 降级方案）
-- **虚拟滚动**：`use-virtual-list` hook，文件树和搜索结果支持 10000+ 条目流畅渲染
-
-**性能**：
-- 45 个 Rust 单元测试覆盖 knowledge/search 模块
-- 174 个前端测试，类型安全和 lint 零错误
-
-### v0.6.0
-
-图片粘贴管理与架构清理：
-
-- **图片粘贴管理**：Ctrl+V 粘贴截图/图片 → Rust 自动保存到 `assets/` 目录 → 插入 `![](...)`
-- **新增 Rust 命令**：`save_image_file` — 接收 base64、解码、写入指定目录
-- **新增设置项**：图片保存路径（可配置，默认 `assets`）
-- **文件重命名**：`electron-bridge.ts` → `bridge.ts`，消除 Electron 误解
-- **死代码清理**：`confirmSave` 移除永不触发的返回值 `2`
+**工程质量**：
+- 架构收敛：移除 JS 知识库引擎与 Rust 渲染管线，精简依赖、去除死代码
+- GitHub Actions CI（typecheck / lint / vitest / cargo test）全自动；Rust 100+、前端 200+ 测试用例
 
 ## 从 Electron 迁移
 
